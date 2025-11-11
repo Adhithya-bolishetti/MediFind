@@ -4,11 +4,9 @@ let userLocation = null;
 let map = null;
 let userMarker = null;
 let doctorMarkers = [];
-
-// Current doctor being reviewed
 let currentDoctorId = null;
-let currentSearchType = null; // 'symptoms' or 'location'
-let currentSearchResults = []; // Store current search results for sorting
+let currentSearchType = null;
+let currentSearchResults = [];
 
 // DOM Elements
 const searchSection = document.getElementById('search-section');
@@ -161,10 +159,8 @@ function setupEventListeners() {
         currentSearchType = 'location';
         
         if (locationText) {
-            // Use the location from the input to search for doctors
             findDoctorsByLocation(locationText);
         } else {
-            // If no location entered, get current location
             getCurrentLocationForSearch();
         }
     });
@@ -306,7 +302,9 @@ function setupEventListeners() {
         try {
             // Check if this is an update or new registration
             const allDoctors = await apiService.getDoctors();
-            const existingDoctor = allDoctors.find(d => d.email === currentUser.email || d.name === currentUser.name);
+            const existingDoctor = allDoctors.find(d => 
+                d.email === currentUser.email || d.userId === currentUser.id
+            );
             
             const doctorData = {
                 name: document.getElementById('doctor-name').value,
@@ -315,8 +313,8 @@ function setupEventListeners() {
                 phone: document.getElementById('doctor-phone').value,
                 address: document.getElementById('doctor-address').value,
                 city: document.getElementById('doctor-city').value,
-                lat: getRandomInRange(35, 45), // Random latitude for demo
-                lng: getRandomInRange(-120, -75), // Random longitude for demo
+                lat: getRandomInRange(35, 45),
+                lng: getRandomInRange(-120, -75),
                 bio: document.getElementById('doctor-bio').value,
                 education: document.getElementById('doctor-education').value,
                 experience: parseInt(document.getElementById('doctor-experience').value),
@@ -325,36 +323,24 @@ function setupEventListeners() {
             
             let doctor;
             if (existingDoctor) {
-                // Update existing doctor
                 doctor = await apiService.updateDoctor(existingDoctor._id, doctorData);
-                
-                // Update user data
-                if (currentUser && currentUser.type === 'doctor') {
-                    currentUser.name = doctor.name;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateUIForUser();
-                }
-                
                 alert('Profile updated successfully!');
-                showProfileSection(doctor);
             } else {
-                // New registration
                 doctor = await apiService.registerDoctor(doctorData);
-                
-                // Also update the user's data if they're logged in as this doctor
-                if (currentUser && currentUser.type === 'doctor') {
-                    // Update the user's name in localStorage to match the registered doctor name
-                    currentUser.name = doctor.name;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateUIForUser();
-                }
-                
                 alert('Registration successful! Your profile has been added to our system.');
-                showProfileSection(doctor);
             }
+            
+            // Update user data
+            if (currentUser && currentUser.type === 'doctor') {
+                currentUser.name = doctor.name;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateUIForUser();
+            }
+            
+            showProfileSection(doctor);
         } catch (error) {
-            alert('Registration failed. Please try again.');
             console.error('Registration error:', error);
+            alert('Registration failed. Please try again.');
         }
     });
 
@@ -364,21 +350,11 @@ function setupEventListeners() {
     });
 
     window.addEventListener('click', (e) => {
-        if (e.target === reviewModal) {
-            reviewModal.style.display = 'none';
-        }
-        if (e.target === authModal) {
-            authModal.style.display = 'none';
-        }
-        if (e.target === signupModal) {
-            signupModal.style.display = 'none';
-        }
-        if (e.target === mapModal) {
-            mapModal.style.display = 'none';
-        }
-        if (e.target === bookingModal) {
-            bookingModal.style.display = 'none';
-        }
+        if (e.target === reviewModal) reviewModal.style.display = 'none';
+        if (e.target === authModal) authModal.style.display = 'none';
+        if (e.target === signupModal) signupModal.style.display = 'none';
+        if (e.target === mapModal) mapModal.style.display = 'none';
+        if (e.target === bookingModal) bookingModal.style.display = 'none';
     });
 
     // Star rating interaction
@@ -399,7 +375,6 @@ function setupEventListeners() {
     // Sort results when sort option changes
     sortResults.addEventListener('change', () => {
         if (resultsSection.style.display !== 'none' && currentSearchResults.length > 0) {
-            // Apply sorting to current search results
             const sortedResults = sortDoctors([...currentSearchResults], sortResults.value);
             displayDoctors(sortedResults, doctorsGrid);
         }
@@ -423,42 +398,32 @@ function setupEventListeners() {
 
 // Navigation functions
 function showSearchSection() {
+    hideAllSections();
     searchSection.style.display = 'block';
-    resultsSection.style.display = 'none';
-    allDoctorsSection.style.display = 'none';
-    registrationSection.style.display = 'none';
-    appointmentsSection.style.display = 'none';
-    profileSection.style.display = 'none';
-    navSearch.classList.add('active');
-    navAllDoctors.classList.remove('active');
-    navRegister.classList.remove('active');
-    navProfile.classList.remove('active');
-    navAppointments.classList.remove('active');
+    resultsSection.style.display = 'block';
+    updateActiveNav(navSearch);
 }
 
 function showAllDoctorsSection() {
-    searchSection.style.display = 'none';
-    resultsSection.style.display = 'none';
+    hideAllSections();
     allDoctorsSection.style.display = 'block';
-    registrationSection.style.display = 'none';
-    appointmentsSection.style.display = 'none';
-    profileSection.style.display = 'none';
-    navSearch.classList.remove('active');
-    navAllDoctors.classList.add('active');
-    navRegister.classList.remove('active');
-    navProfile.classList.remove('active');
-    navAppointments.classList.remove('active');
+    updateActiveNav(navAllDoctors);
     displayAllDoctors();
 }
 
 function showRegistrationSection() {
     if (currentUser && currentUser.type === 'doctor') {
-        // Check if doctor already has a profile
+        hideAllSections();
+        registrationSection.style.display = 'block';
+        updateActiveNav(navRegister);
+        
+        // Pre-fill form with existing data or user data
         apiService.getDoctors().then(allDoctors => {
-            const existingDoctor = allDoctors.find(d => d.email === currentUser.email || d.name === currentUser.name);
+            const existingDoctor = allDoctors.find(d => 
+                d.email === currentUser.email || d.userId === currentUser.id
+            );
             
             if (existingDoctor) {
-                // Pre-fill the form with existing data
                 document.getElementById('doctor-name').value = existingDoctor.name;
                 document.getElementById('doctor-specialty').value = existingDoctor.specialty;
                 document.getElementById('doctor-email').value = existingDoctor.email;
@@ -468,29 +433,13 @@ function showRegistrationSection() {
                 document.getElementById('doctor-bio').value = existingDoctor.bio;
                 document.getElementById('doctor-education').value = existingDoctor.education;
                 document.getElementById('doctor-experience').value = existingDoctor.experience;
-                
-                // Change button text to indicate update
                 registrationSubmitBtn.textContent = 'Update Profile';
             } else {
-                // Clear form for new registration
                 doctorRegistrationForm.reset();
-                // Pre-fill with user data
                 document.getElementById('doctor-name').value = currentUser.name;
                 document.getElementById('doctor-email').value = currentUser.email;
                 registrationSubmitBtn.textContent = 'Register as Doctor';
             }
-            
-            searchSection.style.display = 'none';
-            resultsSection.style.display = 'none';
-            allDoctorsSection.style.display = 'none';
-            registrationSection.style.display = 'block';
-            appointmentsSection.style.display = 'none';
-            profileSection.style.display = 'none';
-            navSearch.classList.remove('active');
-            navAllDoctors.classList.remove('active');
-            navRegister.classList.add('active');
-            navProfile.classList.remove('active');
-            navAppointments.classList.remove('active');
         });
     } else {
         alert('Only doctors can access the registration page. Please log in as a doctor.');
@@ -499,21 +448,10 @@ function showRegistrationSection() {
 }
 
 function showAppointmentsSection() {
-    // Only doctors can see appointments
     if (currentUser && currentUser.type === 'doctor') {
-        searchSection.style.display = 'none';
-        resultsSection.style.display = 'none';
-        allDoctorsSection.style.display = 'none';
-        registrationSection.style.display = 'none';
+        hideAllSections();
         appointmentsSection.style.display = 'block';
-        profileSection.style.display = 'none';
-        navSearch.classList.remove('active');
-        navAllDoctors.classList.remove('active');
-        navRegister.classList.remove('active');
-        navProfile.classList.remove('active');
-        navAppointments.classList.add('active');
-        
-        // Load appointments
+        updateActiveNav(navAppointments);
         displayAppointments();
     } else {
         alert('Only doctors can access the appointments page.');
@@ -521,57 +459,81 @@ function showAppointmentsSection() {
     }
 }
 
-// Function to show profile section
-async function showProfileSection(doctor = null) {
-    // If doctor is provided (from registration), use that, otherwise find current doctor
-    let currentDoctor = doctor;
-    if (!currentDoctor && currentUser && currentUser.type === 'doctor') {
-        try {
-            const allDoctors = await apiService.getDoctors();
-            currentDoctor = allDoctors.find(d => d.email === currentUser.email || d.name === currentUser.name);
-        } catch (error) {
-            console.error('Error finding doctor:', error);
-        }
-    }
-    
-    if (!currentDoctor) {
-        alert('Doctor profile not found. Please complete your registration.');
-        showRegistrationSection();
+function showProfileSection(doctor = null) {
+    if (!currentUser || currentUser.type !== 'doctor') {
+        alert('Doctor profile not available.');
+        showSearchSection();
         return;
     }
     
-    // Update profile information
-    profileDoctorName.textContent = currentDoctor.name;
-    profileSpecialty.textContent = currentDoctor.specialty;
-    profileLocation.textContent = `${currentDoctor.address}, ${currentDoctor.city}`;
-    profileRating.innerHTML = getStarRating(currentDoctor.rating);
-    profileRatingValue.textContent = currentDoctor.rating;
-    profileReviewsCount.textContent = `(${currentDoctor.reviewCount} reviews)`;
-    profileEmail.textContent = currentDoctor.email;
-    profilePhone.textContent = currentDoctor.phone;
-    profileEducation.textContent = currentDoctor.education;
-    profileBio.textContent = currentDoctor.bio;
-    profileExperience.textContent = currentDoctor.experience;
-    
-    // Show success message if coming from registration
-    if (doctor) {
-        profileSuccessMessage.style.display = 'block';
-    } else {
-        profileSuccessMessage.style.display = 'none';
-    }
-    
-    // Show profile section and hide others
-    searchSection.style.display = 'none';
-    resultsSection.style.display = 'none';
-    allDoctorsSection.style.display = 'none';
-    registrationSection.style.display = 'none';
-    appointmentsSection.style.display = 'none';
+    hideAllSections();
     profileSection.style.display = 'block';
+    updateActiveNav(navProfile);
     
-    // Update navigation
-    navSearch.classList.remove('active');
-    navAllDoctors.classList.remove('active');
-    navRegister.classList.remove('active');
-    navProfile.classList.add('active');
-    navAppointments.classList.remove('active');
+    // Load and display profile data
+    loadProfileData(doctor);
 }
+
+// Helper functions
+function hideAllSections() {
+    const sections = [searchSection, resultsSection, allDoctorsSection, 
+                     registrationSection, appointmentsSection, profileSection];
+    sections.forEach(section => section.style.display = 'none');
+}
+
+function updateActiveNav(activeNav) {
+    const navItems = [navSearch, navAllDoctors, navRegister, navProfile, navAppointments];
+    navItems.forEach(nav => nav.classList.remove('active'));
+    activeNav.classList.add('active');
+}
+
+async function loadProfileData(doctor = null) {
+    try {
+        let currentDoctor = doctor;
+        if (!currentDoctor) {
+            const allDoctors = await apiService.getDoctors();
+            currentDoctor = allDoctors.find(d => 
+                d.email === currentUser.email || d.userId === currentUser.id
+            );
+        }
+        
+        if (!currentDoctor) {
+            profileSection.innerHTML = `
+                <div class="no-profile">
+                    <i class="fas fa-user-md fa-3x"></i>
+                    <h3>No Profile Found</h3>
+                    <p>Please complete your doctor registration to view your profile.</p>
+                    <button class="btn" onclick="showRegistrationSection()">Complete Registration</button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Update profile information
+        profileDoctorName.textContent = currentDoctor.name;
+        profileSpecialty.textContent = currentDoctor.specialty;
+        profileLocation.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${currentDoctor.address}, ${currentDoctor.city}`;
+        profileRating.innerHTML = getStarRating(currentDoctor.rating);
+        profileRatingValue.textContent = currentDoctor.rating.toFixed(1);
+        profileReviewsCount.textContent = `(${currentDoctor.reviewCount} reviews)`;
+        profileEmail.textContent = currentDoctor.email;
+        profilePhone.textContent = currentDoctor.phone;
+        profileEducation.textContent = currentDoctor.education;
+        profileBio.textContent = currentDoctor.bio;
+        profileExperience.textContent = currentDoctor.experience;
+        
+        if (doctor) {
+            profileSuccessMessage.style.display = 'block';
+        } else {
+            profileSuccessMessage.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        alert('Error loading profile data.');
+    }
+}
+
+// Make functions globally available
+window.showSearchSection = showSearchSection;
+window.showRegistrationSection = showRegistrationSection;
+window.showAppointmentsSection = showAppointmentsSection;
