@@ -1,4 +1,4 @@
-// api.js - Updated version with missing functions
+// api.js - Enhanced version with better error handling
 const API_BASE_URL = window.location.origin + '/api';
 
 // Helper function to handle API responses
@@ -131,3 +131,6 @@ const apiService = {
         return handleResponse(response);
     }
 };
+
+// Make apiService globally available
+window.apiService = apiService;
