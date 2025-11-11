@@ -1,417 +1,652 @@
-// Function to search by symptoms only
-async function searchBySymptoms(symptoms) {
-    if (!symptoms || symptoms.trim() === '') {
-        alert('Please enter symptoms to search for doctors.');
-        return;
-    }
-    
-    try {
-        console.log('🔍 Starting symptoms search for:', symptoms);
-        
-        // Build search parameters
-        const params = {
-            symptoms: symptoms.trim(),
-            location: locationInput.value.trim(),
-            specialty: document.getElementById('specialty-filter').value,
-            rating: document.getElementById('rating-filter').value
-        };
-        
-        // Remove empty parameters
-        Object.keys(params).forEach(key => {
-            if (!params[key] || params[key] === 'all' || params[key] === '0') {
-                delete params[key];
-            }
-        });
-        
-        console.log('📤 Search params:', params);
-        
-        const filteredDoctors = await apiService.searchDoctors(params);
-        console.log('📥 Search results:', filteredDoctors);
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const path = require('path');
 
-        if (filteredDoctors.length === 0) {
-            console.log('❌ No doctors found with direct search, trying fallback...');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from the public folder
+app.use(express.static(path.join(__dirname, './public')));
+
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/medifind';
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+    console.log('Connected to MongoDB');
+    initializeSampleData();
+});
+
+// MongoDB Schemas and Models
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    type: { type: String, enum: ['customer', 'doctor'], required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const doctorSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    specialty: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+    bio: { type: String, required: true },
+    education: { type: String, required: true },
+    experience: { type: Number, required: true },
+    rating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const reviewSchema = new mongoose.Schema({
+    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
+    reviewer: { type: String, required: true },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String, required: true },
+    date: { type: Date, default: Date.now }
+});
+
+const appointmentSchema = new mongoose.Schema({
+    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
+    doctorName: { type: String, required: true },
+    doctorSpecialty: { type: String, required: true },
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    patientName: { type: String, required: true },
+    date: { type: String, required: true },
+    time: { type: String, required: true },
+    reason: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
+    duration: { type: Number, default: 30 },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+const Doctor = mongoose.model('Doctor', doctorSchema);
+const Review = mongoose.model('Review', reviewSchema);
+const Appointment = mongoose.model('Appointment', appointmentSchema);
+
+// Enhanced symptom to specialty mapping
+const symptomMapping = {
+    'fever': ['General Practice', 'Pediatrics'],
+    'cold': ['General Practice', 'Pediatrics'],
+    'cough': ['General Practice', 'Pediatrics', 'Pulmonology'],
+    'chest pain': ['Cardiology', 'General Practice'],
+    'heart': ['Cardiology'],
+    'lung': ['Pulmonology', 'General Practice'],
+    'lungs': ['Pulmonology', 'General Practice'],
+    'breathing': ['Pulmonology', 'General Practice'],
+    'headache': ['General Practice', 'Neurology'],
+    'sore throat': ['General Practice', 'Pediatrics', 'ENT'],
+    'flu': ['General Practice', 'Pediatrics'],
+    'fatigue': ['General Practice', 'Endocrinology'],
+    'skin': ['Dermatology'],
+    'rash': ['Dermatology'],
+    'acne': ['Dermatology'],
+    'bone': ['Orthopedics'],
+    'joint': ['Orthopedics'],
+    'muscle': ['Orthopedics'],
+    'child': ['Pediatrics'],
+    'children': ['Pediatrics'],
+    'kid': ['Pediatrics'],
+    'stomach': ['Gastroenterology', 'General Practice'],
+    'digestive': ['Gastroenterology'],
+    'mental': ['Psychiatry'],
+    'depression': ['Psychiatry'],
+    'anxiety': ['Psychiatry'],
+    'brain': ['Neurology'],
+    'nerve': ['Neurology']
+};
+
+// Initialize sample data
+async function initializeSampleData() {
+    try {
+        const doctorCount = await Doctor.countDocuments();
+        if (doctorCount === 0) {
+            console.log('Initializing sample doctors...');
             
-            // Fallback: Get all doctors and filter client-side
-            const allDoctors = await apiService.getDoctors();
-            console.log('📊 All doctors available:', allDoctors.length);
-            
-            // Enhanced client-side filtering
-            const symptomsLower = symptoms.toLowerCase().trim();
-            const fallbackResults = allDoctors.filter(doctor => {
-                const bioMatch = doctor.bio.toLowerCase().includes(symptomsLower);
-                const specialtyMatch = doctor.specialty.toLowerCase().includes(symptomsLower);
-                const educationMatch = doctor.education.toLowerCase().includes(symptomsLower);
-                const nameMatch = doctor.name.toLowerCase().includes(symptomsLower);
-                
-                return bioMatch || specialtyMatch || educationMatch || nameMatch;
-            });
-            
-            console.log('🔄 Fallback results:', fallbackResults);
-            
-            if (fallbackResults.length === 0) {
-                doctorsGrid.innerHTML = `
-                    <div class="no-results">
-                        <i class="fas fa-search fa-3x"></i>
-                        <h3>No doctors found</h3>
-                        <p>No doctors found for "${symptoms}". Try different symptoms like "fever", "headache", or "cough".</p>
-                    </div>
-                `;
-                resultsCount.textContent = `No results found for "${symptoms}"`;
-                return;
-            }
-            
-            // Use fallback results
-            currentSearchResults = [...fallbackResults];
-            showSearchResults(currentSearchResults, `Showing ${fallbackResults.length} doctors for "${symptoms}" (fallback search)`);
-            
-        } else {
-            // Use direct search results
-            currentSearchResults = [...filteredDoctors];
-            showSearchResults(currentSearchResults, `Showing ${filteredDoctors.length} doctors for "${symptoms}"`);
+            const sampleDoctors = [
+                {
+                    name: "Dr. Sarah Johnson",
+                    specialty: "General Practice",
+                    email: "s.johnson@hospital.com",
+                    phone: "+1 (555) 123-4567",
+                    address: "123 Medical Center Dr",
+                    city: "New York",
+                    lat: 40.7128,
+                    lng: -74.0060,
+                    bio: "Experienced general practitioner with 10+ years of experience in family medicine and preventive care. Specializes in routine check-ups, vaccinations, and managing chronic conditions like diabetes and hypertension. Committed to providing comprehensive healthcare for the whole family.",
+                    education: "MD from Harvard Medical School, Board Certified in Family Medicine",
+                    experience: 10,
+                    rating: 4.8,
+                    reviewCount: 24
+                },
+                {
+                    name: "Dr. Michael Chen",
+                    specialty: "Cardiology",
+                    email: "m.chen@cardiac.com",
+                    phone: "+1 (555) 234-5678",
+                    address: "456 Heart Center Blvd",
+                    city: "New York",
+                    lat: 40.7215,
+                    lng: -74.0090,
+                    bio: "Cardiologist specializing in heart disease prevention and treatment. Expert in cardiac catheterization, echocardiography, and managing hypertension and heart failure. Passionate about helping patients maintain cardiovascular health through lifestyle changes and advanced treatments.",
+                    education: "MD from Johns Hopkins University, Fellowship in Cardiology",
+                    experience: 15,
+                    rating: 4.9,
+                    reviewCount: 31
+                },
+                {
+                    name: "Dr. Emily Rodriguez",
+                    specialty: "Pediatrics",
+                    email: "e.rodriguez@childrensclinic.com",
+                    phone: "+1 (555) 345-6789",
+                    address: "789 Pediatric Center",
+                    city: "Brooklyn",
+                    lat: 40.6782,
+                    lng: -73.9442,
+                    bio: "Pediatrician with a passion for child healthcare. Specializes in child development, vaccinations, and treating common childhood illnesses like ear infections, asthma, and allergies. Believes in building strong relationships with both children and parents.",
+                    education: "MD from Stanford University, Pediatric Board Certified",
+                    experience: 8,
+                    rating: 4.7,
+                    reviewCount: 18
+                },
+                {
+                    name: "Dr. James Wilson",
+                    specialty: "Dermatology",
+                    email: "j.wilson@skincare.com",
+                    phone: "+1 (555) 456-7890",
+                    address: "321 Skin Health Center",
+                    city: "Manhattan",
+                    lat: 40.7589,
+                    lng: -73.9851,
+                    bio: "Dermatologist specializing in skin cancer prevention, acne treatment, and cosmetic dermatology. Expert in managing eczema, psoriasis, and other skin conditions. Committed to providing comprehensive skin care with the latest treatments.",
+                    education: "MD from Yale School of Medicine, Dermatology Residency",
+                    experience: 12,
+                    rating: 4.6,
+                    reviewCount: 22
+                },
+                {
+                    name: "Dr. Lisa Thompson",
+                    specialty: "Orthopedics",
+                    email: "l.thompson@boneandjoint.com",
+                    phone: "+1 (555) 567-8901",
+                    address: "654 Orthopedic Center",
+                    city: "Queens",
+                    lat: 40.7282,
+                    lng: -73.7949,
+                    bio: "Orthopedic surgeon specializing in sports injuries, joint replacements, and fracture care. Expert in arthroscopic surgery and treating conditions like arthritis and back pain. Dedicated to helping patients regain mobility and return to active lifestyles.",
+                    education: "MD from Columbia University, Orthopedic Surgery Fellowship",
+                    experience: 14,
+                    rating: 4.8,
+                    reviewCount: 27
+                },
+                {
+                    name: "Dr. Robert Kim",
+                    specialty: "Neurology",
+                    email: "r.kim@neurocare.com",
+                    phone: "+1 (555) 678-9012",
+                    address: "987 Neurology Associates",
+                    city: "Boston",
+                    lat: 42.3601,
+                    lng: -71.0589,
+                    bio: "Neurologist specializing in headache disorders, epilepsy, and stroke prevention. Expert in diagnosing and treating conditions like migraines, multiple sclerosis, and Parkinson's disease. Focuses on personalized treatment plans for neurological health.",
+                    education: "MD from University of California, Neurology Residency",
+                    experience: 11,
+                    rating: 4.7,
+                    reviewCount: 19
+                },
+                {
+                    name: "Dr. Maria Garcia",
+                    specialty: "Psychiatry",
+                    email: "m.garcia@mentalwellness.com",
+                    phone: "+1 (555) 789-0123",
+                    address: "147 Mental Health Plaza",
+                    city: "Chicago",
+                    lat: 41.8781,
+                    lng: -87.6298,
+                    bio: "Psychiatrist specializing in depression, anxiety disorders, and stress management. Provides both medication management and psychotherapy. Committed to reducing mental health stigma and providing compassionate care.",
+                    education: "MD from University of Chicago, Psychiatry Residency",
+                    experience: 9,
+                    rating: 4.9,
+                    reviewCount: 33
+                }
+            ];
+
+            await Doctor.insertMany(sampleDoctors);
+            console.log('Sample doctors initialized successfully');
+        }
+    } catch (error) {
+        console.error('Error initializing sample data:', error);
+    }
+}
+
+// Helper function to generate random coordinates
+function getRandomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+// API Routes
+
+// User Authentication
+app.post('/api/auth/signup', async (req, res) => {
+    try {
+        const { name, email, password, type } = req.body;
+        
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
         }
         
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Create user
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            type
+        });
+        
+        await user.save();
+        
+        res.json({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            type: user.type
+        });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'Server error during signup' });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password, type } = req.body;
+        
+        // Find user
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid credentials' });
+        }
+        
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Invalid credentials' });
+        }
+        
+        // Check type if provided
+        if (type && user.type !== type) {
+            return res.status(400).json({ error: `User is not a ${type}` });
+        }
+        
+        res.json({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            type: user.type
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Server error during login' });
+    }
+});
+
+// Doctors - FIXED ROUTE ORDER: search route must come before :id route
+app.get('/api/doctors', async (req, res) => {
+    try {
+        const doctors = await Doctor.find();
+        res.json(doctors);
+    } catch (error) {
+        console.error('Get doctors error:', error);
+        res.status(500).json({ error: 'Server error fetching doctors' });
+    }
+});
+
+// FIXED: Search route moved BEFORE the :id route to avoid conflict
+app.get('/api/doctors/search', async (req, res) => {
+    try {
+        const { symptoms, location, specialty, rating } = req.query;
+        
+        console.log('🔍 SEARCH PARAMETERS RECEIVED:', { 
+            symptoms, 
+            location, 
+            specialty, 
+            rating 
+        });
+        
+        let query = {};
+        
+        // Build specialty filter
+        if (specialty && specialty !== 'all') {
+            query.specialty = new RegExp(specialty, 'i');
+        }
+        
+        // Build rating filter
+        if (rating && rating !== '0') {
+            query.rating = { $gte: parseFloat(rating) };
+        }
+        
+        // Build location filter
+        if (location && location.trim() !== '') {
+            query.$or = [
+                { city: new RegExp(location, 'i') },
+                { address: new RegExp(location, 'i') }
+            ];
+        }
+        
+        // Enhanced symptoms search with symptom mapping
+        if (symptoms && symptoms.trim() !== '') {
+            const symptomsLower = symptoms.toLowerCase().trim();
+            console.log('🤒 Searching for symptoms:', symptomsLower);
+            
+            // Get specialties from symptom mapping
+            let suggestedSpecialties = [];
+            Object.keys(symptomMapping).forEach(symptom => {
+                if (symptomsLower.includes(symptom)) {
+                    suggestedSpecialties = [...suggestedSpecialties, ...symptomMapping[symptom]];
+                }
+            });
+            
+            // Remove duplicates
+            suggestedSpecialties = [...new Set(suggestedSpecialties)];
+            
+            console.log('🎯 Suggested specialties:', suggestedSpecialties);
+            
+            // Create search conditions
+            const symptomsConditions = {
+                $or: [
+                    { bio: new RegExp(symptoms, 'i') },
+                    { specialty: new RegExp(symptoms, 'i') },
+                    { education: new RegExp(symptoms, 'i') },
+                    { name: new RegExp(symptoms, 'i') }
+                ]
+            };
+            
+            // Add suggested specialties to search
+            if (suggestedSpecialties.length > 0) {
+                symptomsConditions.$or.push({
+                    specialty: { $in: suggestedSpecialties.map(s => new RegExp(s, 'i')) }
+                });
+            }
+            
+            // If we already have location conditions, combine with AND
+            if (query.$or) {
+                query = {
+                    $and: [
+                        { $or: query.$or }, // Existing location conditions
+                        symptomsConditions  // New symptoms conditions
+                    ]
+                };
+            } else {
+                // No existing conditions, just use symptoms
+                query = symptomsConditions;
+            }
+        }
+        
+        console.log('🎯 FINAL QUERY:', JSON.stringify(query, null, 2));
+        
+        const doctors = await Doctor.find(query);
+        console.log(`✅ Found ${doctors.length} doctors`);
+        
+        res.json(doctors);
     } catch (error) {
         console.error('💥 Search error:', error);
-        
-        // Emergency fallback: Show all doctors
-        try {
-            const allDoctors = await apiService.getDoctors();
-            currentSearchResults = [...allDoctors];
-            showSearchResults(currentSearchResults, `Showing all ${allDoctors.length} doctors (emergency fallback)`);
-            alert('Search encountered an error. Showing all available doctors instead.');
-        } catch (fallbackError) {
-            console.error('Emergency fallback failed:', fallbackError);
-            doctorsGrid.innerHTML = `
-                <div class="no-results">
-                    <i class="fas fa-exclamation-triangle fa-3x"></i>
-                    <h3>Search Failed</h3>
-                    <p>Unable to load doctors. Please check your connection and try again.</p>
-                </div>
-            `;
-            resultsCount.textContent = 'Search failed - please try again';
-        }
+        res.status(500).json({ error: 'Server error during search: ' + error.message });
     }
-}
+});
 
-// Helper function to display search results
-function showSearchResults(doctorsToShow, message) {
-    // Calculate distances if user location is available for sorting
-    if (userLocation) {
-        doctorsToShow.forEach(doctor => {
-            doctor.distance = calculateDistance(
-                userLocation.lat, userLocation.lng,
-                doctor.lat, doctor.lng
-            );
-        });
-    }
-    
-    // Apply initial sorting
-    const sortedResults = sortDoctors([...doctorsToShow], sortResults.value);
-    
-    // Display the doctors
-    displayDoctors(sortedResults, doctorsGrid);
-    searchSection.style.display = 'block';
-    resultsSection.style.display = 'block';
-    allDoctorsSection.style.display = 'none';
-    registrationSection.style.display = 'none';
-    appointmentsSection.style.display = 'none';
-    profileSection.style.display = 'none';
-    
-    // Update results count
-    resultsCount.textContent = message;
-}
-
-// New function to find doctors by location
-async function findDoctorsByLocation(locationText) {
-    if (!locationText || locationText.trim() === '') {
-        alert('Please enter a location to search for doctors.');
-        return;
-    }
-    
+// Get single doctor by ID - MOVED AFTER search route
+app.get('/api/doctors/:id', async (req, res) => {
     try {
-        console.log('📍 Starting location search for:', locationText);
-        
-        const params = {
-            location: locationText.trim(),
-            specialty: document.getElementById('specialty-filter').value,
-            rating: document.getElementById('rating-filter').value
-        };
-        
-        // Remove empty parameters
-        Object.keys(params).forEach(key => {
-            if (!params[key] || params[key] === 'all' || params[key] === '0') {
-                delete params[key];
-            }
-        });
-        
-        console.log('📤 Location search params:', params);
-        
-        const filteredDoctors = await apiService.searchDoctors(params);
-        console.log('📥 Location search results:', filteredDoctors);
-        
-        if (filteredDoctors.length === 0) {
-            doctorsGrid.innerHTML = `
-                <div class="no-results">
-                    <i class="fas fa-map-marker-alt fa-3x"></i>
-                    <h3>No doctors found in this area</h3>
-                    <p>No doctors found in ${locationText}. Try a different location or search by symptoms instead.</p>
-                </div>
-            `;
-            resultsCount.textContent = `No doctors found in ${locationText}`;
-            return;
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid doctor ID format' });
         }
-        
-        // Store the results for sorting
-        currentSearchResults = [...filteredDoctors];
-        
-        // Calculate distances if user location is available for sorting
-        if (userLocation) {
-            currentSearchResults.forEach(doctor => {
-                doctor.distance = calculateDistance(
-                    userLocation.lat, userLocation.lng,
-                    doctor.lat, doctor.lng
-                );
-            });
+
+        const doctor = await Doctor.findById(req.params.id);
+        if (!doctor) {
+            return res.status(404).json({ error: 'Doctor not found' });
         }
-        
-        // Apply initial sorting
-        const sortedResults = sortDoctors([...currentSearchResults], sortResults.value);
-        
-        // Display the doctors
-        displayDoctors(sortedResults, doctorsGrid);
-        searchSection.style.display = 'block';
-        resultsSection.style.display = 'block';
-        allDoctorsSection.style.display = 'none';
-        registrationSection.style.display = 'none';
-        appointmentsSection.style.display = 'none';
-        profileSection.style.display = 'none';
-        
-        // Update results count
-        resultsCount.textContent = `Showing ${filteredDoctors.length} doctor${filteredDoctors.length !== 1 ? 's' : ''} in ${locationText}`;
+        res.json(doctor);
     } catch (error) {
-        console.error('💥 Location search error:', error);
-        doctorsGrid.innerHTML = `
-            <div class="no-results">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-                <h3>Location Search Failed</h3>
-                <p>Unable to search by location. Please try again or search by symptoms instead.</p>
-            </div>
-        `;
-        resultsCount.textContent = 'Location search failed';
+        console.error('Get doctor by ID error:', error);
+        res.status(500).json({ error: 'Server error fetching doctor' });
     }
-}
+});
 
-// Function to sort doctors based on selected criteria
-function sortDoctors(doctorsToSort, sortValue) {
-    return doctorsToSort.sort((a, b) => {
-        if (sortValue === 'rating-desc') {
-            return b.rating - a.rating;
-        } else if (sortValue === 'distance-asc') {
-            // For distance sorting, we need user location
-            if (userLocation) {
-                const distA = a.distance || calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
-                const distB = b.distance || calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
-                return distA - distB;
-            } else {
-                // If no location, fallback to rating
-                return b.rating - a.rating;
-            }
-        } else if (sortValue === 'name-asc') {
-            return a.name.localeCompare(b.name);
-        }
-        return 0;
-    });
-}
-
-// Display doctors in the grid
-function displayDoctors(doctorsToShow, gridElement) {
-    gridElement.innerHTML = '';
-    
-    if (doctorsToShow.length === 0) {
-        gridElement.innerHTML = `
-            <div class="no-results">
-                <i class="fas fa-search fa-3x"></i>
-                <h3>No doctors found</h3>
-                <p>No doctors found matching your criteria. Try different symptoms or filters.</p>
-            </div>
-        `;
-        if (gridElement === doctorsGrid) {
-            resultsCount.textContent = 'Showing 0 results';
-        }
-        return;
-    }
-
-    // Apply filters for search results
-    if (gridElement === doctorsGrid) {
-        const distanceFilter = document.getElementById('location-filter').value;
-        const specialtyFilter = document.getElementById('specialty-filter').value;
-        const ratingFilter = parseFloat(document.getElementById('rating-filter').value);
-
-        doctorsToShow = doctorsToShow.filter(doctor => {
-            if (specialtyFilter !== 'all' && doctor.specialty.toLowerCase() !== specialtyFilter.toLowerCase()) {
-                return false;
-            }
-            
-            if (distanceFilter !== 'all' && userLocation) {
-                const maxDistance = parseFloat(distanceFilter);
-                const distance = doctor.distance || calculateDistance(userLocation.lat, userLocation.lng, doctor.lat, doctor.lng);
-                if (distance > maxDistance) {
-                    return false;
-                }
-            }
-            
-            if (ratingFilter > 0 && doctor.rating < ratingFilter) {
-                return false;
-            }
-            
-            return true;
-        });
-    }
-
-    // Apply sorting for all doctors
-    if (gridElement === allDoctorsGrid) {
-        const sortValue = sortAllDoctors.value;
-        doctorsToShow.sort((a, b) => {
-            if (sortValue === 'rating-desc') {
-                return b.rating - a.rating;
-            } else if (sortValue === 'name-asc') {
-                return a.name.localeCompare(b.name);
-            } else if (sortValue === 'specialty-asc') {
-                return a.specialty.localeCompare(b.specialty);
-            }
-            return 0;
-        });
-    }
-
-    doctorsToShow.forEach(doctor => {
-        const doctorCard = document.createElement('div');
-        doctorCard.className = 'doctor-card';
-        
-        // Determine specialty badge class
-        const specialtyClass = `specialty-${doctor.specialty.toLowerCase().replace(/ /g, '-')}`;
-        
-        // Format distance if available
-        let distanceText = '';
-        if (userLocation) {
-            const distance = doctor.distance || calculateDistance(userLocation.lat, userLocation.lng, doctor.lat, doctor.lng);
-            distanceText = `<p class="doctor-distance"><i class="fas fa-road"></i> ${distance.toFixed(1)} km away</p>`;
-        }
-        
-        // Check if user is patient to show book appointment button
-        const bookAppointmentButton = currentUser && currentUser.type !== 'doctor' 
-            ? `<button class="btn btn-small book-appointment-btn" data-id="${doctor._id}">Book Appointment</button>`
-            : '';
-        
-        doctorCard.innerHTML = `
-            <div class="doctor-image">
-                <i class="fas fa-user-md"></i>
-            </div>
-            <div class="specialty-badge ${specialtyClass}">${doctor.specialty}</div>
-            <div class="doctor-info">
-                <h3 class="doctor-name">${doctor.name}</h3>
-                <p class="doctor-specialty">${doctor.specialty}</p>
-                <p class="doctor-location">
-                    <i class="fas fa-map-marker-alt"></i> ${doctor.address}, ${doctor.city}
-                </p>
-                <div class="doctor-rating">
-                    <div class="stars">${getStarRating(doctor.rating)}</div>
-                    <span class="rating-value">${doctor.rating}</span>
-                    <span class="reviews-count">(${doctor.reviewCount} reviews)</span>
-                </div>
-                ${distanceText}
-                <p class="doctor-experience">${doctor.experience} years experience</p>
-                <div class="doctor-actions">
-                    <button class="btn btn-small view-reviews" data-id="${doctor._id}">View Reviews</button>
-                    <button class="btn btn-small btn-warning add-review" data-id="${doctor._id}">Add Review</button>
-                    <button class="btn btn-small btn-secondary show-location" data-id="${doctor._id}">Show Location</button>
-                    ${bookAppointmentButton}
-                </div>
-            </div>
-        `;
-        gridElement.appendChild(doctorCard);
-    });
-
-    if (gridElement === doctorsGrid) {
-        resultsCount.textContent = `Showing ${doctorsToShow.length} result${doctorsToShow.length !== 1 ? 's' : ''}`;
-    } else if (gridElement === allDoctorsGrid) {
-        allDoctorsCount.textContent = `Showing ${doctorsToShow.length} doctor${doctorsToShow.length !== 1 ? 's' : ''}`;
-    }
-
-    // Add event listeners to buttons
-    document.querySelectorAll('.view-reviews').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            console.log('View reviews clicked for doctor:', doctorId);
-            openReviewModal(doctorId, false);
-        });
-    });
-
-    document.querySelectorAll('.add-review').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            console.log('Add review clicked for doctor:', doctorId);
-            openReviewModal(doctorId, true);
-        });
-    });
-
-    document.querySelectorAll('.show-location').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            showDoctorLocation(doctorId);
-        });
-    });
-
-    // Add event listeners for booking appointments
-    document.querySelectorAll('.book-appointment-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            console.log('Book appointment clicked for doctor:', doctorId);
-            openBookingModal(doctorId);
-        });
-    });
-}
-
-// Display all doctors
-async function displayAllDoctors() {
+app.post('/api/doctors', async (req, res) => {
     try {
-        const allDoctors = await apiService.getDoctors();
-        displayDoctors(allDoctors, allDoctorsGrid);
+        const doctorData = req.body;
+        
+        // Check if doctor already exists with this email
+        const existingDoctor = await Doctor.findOne({ email: doctorData.email });
+        if (existingDoctor) {
+            return res.status(400).json({ error: 'Doctor with this email already exists' });
+        }
+        
+        const doctor = new Doctor(doctorData);
+        await doctor.save();
+        res.json(doctor);
     } catch (error) {
-        console.error('Load doctors error:', error);
-        allDoctorsGrid.innerHTML = `
-            <div class="no-results">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-                <h3>Failed to load doctors</h3>
-                <p>Unable to load doctors list. Please check your connection and try again.</p>
-            </div>
-        `;
-        allDoctorsCount.textContent = 'Failed to load doctors';
+        console.error('Create doctor error:', error);
+        res.status(500).json({ error: 'Server error creating doctor' });
     }
-}
+});
 
-// Generate star rating HTML
-function getStarRating(rating) {
-    let stars = '';
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5;
-    
-    for (let i = 0; i < fullStars; i++) {
-        stars += '★';
-    }
-    
-    if (halfStar) {
-        stars += '½';
-    }
-    
-    const emptyStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < emptyStars; i++) {
-        stars += '☆';
-    }
-    
-    return stars;
-}
+app.put('/api/doctors/:id', async (req, res) => {
+    try {
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid doctor ID format' });
+        }
 
-// Make functions globally available
-window.searchBySymptoms = searchBySymptoms;
-window.findDoctorsByLocation = findDoctorsByLocation;
-window.displayAllDoctors = displayAllDoctors;
+        const doctor = await Doctor.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        if (!doctor) {
+            return res.status(404).json({ error: 'Doctor not found' });
+        }
+        res.json(doctor);
+    } catch (error) {
+        console.error('Update doctor error:', error);
+        res.status(500).json({ error: 'Server error updating doctor' });
+    }
+});
+
+// Reviews
+app.get('/api/reviews/doctor/:doctorId', async (req, res) => {
+    try {
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.doctorId)) {
+            return res.status(400).json({ error: 'Invalid doctor ID format' });
+        }
+
+        const reviews = await Review.find({ doctorId: req.params.doctorId })
+            .sort({ date: -1 });
+        res.json(reviews);
+    } catch (error) {
+        console.error('Get reviews error:', error);
+        res.status(500).json({ error: 'Server error fetching reviews' });
+    }
+});
+
+app.post('/api/reviews', async (req, res) => {
+    try {
+        const { doctorId, reviewer, rating, comment } = req.body;
+        
+        // Validate required fields
+        if (!doctorId || !reviewer || !rating || !comment) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+        
+        // Validate rating
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+        }
+        
+        // Check if doctor exists
+        const doctor = await Doctor.findById(doctorId);
+        if (!doctor) {
+            return res.status(404).json({ error: 'Doctor not found' });
+        }
+        
+        const review = new Review({
+            doctorId,
+            reviewer,
+            rating,
+            comment
+        });
+        
+        await review.save();
+        
+        // Update doctor's rating
+        const doctorReviews = await Review.find({ doctorId });
+        const averageRating = doctorReviews.reduce((sum, rev) => sum + rev.rating, 0) / doctorReviews.length;
+        
+        await Doctor.findByIdAndUpdate(doctorId, {
+            rating: Math.round(averageRating * 10) / 10,
+            reviewCount: doctorReviews.length
+        });
+        
+        res.json(review);
+    } catch (error) {
+        console.error('Review submission error:', error);
+        res.status(500).json({ error: 'Server error submitting review' });
+    }
+});
+
+// Appointments
+app.get('/api/appointments/doctor/:doctorId', async (req, res) => {
+    try {
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.doctorId)) {
+            return res.status(400).json({ error: 'Invalid doctor ID format' });
+        }
+
+        const appointments = await Appointment.find({ 
+            doctorId: req.params.doctorId 
+        }).sort({ date: -1, time: -1 });
+        res.json(appointments);
+    } catch (error) {
+        console.error('Get doctor appointments error:', error);
+        res.status(500).json({ error: 'Server error fetching appointments' });
+    }
+});
+
+app.get('/api/appointments/user/:userId', async (req, res) => {
+    try {
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+            return res.status(400).json({ error: 'Invalid user ID format' });
+        }
+
+        const appointments = await Appointment.find({ 
+            patientId: req.params.userId 
+        }).sort({ date: -1, time: -1 });
+        res.json(appointments);
+    } catch (error) {
+        console.error('Get user appointments error:', error);
+        res.status(500).json({ error: 'Server error fetching appointments' });
+    }
+});
+
+app.post('/api/appointments', async (req, res) => {
+    try {
+        const appointmentData = req.body;
+        
+        // Check if appointment already exists
+        const existingAppointment = await Appointment.findOne({
+            doctorId: appointmentData.doctorId,
+            date: appointmentData.date,
+            time: appointmentData.time,
+            status: { $ne: 'cancelled' }
+        });
+        
+        if (existingAppointment) {
+            return res.status(400).json({ error: 'Time slot already booked' });
+        }
+        
+        const appointment = new Appointment(appointmentData);
+        await appointment.save();
+        res.json(appointment);
+    } catch (error) {
+        console.error('Create appointment error:', error);
+        res.status(500).json({ error: 'Server error creating appointment' });
+    }
+});
+
+app.put('/api/appointments/:id', async (req, res) => {
+    try {
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid appointment ID format' });
+        }
+
+        const { status } = req.body;
+        const appointment = await Appointment.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+        res.json(appointment);
+    } catch (error) {
+        console.error('Update appointment error:', error);
+        res.status(500).json({ error: 'Server error updating appointment' });
+    }
+});
+
+app.delete('/api/appointments/:id', async (req, res) => {
+    try {
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid appointment ID format' });
+        }
+
+        const appointment = await Appointment.findByIdAndDelete(req.params.id);
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+        res.json({ message: 'Appointment deleted successfully' });
+    } catch (error) {
+        console.error('Delete appointment error:', error);
+        res.status(500).json({ error: 'Server error deleting appointment' });
+    }
+});
+
+// Serve frontend - catch all handler
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 Access the application at http://localhost:${PORT}`);
+    console.log(`🗄️  MongoDB URI: ${MONGODB_URI}`);
+});
