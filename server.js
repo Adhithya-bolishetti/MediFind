@@ -1,3 +1,50 @@
+require('dotenv').config();
+
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from the public folder
+app.use(express.static(path.join(__dirname, './public')));
+
+// MongoDB Connection - Updated for production
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/medifind';
+
+// Enhanced MongoDB connection with better error handling
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+    socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+})
+.then(() => {
+    console.log('✅ Connected to MongoDB successfully');
+    initializeSampleData();
+})
+.catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
+    console.log('Please check your MongoDB connection string');
+    process.exit(1); // Exit if cannot connect to database
+});
+
+// Add this to handle MongoDB connection events
+mongoose.connection.on('error', err => {
+    console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.log('MongoDB disconnected');
+});
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
