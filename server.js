@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -14,18 +16,23 @@ app.use(express.json());
 // Serve static files from the public folder
 app.use(express.static(path.join(__dirname, './public')));
 
-// MongoDB Connection
+// MongoDB Connection - Updated for production
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/medifind';
+
+// Enhanced MongoDB connection with better error handling
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-    console.log('Connected to MongoDB');
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
+.then(() => {
+    console.log('✅ Connected to MongoDB successfully');
     initializeSampleData();
+})
+.catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
+    console.log('Please check your MongoDB connection string');
 });
 
 // MongoDB Schemas and Models
@@ -196,36 +203,6 @@ async function initializeSampleData() {
                     experience: 14,
                     rating: 4.8,
                     reviewCount: 27
-                },
-                {
-                    name: "Dr. Robert Kim",
-                    specialty: "Neurology",
-                    email: "r.kim@neurocare.com",
-                    phone: "+1 (555) 678-9012",
-                    address: "987 Neurology Associates",
-                    city: "Boston",
-                    lat: 42.3601,
-                    lng: -71.0589,
-                    bio: "Neurologist specializing in headache disorders, epilepsy, and stroke prevention. Expert in diagnosing and treating conditions like migraines, multiple sclerosis, and Parkinson's disease. Focuses on personalized treatment plans for neurological health.",
-                    education: "MD from University of California, Neurology Residency",
-                    experience: 11,
-                    rating: 4.7,
-                    reviewCount: 19
-                },
-                {
-                    name: "Dr. Maria Garcia",
-                    specialty: "Psychiatry",
-                    email: "m.garcia@mentalwellness.com",
-                    phone: "+1 (555) 789-0123",
-                    address: "147 Mental Health Plaza",
-                    city: "Chicago",
-                    lat: 41.8781,
-                    lng: -87.6298,
-                    bio: "Psychiatrist specializing in depression, anxiety disorders, and stress management. Provides both medication management and psychotherapy. Committed to reducing mental health stigma and providing compassionate care.",
-                    education: "MD from University of Chicago, Psychiatry Residency",
-                    experience: 9,
-                    rating: 4.9,
-                    reviewCount: 33
                 }
             ];
 
@@ -296,11 +273,6 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
         
-        // Check type if provided
-        if (type && user.type !== type) {
-            return res.status(400).json({ error: `User is not a ${type}` });
-        }
-        
         res.json({
             id: user._id,
             name: user.name,
@@ -313,7 +285,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Doctors - FIXED ROUTE ORDER: search route must come before :id route
+// Doctors
 app.get('/api/doctors', async (req, res) => {
     try {
         const doctors = await Doctor.find();
@@ -324,7 +296,7 @@ app.get('/api/doctors', async (req, res) => {
     }
 });
 
-// FIXED: Search route moved BEFORE the :id route to avoid conflict
+// Search route - MUST come before :id route
 app.get('/api/doctors/search', async (req, res) => {
     try {
         const { symptoms, location, specialty, rating } = req.query;
@@ -395,8 +367,8 @@ app.get('/api/doctors/search', async (req, res) => {
             if (query.$or) {
                 query = {
                     $and: [
-                        { $or: query.$or }, // Existing location conditions
-                        symptomsConditions  // New symptoms conditions
+                        { $or: query.$or },
+                        symptomsConditions
                     ]
                 };
             } else {
