@@ -179,28 +179,80 @@
     <div class="modal" id="shop-registration-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Complete Medical Shop Registration</h3>
+                <h3 class="modal-title">Medical Shop Registration</h3>
                 <button class="close-modal" id="close-shop-registration">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="medical-shop-registration-form">
                     <div class="form-group">
-                        <label for="shop-name">Shop Name</label>
-                        <input type="text" id="shop-name" class="form-control" required>
+                        <label for="shop-name"><i class="fas fa-store"></i> Medical Shop Name *</label>
+                        <input type="text" id="shop-name" class="form-control" required 
+                               placeholder="Enter your medical shop name">
                     </div>
+                    
                     <div class="form-group">
-                        <label for="shop-address">Shop Address</label>
-                        <input type="text" id="shop-address" class="form-control" required>
+                        <label for="shop-owner-name"><i class="fas fa-user"></i> Owner Name *</label>
+                        <input type="text" id="shop-owner-name" class="form-control" required 
+                               placeholder="Enter owner's full name">
                     </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="shop-email"><i class="fas fa-envelope"></i> Email Address *</label>
+                            <input type="email" id="shop-email" class="form-control" required 
+                                   placeholder="Enter business email address">
+                        </div>
+                        <div class="form-group">
+                            <label for="shop-phone"><i class="fas fa-phone"></i> Phone Number *</label>
+                            <input type="tel" id="shop-phone" class="form-control" required 
+                                   placeholder="Enter business phone number">
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
-                        <label for="shop-license">License Number</label>
-                        <input type="text" id="shop-license" class="form-control" required>
+                        <label for="shop-address"><i class="fas fa-map-marker-alt"></i> Shop Address *</label>
+                        <textarea id="shop-address" class="form-control" required rows="3"
+                                  placeholder="Enter complete shop address including street, area, and landmark"></textarea>
                     </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="shop-city"><i class="fas fa-city"></i> City *</label>
+                            <input type="text" id="shop-city" class="form-control" required 
+                                   placeholder="Enter city name">
+                        </div>
+                        <div class="form-group">
+                            <label for="shop-license"><i class="fas fa-certificate"></i> License Number *</label>
+                            <input type="text" id="shop-license" class="form-control" required 
+                                   placeholder="Enter medical license number">
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
-                        <label for="shop-phone">Contact Phone</label>
-                        <input type="tel" id="shop-phone" class="form-control" required>
+                        <label for="shop-location"><i class="fas fa-map-pin"></i> Location Details</label>
+                        <div class="location-input-group">
+                            <input type="text" id="shop-location-input" class="form-control" 
+                                   placeholder="Enter location or use current location">
+                            <button type="button" class="btn btn-small" id="use-current-location-shop">
+                                <i class="fas fa-location-arrow"></i> Use My Location
+                            </button>
+                        </div>
+                        <p class="location-help"><i class="fas fa-info-circle"></i> This location will be shown to customers for directions</p>
                     </div>
-                    <button type="submit" class="btn">Register Medical Shop</button>
+                    
+                    <div class="form-group">
+                        <label for="shop-description"><i class="fas fa-file-alt"></i> Shop Description (Optional)</label>
+                        <textarea id="shop-description" class="form-control" rows="3"
+                                  placeholder="Describe your medical shop services, specialties, working hours, etc."></textarea>
+                    </div>
+                    
+                    <div class="registration-terms">
+                        <p><i class="fas fa-info-circle"></i> By registering, you agree to our terms and conditions and confirm that all information provided is accurate.</p>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Register Medical Shop
+                    </button>
                 </form>
             </div>
         </div>
@@ -268,83 +320,41 @@
         </div>
     </div>
 
-    <!-- Medical Shop Products Modal -->
-    <div class="modal" id="shop-products-modal">
+    <!-- Review Modal -->
+    <div class="modal" id="review-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="shop-products-title">Shop Products</h3>
-                <button class="close-modal" id="close-shop-products">&times;</button>
+                <h3 class="modal-title" id="modal-doctor-name">Doctor Name</h3>
+                <button class="close-modal" id="close-review-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="shop-products-list" class="products-grid">
-                    <!-- Products will be dynamically inserted here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Add Product Modal -->
-    <div class="modal" id="add-product-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Add New Product</h3>
-                <button class="close-modal" id="close-add-product">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="add-product-form">
+                <form class="review-form" id="review-form">
+                    <h4>Add Your Review</h4>
                     <div class="form-group">
-                        <label for="product-name">Product Name</label>
-                        <input type="text" id="product-name" class="form-control" required>
+                        <label for="reviewer-name">Your Name</label>
+                        <input type="text" id="reviewer-name" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="product-description">Description</label>
-                        <textarea id="product-description" class="form-control" required></textarea>
+                        <label>Rating</label>
+                        <div class="rating-input">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="rating-value" value="0">
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="product-category">Category</label>
-                            <select id="product-category" class="form-control" required>
-                                <option value="">Select Category</option>
-                                <option value="Medicines">Medicines</option>
-                                <option value="First Aid">First Aid</option>
-                                <option value="Personal Care">Personal Care</option>
-                                <option value="Baby Care">Baby Care</option>
-                                <option value="Health Supplements">Health Supplements</option>
-                                <option value="Medical Devices">Medical Devices</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="product-brand">Brand</label>
-                            <input type="text" id="product-brand" class="form-control" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="review-comment">Your Review</label>
+                        <textarea id="review-comment" class="form-control" required></textarea>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="product-price">Price (₹)</label>
-                            <input type="number" id="product-price" class="form-control" min="0" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="product-stock">Stock Quantity</label>
-                            <input type="number" id="product-stock" class="form-control" min="0" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn">Save Product</button>
+                    <button type="submit" class="btn">Submit Review</button>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Order Details Modal -->
-    <div class="modal" id="order-details-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Order Details</h3>
-                <button class="close-modal" id="close-order-details">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="order-details-content">
-                    <!-- Order details will be dynamically inserted here -->
+                
+                <div class="reviews-list" id="reviews-list">
+                    <h4>Patient Reviews</h4>
+                    <!-- Reviews will be dynamically inserted here -->
                 </div>
             </div>
         </div>
@@ -360,6 +370,9 @@
             <form class="search-form" id="search-form">
                 <input type="text" class="search-input" id="symptoms-input" placeholder="Enter symptoms or disease (e.g. headache, fever, diabetes)">
                 <button type="submit" class="btn">Search by Symptoms</button>
+                <button type="button" class="btn btn-secondary" id="search-remedies-btn">
+                    <i class="fas fa-leaf"></i> Get Remedies
+                </button>
             </form>
             
             <div class="location-search">
@@ -481,15 +494,16 @@
                     <i class="fas fa-clinic-medical"></i> Nearby Medical Shops
                 </h2>
                 <div class="results-count" id="medical-shops-count">Loading shops...</div>
-                <div class="sort-options">
-                    <select id="sort-medical-shops">
-                        <option value="name-asc">Name A-Z</option>
-                        <option value="rating-desc">Highest Rated</option>
-                    </select>
+                <div class="search-box">
+                    <input type="text" id="search-medical-shops" class="search-input" 
+                           placeholder="Search medical shops by name or location">
+                    <button class="btn btn-small" id="search-shops-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
             </div>
             
-            <div class="doctors-grid" id="medical-shops-grid">
+            <div class="shops-grid" id="medical-shops-grid">
                 <!-- Medical shop cards will be dynamically inserted here -->
             </div>
         </section>
@@ -638,106 +652,76 @@
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-box"></i>
+                            <i class="fas fa-store"></i>
                         </div>
                         <div class="stat-info">
-                            <div class="stat-value" id="total-products">0</div>
-                            <div class="stat-label">Total Products</div>
+                            <div class="stat-label">Shop Status</div>
+                            <div class="stat-value">Registered</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-shopping-cart"></i>
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <div class="stat-info">
-                            <div class="stat-value" id="total-orders">0</div>
-                            <div class="stat-label">Total Orders</div>
+                            <div class="stat-label">Location</div>
+                            <div class="stat-value" id="shop-location-status">Active</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-rupee-sign"></i>
+                            <i class="fas fa-phone"></i>
                         </div>
                         <div class="stat-info">
-                            <div class="stat-value" id="total-revenue">₹0</div>
-                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-label">Contact</div>
+                            <div class="stat-value" id="shop-contact-info">Available</div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="dashboard-tabs">
-                    <button class="tab-btn active" data-tab="products">Products</button>
-                    <button class="tab-btn" data-tab="orders">Orders</button>
-                    <button class="tab-btn" data-tab="analytics">Analytics</button>
-                </div>
-                
-                <div class="tab-content active" id="products-tab">
-                    <div class="tab-header">
-                        <h4>Product Management</h4>
-                        <button class="btn btn-small" id="add-product-btn">
-                            <i class="fas fa-plus"></i> Add Product
-                        </button>
-                    </div>
-                    <div class="products-table-container">
-                        <table class="products-table">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Category</th>
-                                    <th>Brand</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="shop-products-table">
-                                <!-- Products will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="tab-content" id="orders-tab">
-                    <div class="tab-header">
-                        <h4>Order Management</h4>
-                    </div>
-                    <div class="orders-table-container">
-                        <table class="orders-table">
-                            <thead>
-                                <tr>
-                                    <th>Order #</th>
-                                    <th>Customer</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="shop-orders-table">
-                                <!-- Orders will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="tab-content" id="analytics-tab">
-                    <div class="tab-header">
-                        <h4>Shop Analytics</h4>
-                    </div>
-                    <div class="analytics-content">
-                        <div class="analytics-card">
-                            <h5>Top Selling Products</h5>
-                            <div id="top-products-list">
-                                <!-- Top products will be dynamically inserted here -->
-                            </div>
+                <div class="shop-details-card">
+                    <h4><i class="fas fa-info-circle"></i> Shop Information</h4>
+                    <div class="shop-details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Owner Name:</span>
+                            <span class="detail-value" id="dashboard-owner-name">-</span>
                         </div>
-                        <div class="analytics-card">
-                            <h5>Revenue Overview</h5>
-                            <div id="revenue-chart">
-                                <!-- Revenue chart will be dynamically inserted here -->
-                            </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value" id="dashboard-email">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Phone:</span>
+                            <span class="detail-value" id="dashboard-phone">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Address:</span>
+                            <span class="detail-value" id="dashboard-address">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">City:</span>
+                            <span class="detail-value" id="dashboard-city">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value" id="dashboard-license">-</span>
                         </div>
                     </div>
+                </div>
+                
+                <div class="shop-location-card">
+                    <h4><i class="fas fa-map-marker-alt"></i> Shop Location</h4>
+                    <div id="shop-map" style="height: 300px; width: 100%; margin: 1rem 0; border-radius: 8px;"></div>
+                    <p><i class="fas fa-info-circle"></i> Your shop location is shown to customers for directions.</p>
+                </div>
+                
+                <div class="shop-actions">
+                    <button class="btn btn-secondary" id="edit-shop-btn">
+                        <i class="fas fa-edit"></i> Edit Shop Details
+                    </button>
+                    <button class="btn" id="view-on-map-btn">
+                        <i class="fas fa-map"></i> View on Public Map
+                    </button>
                 </div>
             </div>
         </section>
@@ -751,57 +735,7 @@
                 <!-- Appointments will be dynamically inserted here -->
             </div>
         </section>
-
-        <!-- Customer Orders Section -->
-        <section class="customer-orders-section" id="customer-orders-section" style="display: none;">
-            <h2 class="section-title">
-                <i class="fas fa-shopping-bag"></i> My Orders
-            </h2>
-            <div id="customer-orders-list">
-                <!-- Customer orders will be dynamically inserted here -->
-            </div>
-        </section>
     </main>
-
-    <!-- Review Modal -->
-    <div class="modal" id="review-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modal-doctor-name">Doctor Name</h3>
-                <button class="close-modal" id="close-review-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form class="review-form" id="review-form">
-                    <h4>Add Your Review</h4>
-                    <div class="form-group">
-                        <label for="reviewer-name">Your Name</label>
-                        <input type="text" id="reviewer-name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Rating</label>
-                        <div class="rating-input">
-                            <span class="star" data-rating="1">★</span>
-                            <span class="star" data-rating="2">★</span>
-                            <span class="star" data-rating="3">★</span>
-                            <span class="star" data-rating="4">★</span>
-                            <span class="star" data-rating="5">★</span>
-                        </div>
-                        <input type="hidden" id="rating-value" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="review-comment">Your Review</label>
-                        <textarea id="review-comment" class="form-control" required></textarea>
-                    </div>
-                    <button type="submit" class="btn">Submit Review</button>
-                </form>
-                
-                <div class="reviews-list" id="reviews-list">
-                    <h4>Patient Reviews</h4>
-                    <!-- Reviews will be dynamically inserted here -->
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer>
