@@ -80,11 +80,6 @@ function logout() {
     localStorage.removeItem('currentUser');
     updateUIForUser();
     
-    // Clear shopping cart
-    shoppingCart = [];
-    localStorage.removeItem('shoppingCart');
-    updateCartCount();
-    
     alert('You have been logged out.');
     
     // Redirect to search section
@@ -124,11 +119,6 @@ function updateUIForUser() {
         if (navProfile) navProfile.style.display = 'none';
         if (navMedicalShopOwner) navMedicalShopOwner.style.display = 'none';
         if (cartIcon) cartIcon.style.display = 'none';
-        
-        // Show cart only for customers
-        if (cartIcon && currentUser.type === 'customer') {
-            cartIcon.style.display = 'block';
-        }
         
         // Set navigation based on user type
         if (currentUser.type === 'customer') {
