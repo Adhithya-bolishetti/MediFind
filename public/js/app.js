@@ -344,7 +344,7 @@ function openAuthModal(type) {
     }
 }
 
-// Setup auth modal tabs - FIXED: Proper form switching
+// Setup auth modal tabs - FIXED: Proper form switching for all user types
 function setupAuthModalTabs() {
     // Login options
     const loginOptions = document.querySelectorAll('#auth-modal .login-option');
@@ -352,6 +352,7 @@ function setupAuthModalTabs() {
         loginOptions.forEach(option => {
             option.addEventListener('click', function() {
                 const type = this.getAttribute('data-type');
+                console.log('Login tab clicked:', type);
                 
                 // Update active tab
                 document.querySelectorAll('#auth-modal .login-option').forEach(opt => {
@@ -359,22 +360,32 @@ function setupAuthModalTabs() {
                 });
                 this.classList.add('active');
                 
-                // Show corresponding form - FIXED: Proper form selection
+                // Hide all login forms first
                 document.querySelectorAll('#auth-modal .login-form').forEach(form => {
                     form.classList.remove('active');
                     form.style.display = 'none';
                 });
                 
+                // Show corresponding form
                 const targetForm = document.getElementById(`${type}-login-form`);
                 if (targetForm) {
+                    console.log('Showing form:', targetForm.id);
                     targetForm.classList.add('active');
                     targetForm.style.display = 'block';
+                } else {
+                    console.error('Login form not found for type:', type);
                 }
                 
                 // Update modal title
                 const modalTitle = document.getElementById('auth-modal-title');
                 if (modalTitle) {
-                    modalTitle.textContent = `Login as ${type === 'medical_shop' ? 'Medical Shop Owner' : type.charAt(0).toUpperCase() + type.slice(1)}`;
+                    let titleText = 'Login as ';
+                    if (type === 'medical_shop') {
+                        titleText += 'Medical Shop Owner';
+                    } else {
+                        titleText += type.charAt(0).toUpperCase() + type.slice(1);
+                    }
+                    modalTitle.textContent = titleText;
                 }
             });
         });
@@ -386,6 +397,7 @@ function setupAuthModalTabs() {
         signupOptions.forEach(option => {
             option.addEventListener('click', function() {
                 const type = this.getAttribute('data-type');
+                console.log('Signup tab clicked:', type);
                 
                 // Update active tab
                 document.querySelectorAll('#signup-modal .login-option').forEach(opt => {
@@ -393,22 +405,32 @@ function setupAuthModalTabs() {
                 });
                 this.classList.add('active');
                 
-                // Show corresponding form - FIXED: Proper form selection
+                // Hide all signup forms first
                 document.querySelectorAll('#signup-modal .login-form').forEach(form => {
                     form.classList.remove('active');
                     form.style.display = 'none';
                 });
                 
+                // Show corresponding form
                 const targetForm = document.getElementById(`${type}-signup-form`);
                 if (targetForm) {
+                    console.log('Showing form:', targetForm.id);
                     targetForm.classList.add('active');
                     targetForm.style.display = 'block';
+                } else {
+                    console.error('Signup form not found for type:', type);
                 }
                 
                 // Update modal title
                 const modalTitle = document.getElementById('signup-modal-title');
                 if (modalTitle) {
-                    modalTitle.textContent = `Sign up as ${type === 'medical_shop' ? 'Medical Shop Owner' : type.charAt(0).toUpperCase() + type.slice(1)}`;
+                    let titleText = 'Sign up as ';
+                    if (type === 'medical_shop') {
+                        titleText += 'Medical Shop Owner';
+                    } else {
+                        titleText += type.charAt(0).toUpperCase() + type.slice(1);
+                    }
+                    modalTitle.textContent = titleText;
                 }
             });
         });
@@ -424,7 +446,7 @@ function setupAuthModalTabs() {
             if (authModal) authModal.style.display = 'none';
             if (signupModal) signupModal.style.display = 'flex';
             
-            // Initialize signup form
+            // Initialize signup form to show first tab
             initializeSignupForm();
         });
     }
@@ -438,18 +460,19 @@ function setupAuthModalTabs() {
             if (signupModal) signupModal.style.display = 'none';
             if (authModal) authModal.style.display = 'flex';
             
-            // Initialize login form
+            // Initialize login form to show first tab
             initializeLoginForm();
         });
     }
     
-    // Login form submissions
+    // Login form submissions - FIXED: All form IDs
     const customerLoginForm = document.getElementById('customer-login-form');
     if (customerLoginForm) {
         customerLoginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const email = document.getElementById('customer-email').value;
             const password = document.getElementById('customer-password').value;
+            console.log('Customer login attempt:', email);
             if (typeof loginUser === 'function') {
                 loginUser(email, password, 'customer');
             }
@@ -462,6 +485,7 @@ function setupAuthModalTabs() {
             e.preventDefault();
             const email = document.getElementById('doctor-email').value;
             const password = document.getElementById('doctor-password').value;
+            console.log('Doctor login attempt:', email);
             if (typeof loginUser === 'function') {
                 loginUser(email, password, 'doctor');
             }
@@ -472,15 +496,16 @@ function setupAuthModalTabs() {
     if (medicalShopLoginForm) {
         medicalShopLoginForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('shop-email').value;
-            const password = document.getElementById('shop-password').value;
+            const email = document.getElementById('shop-login-email').value;
+            const password = document.getElementById('shop-login-password').value;
+            console.log('Medical Shop login attempt:', email);
             if (typeof loginUser === 'function') {
                 loginUser(email, password, 'medical_shop');
             }
         });
     }
     
-    // Signup form submissions
+    // Signup form submissions - FIXED: All form IDs
     const customerSignupForm = document.getElementById('customer-signup-form');
     if (customerSignupForm) {
         customerSignupForm.addEventListener('submit', function(e) {
@@ -488,6 +513,7 @@ function setupAuthModalTabs() {
             const name = document.getElementById('customer-signup-name').value;
             const email = document.getElementById('customer-signup-email').value;
             const password = document.getElementById('customer-signup-password').value;
+            console.log('Customer signup attempt:', email);
             if (typeof signupUser === 'function') {
                 signupUser(name, email, password, 'customer');
             }
@@ -501,6 +527,7 @@ function setupAuthModalTabs() {
             const name = document.getElementById('doctor-signup-name').value;
             const email = document.getElementById('doctor-signup-email').value;
             const password = document.getElementById('doctor-signup-password').value;
+            console.log('Doctor signup attempt:', email);
             if (typeof signupUser === 'function') {
                 signupUser(name, email, password, 'doctor');
             }
@@ -511,9 +538,10 @@ function setupAuthModalTabs() {
     if (medicalShopSignupForm) {
         medicalShopSignupForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const name = document.getElementById('shop-owner-name').value;
-            const email = document.getElementById('shop-owner-email').value;
-            const password = document.getElementById('shop-owner-password').value;
+            const name = document.getElementById('shop-signup-name').value;
+            const email = document.getElementById('shop-signup-email').value;
+            const password = document.getElementById('shop-signup-password').value;
+            console.log('Medical Shop signup attempt:', email);
             if (typeof signupUser === 'function') {
                 signupUser(name, email, password, 'medical_shop');
             }
@@ -521,10 +549,12 @@ function setupAuthModalTabs() {
     }
 }
 
-// NEW FUNCTION: Initialize login form visibility - FIXED: Proper form display
+// Initialize login form visibility - FIXED: Proper form display for all types
 function initializeLoginForm() {
     const loginOptions = document.querySelectorAll('#auth-modal .login-option');
     const loginForms = document.querySelectorAll('#auth-modal .login-form');
+    
+    console.log('Initializing login form:', loginOptions.length, 'tabs,', loginForms.length, 'forms');
     
     if (loginOptions.length > 0 && loginForms.length > 0) {
         // Reset all forms
@@ -535,24 +565,37 @@ function initializeLoginForm() {
         
         // Activate first option
         loginOptions.forEach(opt => opt.classList.remove('active'));
-        loginOptions[0].classList.add('active');
+        if (loginOptions[0]) {
+            loginOptions[0].classList.add('active');
+        }
         
         // Show first form
-        loginForms[0].classList.add('active');
-        loginForms[0].style.display = 'block';
+        if (loginForms[0]) {
+            loginForms[0].classList.add('active');
+            loginForms[0].style.display = 'block';
+        }
         
         // Update modal title
         const modalTitle = document.getElementById('auth-modal-title');
         if (modalTitle) {
             modalTitle.textContent = 'Login as Customer';
         }
+        
+        // Debug: Check if medical shop form exists
+        const medicalShopForm = document.getElementById('medical-shop-login-form');
+        console.log('Medical Shop login form exists:', !!medicalShopForm);
+        if (medicalShopForm) {
+            console.log('Medical Shop form HTML:', medicalShopForm.innerHTML.substring(0, 200));
+        }
     }
 }
 
-// NEW FUNCTION: Initialize signup form visibility - FIXED: Proper form display
+// Initialize signup form visibility - FIXED: Proper form display for all types
 function initializeSignupForm() {
     const signupOptions = document.querySelectorAll('#signup-modal .login-option');
     const signupForms = document.querySelectorAll('#signup-modal .login-form');
+    
+    console.log('Initializing signup form:', signupOptions.length, 'tabs,', signupForms.length, 'forms');
     
     if (signupOptions.length > 0 && signupForms.length > 0) {
         // Reset all forms
@@ -563,16 +606,27 @@ function initializeSignupForm() {
         
         // Activate first option
         signupOptions.forEach(opt => opt.classList.remove('active'));
-        signupOptions[0].classList.add('active');
+        if (signupOptions[0]) {
+            signupOptions[0].classList.add('active');
+        }
         
         // Show first form
-        signupForms[0].classList.add('active');
-        signupForms[0].style.display = 'block';
+        if (signupForms[0]) {
+            signupForms[0].classList.add('active');
+            signupForms[0].style.display = 'block';
+        }
         
         // Update modal title
         const modalTitle = document.getElementById('signup-modal-title');
         if (modalTitle) {
             modalTitle.textContent = 'Sign up as Customer';
+        }
+        
+        // Debug: Check if medical shop form exists
+        const medicalShopForm = document.getElementById('medical-shop-signup-form');
+        console.log('Medical Shop signup form exists:', !!medicalShopForm);
+        if (medicalShopForm) {
+            console.log('Medical Shop form HTML:', medicalShopForm.innerHTML.substring(0, 200));
         }
     }
 }
