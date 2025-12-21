@@ -4,9 +4,9 @@ function setupEventListeners() {
     
     // ==================== NAVIGATION ====================
     
-    // Main navigation
+    // Main navigation - FIXED: Fixed variable name typo
     const navSearch = document.getElementById('nav-search');
-    const navAllDoctors = document.getElementById('nav-all-doctor')
+    const navAllDoctors = document.getElementById('nav-all-doctors');
     const navMedicalShops = document.getElementById('nav-medical-shops');
     const navRegister = document.getElementById('nav-register');
     const navAppointments = document.getElementById('nav-appointments');
@@ -192,7 +192,9 @@ function setupEventListeners() {
     document.querySelectorAll('.close-modal').forEach(button => {
         button.addEventListener('click', function() {
             const modal = this.closest('.modal');
-            modal.style.display = 'none';
+            if (modal) {
+                modal.style.display = 'none';
+            }
         });
     });
     
@@ -297,7 +299,10 @@ function setupEventListeners() {
                 }
                 
                 // Close modal
-                document.getElementById('shop-registration-modal').style.display = 'none';
+                const shopModal = document.getElementById('shop-registration-modal');
+                if (shopModal) {
+                    shopModal.style.display = 'none';
+                }
             } catch (error) {
                 console.error('Shop registration error:', error);
                 alert('Registration failed. Please try again.');
@@ -305,7 +310,7 @@ function setupEventListeners() {
         });
     }
     
-    // Setup login/signup modal tabs
+    // Setup login/signup modal tabs - FIXED: Proper initialization
     setupAuthModalTabs();
     
     console.log('Event listeners setup complete');
@@ -317,88 +322,110 @@ function openAuthModal(type) {
     const signupModal = document.getElementById('signup-modal');
     
     if (type === 'login') {
-        authModal.style.display = 'flex';
-        signupModal.style.display = 'none';
+        if (authModal) {
+            authModal.style.display = 'flex';
+        }
+        if (signupModal) {
+            signupModal.style.display = 'none';
+        }
         
         // Initialize login form
-        if (typeof initializeLoginForm === 'function') {
-            initializeLoginForm();
-        }
+        initializeLoginForm();
     } else {
-        authModal.style.display = 'none';
-        signupModal.style.display = 'flex';
+        if (authModal) {
+            authModal.style.display = 'none';
+        }
+        if (signupModal) {
+            signupModal.style.display = 'flex';
+        }
         
         // Initialize signup form
-        if (typeof initializeSignupForm === 'function') {
-            initializeSignupForm();
-        }
+        initializeSignupForm();
     }
 }
 
-// Setup auth modal tabs
+// Setup auth modal tabs - FIXED: Proper form switching
 function setupAuthModalTabs() {
     // Login options
-    document.querySelectorAll('#auth-modal .login-option').forEach(option => {
-        option.addEventListener('click', function() {
-            const type = this.getAttribute('data-type');
-            
-            // Update active tab
-            document.querySelectorAll('#auth-modal .login-option').forEach(opt => {
-                opt.classList.remove('active');
+    const loginOptions = document.querySelectorAll('#auth-modal .login-option');
+    if (loginOptions.length > 0) {
+        loginOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                
+                // Update active tab
+                document.querySelectorAll('#auth-modal .login-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Show corresponding form - FIXED: Proper form selection
+                document.querySelectorAll('#auth-modal .login-form').forEach(form => {
+                    form.classList.remove('active');
+                    form.style.display = 'none';
+                });
+                
+                const targetForm = document.getElementById(`${type}-login-form`);
+                if (targetForm) {
+                    targetForm.classList.add('active');
+                    targetForm.style.display = 'block';
+                }
+                
+                // Update modal title
+                const modalTitle = document.getElementById('auth-modal-title');
+                if (modalTitle) {
+                    modalTitle.textContent = `Login as ${type === 'medical_shop' ? 'Medical Shop Owner' : type.charAt(0).toUpperCase() + type.slice(1)}`;
+                }
             });
-            this.classList.add('active');
-            
-            // Show corresponding form
-            document.querySelectorAll('#auth-modal .login-form').forEach(form => {
-                form.classList.remove('active');
-            });
-            document.getElementById(`${type}-login-form`).classList.add('active');
-            
-            // Update modal title
-            const modalTitle = document.getElementById('auth-modal-title');
-            if (modalTitle) {
-                modalTitle.textContent = `Login as ${type === 'medical_shop' ? 'Medical Shop Owner' : type.charAt(0).toUpperCase() + type.slice(1)}`;
-            }
         });
-    });
+    }
     
     // Signup options
-    document.querySelectorAll('#signup-modal .login-option').forEach(option => {
-        option.addEventListener('click', function() {
-            const type = this.getAttribute('data-type');
-            
-            // Update active tab
-            document.querySelectorAll('#signup-modal .login-option').forEach(opt => {
-                opt.classList.remove('active');
+    const signupOptions = document.querySelectorAll('#signup-modal .login-option');
+    if (signupOptions.length > 0) {
+        signupOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                
+                // Update active tab
+                document.querySelectorAll('#signup-modal .login-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Show corresponding form - FIXED: Proper form selection
+                document.querySelectorAll('#signup-modal .login-form').forEach(form => {
+                    form.classList.remove('active');
+                    form.style.display = 'none';
+                });
+                
+                const targetForm = document.getElementById(`${type}-signup-form`);
+                if (targetForm) {
+                    targetForm.classList.add('active');
+                    targetForm.style.display = 'block';
+                }
+                
+                // Update modal title
+                const modalTitle = document.getElementById('signup-modal-title');
+                if (modalTitle) {
+                    modalTitle.textContent = `Sign up as ${type === 'medical_shop' ? 'Medical Shop Owner' : type.charAt(0).toUpperCase() + type.slice(1)}`;
+                }
             });
-            this.classList.add('active');
-            
-            // Show corresponding form
-            document.querySelectorAll('#signup-modal .login-form').forEach(form => {
-                form.classList.remove('active');
-            });
-            document.getElementById(`${type}-signup-form`).classList.add('active');
-            
-            // Update modal title
-            const modalTitle = document.getElementById('signup-modal-title');
-            if (modalTitle) {
-                modalTitle.textContent = `Sign up as ${type === 'medical_shop' ? 'Medical Shop Owner' : type.charAt(0).toUpperCase() + type.slice(1)}`;
-            }
         });
-    });
+    }
     
     // Switch between login and signup
     const switchToSignup = document.getElementById('switch-to-signup');
     if (switchToSignup) {
         switchToSignup.addEventListener('click', function(e) {
             e.preventDefault();
-            document.getElementById('auth-modal').style.display = 'none';
-            document.getElementById('signup-modal').style.display = 'flex';
+            const authModal = document.getElementById('auth-modal');
+            const signupModal = document.getElementById('signup-modal');
+            if (authModal) authModal.style.display = 'none';
+            if (signupModal) signupModal.style.display = 'flex';
             
             // Initialize signup form
-            if (typeof initializeSignupForm === 'function') {
-                initializeSignupForm();
-            }
+            initializeSignupForm();
         });
     }
     
@@ -406,13 +433,13 @@ function setupAuthModalTabs() {
     if (switchToLogin) {
         switchToLogin.addEventListener('click', function(e) {
             e.preventDefault();
-            document.getElementById('signup-modal').style.display = 'none';
-            document.getElementById('auth-modal').style.display = 'flex';
+            const authModal = document.getElementById('auth-modal');
+            const signupModal = document.getElementById('signup-modal');
+            if (signupModal) signupModal.style.display = 'none';
+            if (authModal) authModal.style.display = 'flex';
             
             // Initialize login form
-            if (typeof initializeLoginForm === 'function') {
-                initializeLoginForm();
-            }
+            initializeLoginForm();
         });
     }
     
@@ -494,19 +521,25 @@ function setupAuthModalTabs() {
     }
 }
 
-// NEW FUNCTION: Initialize login form visibility
+// NEW FUNCTION: Initialize login form visibility - FIXED: Proper form display
 function initializeLoginForm() {
     const loginOptions = document.querySelectorAll('#auth-modal .login-option');
     const loginForms = document.querySelectorAll('#auth-modal .login-form');
     
     if (loginOptions.length > 0 && loginForms.length > 0) {
+        // Reset all forms
+        loginForms.forEach(form => {
+            form.classList.remove('active');
+            form.style.display = 'none';
+        });
+        
         // Activate first option
         loginOptions.forEach(opt => opt.classList.remove('active'));
         loginOptions[0].classList.add('active');
         
         // Show first form
-        loginForms.forEach(form => form.classList.remove('active'));
         loginForms[0].classList.add('active');
+        loginForms[0].style.display = 'block';
         
         // Update modal title
         const modalTitle = document.getElementById('auth-modal-title');
@@ -516,19 +549,25 @@ function initializeLoginForm() {
     }
 }
 
-// NEW FUNCTION: Initialize signup form visibility
+// NEW FUNCTION: Initialize signup form visibility - FIXED: Proper form display
 function initializeSignupForm() {
     const signupOptions = document.querySelectorAll('#signup-modal .login-option');
     const signupForms = document.querySelectorAll('#signup-modal .login-form');
     
     if (signupOptions.length > 0 && signupForms.length > 0) {
+        // Reset all forms
+        signupForms.forEach(form => {
+            form.classList.remove('active');
+            form.style.display = 'none';
+        });
+        
         // Activate first option
         signupOptions.forEach(opt => opt.classList.remove('active'));
         signupOptions[0].classList.add('active');
         
         // Show first form
-        signupForms.forEach(form => form.classList.remove('active'));
         signupForms[0].classList.add('active');
+        signupForms[0].style.display = 'block';
         
         // Update modal title
         const modalTitle = document.getElementById('signup-modal-title');
@@ -564,9 +603,131 @@ function showAllDoctorsSection() {
     if (allDoctorsSection) allDoctorsSection.style.display = 'block';
     updateActiveNav('nav-all-doctors');
     
-    // Load doctors
+    // Load doctors - FIXED: Ensure function exists before calling
     if (typeof displayAllDoctors === 'function') {
+        console.log('Calling displayAllDoctors function');
         displayAllDoctors();
+    } else {
+        console.error('displayAllDoctors function not found');
+        // Try to load doctors directly
+        loadAllDoctorsDirectly();
+    }
+}
+
+// FIXED: Direct loading function for All Doctors
+async function loadAllDoctorsDirectly() {
+    try {
+        const allDoctorsGrid = document.getElementById('all-doctors-grid');
+        const allDoctorsCount = document.getElementById('all-doctors-count');
+        
+        if (!allDoctorsGrid || !allDoctorsCount) {
+            console.error('Required elements not found');
+            return;
+        }
+        
+        allDoctorsGrid.innerHTML = '<div class="loading">Loading doctors...</div>';
+        
+        const doctors = await apiService.getDoctors();
+        
+        if (doctors.error) {
+            allDoctorsGrid.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    <h3>Error Loading Doctors</h3>
+                    <p>${doctors.error}</p>
+                </div>
+            `;
+            allDoctorsCount.textContent = 'Error loading doctors';
+            return;
+        }
+        
+        if (!doctors || doctors.length === 0) {
+            allDoctorsGrid.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-user-md fa-3x"></i>
+                    <h3>No doctors registered yet</h3>
+                    <p>Be the first doctor to register!</p>
+                </div>
+            `;
+            allDoctorsCount.textContent = 'No doctors';
+            return;
+        }
+        
+        allDoctorsGrid.innerHTML = '';
+        doctors.forEach(doctor => {
+            const doctorCard = document.createElement('div');
+            doctorCard.className = 'doctor-card';
+            
+            const specialtyClass = doctor.specialty ? 
+                doctor.specialty.toLowerCase().replace(/ /g, '-') : 'general-practice';
+            
+            doctorCard.innerHTML = `
+                <div class="doctor-image">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="specialty-badge specialty-${specialtyClass}">
+                    ${doctor.specialty || 'General Practice'}
+                </div>
+                <div class="doctor-info">
+                    <h3 class="doctor-name">${doctor.name || 'Dr. Unknown'}</h3>
+                    <p class="doctor-specialty">${doctor.specialty || 'General Practice'}</p>
+                    <p class="doctor-location">
+                        <i class="fas fa-map-marker-alt"></i> ${doctor.address || 'Address not available'}, ${doctor.city || 'City'}
+                    </p>
+                    <div class="doctor-rating">
+                        <div class="stars">${getStarRating(doctor.rating || 0)}</div>
+                        <span class="rating-value">${doctor.rating || 0}</span>
+                        <span class="reviews-count">(${doctor.reviewCount || 0} reviews)</span>
+                    </div>
+                    <p class="doctor-experience">${doctor.experience || 0} years experience</p>
+                    <div class="doctor-actions">
+                        <button class="btn btn-small view-reviews" data-id="${doctor._id || doctor.id}">
+                            View Reviews
+                        </button>
+                        <button class="btn btn-small btn-warning add-review" data-id="${doctor._id || doctor.id}">
+                            Add Review
+                        </button>
+                    </div>
+                </div>
+            `;
+            allDoctorsGrid.appendChild(doctorCard);
+        });
+        
+        allDoctorsCount.textContent = `Showing ${doctors.length} doctors`;
+        
+        // Add event listeners
+        setTimeout(() => {
+            document.querySelectorAll('.view-reviews').forEach(button => {
+                button.addEventListener('click', function() {
+                    const doctorId = this.getAttribute('data-id');
+                    if (typeof openReviewModal === 'function') {
+                        openReviewModal(doctorId, false);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.add-review').forEach(button => {
+                button.addEventListener('click', function() {
+                    const doctorId = this.getAttribute('data-id');
+                    if (typeof openReviewModal === 'function') {
+                        openReviewModal(doctorId, true);
+                    }
+                });
+            });
+        }, 100);
+        
+    } catch (error) {
+        console.error('Load all doctors error:', error);
+        const allDoctorsGrid = document.getElementById('all-doctors-grid');
+        if (allDoctorsGrid) {
+            allDoctorsGrid.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    <h3>Error Loading Doctors</h3>
+                    <p>Failed to load doctors. Please try again later.</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -799,6 +960,30 @@ function getRandomInRange(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+// Star rating helper function
+function getStarRating(rating) {
+    if (rating === undefined || rating === null) rating = 0;
+    
+    let stars = '';
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    
+    for (let i = 0; i < fullStars; i++) {
+        stars += '★';
+    }
+    
+    if (halfStar) {
+        stars += '½';
+    }
+    
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+        stars += '☆';
+    }
+    
+    return stars;
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded - Initializing MediFind');
@@ -832,8 +1017,47 @@ document.addEventListener('DOMContentLoaded', function() {
         currentYear.textContent = new Date().getFullYear();
     }
     
+    // Footer navigation
+    setupFooterNavigation();
+    
     console.log('Application initialization complete');
 });
+
+// Setup footer navigation
+function setupFooterNavigation() {
+    const footerFindDoctors = document.getElementById('footer-find-doctors');
+    const footerAllDoctors = document.getElementById('footer-all-doctors');
+    const footerMedicalShops = document.getElementById('footer-medical-shops');
+    const footerAppointments = document.getElementById('footer-appointments');
+    
+    if (footerFindDoctors) {
+        footerFindDoctors.addEventListener('click', function(e) {
+            e.preventDefault();
+            showSearchSection();
+        });
+    }
+    
+    if (footerAllDoctors) {
+        footerAllDoctors.addEventListener('click', function(e) {
+            e.preventDefault();
+            showAllDoctorsSection();
+        });
+    }
+    
+    if (footerMedicalShops) {
+        footerMedicalShops.addEventListener('click', function(e) {
+            e.preventDefault();
+            showMedicalShopsSection();
+        });
+    }
+    
+    if (footerAppointments) {
+        footerAppointments.addEventListener('click', function(e) {
+            e.preventDefault();
+            showAppointmentsSection();
+        });
+    }
+}
 
 // Make functions globally available
 window.showSearchSection = showSearchSection;
@@ -849,3 +1073,5 @@ window.getRandomInRange = getRandomInRange;
 window.openAuthModal = openAuthModal;
 window.initializeLoginForm = initializeLoginForm;
 window.initializeSignupForm = initializeSignupForm;
+window.loadAllDoctorsDirectly = loadAllDoctorsDirectly;
+window.getStarRating = getStarRating;
