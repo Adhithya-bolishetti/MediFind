@@ -3,11 +3,18 @@ async function displayRemedies(symptoms) {
     console.log('Displaying remedies for:', symptoms);
     
     try {
-        const remediesContainer = document.getElementById('remedies-container');
-        if (!remediesContainer) return;
+        // Hide doctors results section
+        const resultsSection = document.getElementById('results-section');
+        if (resultsSection) resultsSection.style.display = 'none';
         
         // Show remedies section
-        document.getElementById('remedies-section').style.display = 'block';
+        const remediesSection = document.getElementById('remedies-section');
+        if (remediesSection) {
+            remediesSection.style.display = 'block';
+        }
+        
+        const remediesContainer = document.getElementById('remedies-container');
+        if (!remediesContainer) return;
         
         // Add caution message and loading
         remediesContainer.innerHTML = `
