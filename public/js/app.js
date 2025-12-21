@@ -6,7 +6,7 @@ function setupEventListeners() {
     
     // Main navigation
     const navSearch = document.getElementById('nav-search');
-    const navAllDoctors = document.getElementById('nav-all-doctors');
+    const navAllDoctors = document.getElementById('nav-all-doctor')
     const navMedicalShops = document.getElementById('nav-medical-shops');
     const navRegister = document.getElementById('nav-register');
     const navAppointments = document.getElementById('nav-appointments');
@@ -62,13 +62,13 @@ function setupEventListeners() {
     
     if (loginBtn) {
         loginBtn.addEventListener('click', function() {
-            document.getElementById('auth-modal').style.display = 'flex';
+            openAuthModal('login');
         });
     }
     
     if (signupBtn) {
         signupBtn.addEventListener('click', function() {
-            document.getElementById('signup-modal').style.display = 'flex';
+            openAuthModal('signup');
         });
     }
     
@@ -92,24 +92,29 @@ function setupEventListeners() {
                 return;
             }
             
-            // Show remedies section
-            if (typeof displayRemedies === 'function') {
-                displayRemedies(symptoms);
-            }
+            // Hide remedies section and show doctors section
+            const remediesSection = document.getElementById('remedies-section');
+            const resultsSection = document.getElementById('results-section');
+            if (remediesSection) remediesSection.style.display = 'none';
+            if (resultsSection) resultsSection.style.display = 'block';
             
-            // Search for doctors
+            // Search for doctors ONLY
             if (typeof searchBySymptoms === 'function') {
                 searchBySymptoms(symptoms);
             }
         });
     }
     
-    // Remedies search button
+    // Remedies search button - FIXED: Only show remedies
     const remediesBtn = document.getElementById('search-remedies-btn');
     if (remediesBtn) {
         remediesBtn.addEventListener('click', function() {
             const symptoms = document.getElementById('symptoms-input').value.trim();
             if (symptoms) {
+                // Hide doctors results and show remedies
+                const resultsSection = document.getElementById('results-section');
+                if (resultsSection) resultsSection.style.display = 'none';
+                
                 if (typeof displayRemedies === 'function') {
                     displayRemedies(symptoms);
                 }
@@ -137,7 +142,7 @@ function setupEventListeners() {
         });
     }
     
-    // Quick symptom buttons
+    // Quick symptom buttons - FIXED: Only show doctors
     document.querySelectorAll('.symptom-btn').forEach(button => {
         button.addEventListener('click', function() {
             const symptom = this.getAttribute('data-symptom');
@@ -146,12 +151,13 @@ function setupEventListeners() {
                 symptomsInput.value = symptom;
             }
             
-            // Show remedies
-            if (typeof displayRemedies === 'function') {
-                displayRemedies(symptom);
-            }
+            // Hide remedies and show doctors
+            const remediesSection = document.getElementById('remedies-section');
+            const resultsSection = document.getElementById('results-section');
+            if (remediesSection) remediesSection.style.display = 'none';
+            if (resultsSection) resultsSection.style.display = 'block';
             
-            // Search doctors
+            // Search doctors ONLY
             if (typeof searchBySymptoms === 'function') {
                 searchBySymptoms(symptom);
             }
@@ -305,6 +311,30 @@ function setupEventListeners() {
     console.log('Event listeners setup complete');
 }
 
+// NEW FUNCTION: Open auth modal with proper initialization
+function openAuthModal(type) {
+    const authModal = document.getElementById('auth-modal');
+    const signupModal = document.getElementById('signup-modal');
+    
+    if (type === 'login') {
+        authModal.style.display = 'flex';
+        signupModal.style.display = 'none';
+        
+        // Initialize login form
+        if (typeof initializeLoginForm === 'function') {
+            initializeLoginForm();
+        }
+    } else {
+        authModal.style.display = 'none';
+        signupModal.style.display = 'flex';
+        
+        // Initialize signup form
+        if (typeof initializeSignupForm === 'function') {
+            initializeSignupForm();
+        }
+    }
+}
+
 // Setup auth modal tabs
 function setupAuthModalTabs() {
     // Login options
@@ -364,6 +394,11 @@ function setupAuthModalTabs() {
             e.preventDefault();
             document.getElementById('auth-modal').style.display = 'none';
             document.getElementById('signup-modal').style.display = 'flex';
+            
+            // Initialize signup form
+            if (typeof initializeSignupForm === 'function') {
+                initializeSignupForm();
+            }
         });
     }
     
@@ -373,6 +408,11 @@ function setupAuthModalTabs() {
             e.preventDefault();
             document.getElementById('signup-modal').style.display = 'none';
             document.getElementById('auth-modal').style.display = 'flex';
+            
+            // Initialize login form
+            if (typeof initializeLoginForm === 'function') {
+                initializeLoginForm();
+            }
         });
     }
     
@@ -454,6 +494,50 @@ function setupAuthModalTabs() {
     }
 }
 
+// NEW FUNCTION: Initialize login form visibility
+function initializeLoginForm() {
+    const loginOptions = document.querySelectorAll('#auth-modal .login-option');
+    const loginForms = document.querySelectorAll('#auth-modal .login-form');
+    
+    if (loginOptions.length > 0 && loginForms.length > 0) {
+        // Activate first option
+        loginOptions.forEach(opt => opt.classList.remove('active'));
+        loginOptions[0].classList.add('active');
+        
+        // Show first form
+        loginForms.forEach(form => form.classList.remove('active'));
+        loginForms[0].classList.add('active');
+        
+        // Update modal title
+        const modalTitle = document.getElementById('auth-modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Login as Customer';
+        }
+    }
+}
+
+// NEW FUNCTION: Initialize signup form visibility
+function initializeSignupForm() {
+    const signupOptions = document.querySelectorAll('#signup-modal .login-option');
+    const signupForms = document.querySelectorAll('#signup-modal .login-form');
+    
+    if (signupOptions.length > 0 && signupForms.length > 0) {
+        // Activate first option
+        signupOptions.forEach(opt => opt.classList.remove('active'));
+        signupOptions[0].classList.add('active');
+        
+        // Show first form
+        signupForms.forEach(form => form.classList.remove('active'));
+        signupForms[0].classList.add('active');
+        
+        // Update modal title
+        const modalTitle = document.getElementById('signup-modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Sign up as Customer';
+        }
+    }
+}
+
 // ==================== NAVIGATION FUNCTIONS ====================
 
 function showSearchSection() {
@@ -512,7 +596,7 @@ function showRegistrationSection() {
     if (!currentUser || currentUser.type !== 'doctor') {
         alert('Only doctors can access this page.');
         if (!currentUser) {
-            document.getElementById('auth-modal').style.display = 'flex';
+            openAuthModal('login');
         }
         return;
     }
@@ -556,7 +640,7 @@ function showMedicalShopOwnerSection() {
     if (!currentUser || currentUser.type !== 'medical_shop') {
         alert('Only medical shop owners can access this page.');
         if (!currentUser) {
-            document.getElementById('auth-modal').style.display = 'flex';
+            openAuthModal('login');
         }
         return;
     }
@@ -735,6 +819,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event listeners
     setupEventListeners();
     
+    // Initialize auth forms
+    initializeLoginForm();
+    initializeSignupForm();
+    
     // Show search section by default
     showSearchSection();
     
@@ -758,3 +846,6 @@ window.showProfileSection = showProfileSection;
 window.loginUser = loginUser;
 window.signupUser = signupUser;
 window.getRandomInRange = getRandomInRange;
+window.openAuthModal = openAuthModal;
+window.initializeLoginForm = initializeLoginForm;
+window.initializeSignupForm = initializeSignupForm;
