@@ -321,6 +321,58 @@ nav a:hover, nav a.active {
     font-weight: 500;
 }
 
+/* Add these styles to ensure form visibility */
+.login-form {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.login-form.active {
+    display: block !important;
+    opacity: 1;
+}
+
+/* Ensure all form inputs are visible */
+#medical-shop-login-form,
+#medical-shop-signup-form {
+    display: none;
+}
+
+#medical-shop-login-form.active,
+#medical-shop-signup-form.active {
+    display: block !important;
+}
+
+/* Fix for form display in modals */
+.modal-body .login-form {
+    display: none;
+}
+
+.modal-body .login-form.active {
+    display: block;
+}
+
+/* Make sure form elements are visible */
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: white;
+    color: #333;
+}
+
+/* Button styling */
+.btn-block {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+}
+
 /* Search Section */
 .search-section {
     background: white;
