@@ -1,288 +1,76 @@
-// Function to search by symptoms only
+// Search by symptoms
 async function searchBySymptoms(symptoms) {
-    if (!symptoms || symptoms.trim() === '') {
-        alert('Please enter symptoms to search for doctors.');
-        return;
-    }
+    console.log('Searching by symptoms:', symptoms);
     
     try {
-        console.log('🔍 Starting symptoms search for:', symptoms);
-        
-        // Build search parameters
         const params = {
-            symptoms: symptoms.trim(),
-            location: locationInput.value.trim(),
+            symptoms: symptoms,
+            location: document.getElementById('location-input').value.trim(),
             specialty: document.getElementById('specialty-filter').value,
             rating: document.getElementById('rating-filter').value
         };
         
-        // Remove empty parameters
-        Object.keys(params).forEach(key => {
-            if (!params[key] || params[key] === 'all' || params[key] === '0') {
-                delete params[key];
-            }
-        });
+        console.log('Search params:', params);
+        const doctors = await apiService.searchDoctors(params);
+        console.log('Found doctors:', doctors.length);
         
-        console.log('📤 Search params:', params);
-        
-        const filteredDoctors = await apiService.searchDoctors(params);
-        console.log('📥 Search results:', filteredDoctors);
-
-        if (filteredDoctors.length === 0) {
-            console.log('❌ No doctors found with direct search, trying fallback...');
-            
-            // Fallback: Get all doctors and filter client-side
-            const allDoctors = await apiService.getDoctors();
-            console.log('📊 All doctors available:', allDoctors.length);
-            
-            // Simple client-side filtering
-            const symptomsLower = symptoms.toLowerCase().trim();
-            const fallbackResults = allDoctors.filter(doctor => {
-                const bioMatch = doctor.bio.toLowerCase().includes(symptomsLower);
-                const specialtyMatch = doctor.specialty.toLowerCase().includes(symptomsLower);
-                const educationMatch = doctor.education.toLowerCase().includes(symptomsLower);
-                
-                return bioMatch || specialtyMatch || educationMatch;
-            });
-            
-            console.log('🔄 Fallback results:', fallbackResults);
-            
-            if (fallbackResults.length === 0) {
-                alert(`No doctors found for "${symptoms}". Try different symptoms like "fever", "headache", or "cough".`);
-                return;
-            }
-            
-            // Use fallback results
-            currentSearchResults = [...fallbackResults];
-            showSearchResults(currentSearchResults, `Showing ${fallbackResults.length} doctors for "${symptoms}" (fallback search)`);
-            
-        } else {
-            // Use direct search results
-            currentSearchResults = [...filteredDoctors];
-            showSearchResults(currentSearchResults, `Showing ${filteredDoctors.length} doctors for "${symptoms}"`);
-        }
+        // Show results
+        showSearchResults(doctors, `Found ${doctors.length} doctors for "${symptoms}"`);
         
     } catch (error) {
-        console.error('💥 Search error:', error);
-        
-        // Emergency fallback: Show all doctors
-        try {
-            const allDoctors = await apiService.getDoctors();
-            currentSearchResults = [...allDoctors];
-            showSearchResults(currentSearchResults, `Showing all ${allDoctors.length} doctors (emergency fallback)`);
-            alert('Search encountered an error. Showing all available doctors instead.');
-        } catch (fallbackError) {
-            alert('Search failed completely. Please check console for details.');
-        }
+        console.error('Search error:', error);
+        alert('Search failed. Please try again.');
     }
 }
 
-// Helper function to display search results
-function showSearchResults(doctorsToShow, message) {
-    // Calculate distances if user location is available for sorting
-    if (userLocation) {
-        doctorsToShow.forEach(doctor => {
-            doctor.distance = calculateDistance(
-                userLocation.lat, userLocation.lng,
-                doctor.lat, doctor.lng
-            );
-        });
-    }
-    
-    // Apply initial sorting
-    const sortedResults = sortDoctors([...doctorsToShow], sortResults.value);
-    
-    // Display the doctors
-    displayDoctors(sortedResults, doctorsGrid);
-    searchSection.style.display = 'block';
-    resultsSection.style.display = 'block';
-    allDoctorsSection.style.display = 'none';
-    registrationSection.style.display = 'none';
-    appointmentsSection.style.display = 'none';
-    profileSection.style.display = 'none';
-    
-    // Update results count
-    resultsCount.textContent = message;
-}
-
-// New function to find doctors by location
-async function findDoctorsByLocation(locationText) {
-    if (!locationText || locationText.trim() === '') {
-        alert('Please enter a location to search for doctors.');
-        return;
-    }
+// Find doctors by location
+async function findDoctorsByLocation(location) {
+    console.log('Finding doctors by location:', location);
     
     try {
-        console.log('📍 Starting location search for:', locationText);
-        
         const params = {
-            location: locationText.trim(),
+            location: location,
             specialty: document.getElementById('specialty-filter').value,
             rating: document.getElementById('rating-filter').value
         };
         
-        // Remove empty parameters
-        Object.keys(params).forEach(key => {
-            if (!params[key] || params[key] === 'all' || params[key] === '0') {
-                delete params[key];
-            }
-        });
+        const doctors = await apiService.searchDoctors(params);
+        showSearchResults(doctors, `Found ${doctors.length} doctors in "${location}"`);
         
-        console.log('📤 Location search params:', params);
-        
-        const filteredDoctors = await apiService.searchDoctors(params);
-        console.log('📥 Location search results:', filteredDoctors);
-        
-        if (filteredDoctors.length === 0) {
-            alert(`No doctors found in ${locationText}. Try a different location.`);
-            return;
-        }
-        
-        // Store the results for sorting
-        currentSearchResults = [...filteredDoctors];
-        
-        // Calculate distances if user location is available for sorting
-        if (userLocation) {
-            currentSearchResults.forEach(doctor => {
-                doctor.distance = calculateDistance(
-                    userLocation.lat, userLocation.lng,
-                    doctor.lat, doctor.lng
-                );
-            });
-        }
-        
-        // Apply initial sorting
-        const sortedResults = sortDoctors([...currentSearchResults], sortResults.value);
-        
-        // Display the doctors
-        displayDoctors(sortedResults, doctorsGrid);
-        searchSection.style.display = 'block';
-        resultsSection.style.display = 'block';
-        allDoctorsSection.style.display = 'none';
-        registrationSection.style.display = 'none';
-        appointmentsSection.style.display = 'none';
-        profileSection.style.display = 'none';
-        
-        // Update results count
-        resultsCount.textContent = `Showing ${filteredDoctors.length} doctor${filteredDoctors.length !== 1 ? 's' : ''} in ${locationText}`;
     } catch (error) {
-        console.error('💥 Location search error:', error);
+        console.error('Location search error:', error);
         alert('Location search failed. Please try again.');
     }
 }
 
-// Function to sort doctors based on selected criteria
-function sortDoctors(doctorsToSort, sortValue) {
-    return doctorsToSort.sort((a, b) => {
-        if (sortValue === 'rating-desc') {
-            return b.rating - a.rating;
-        } else if (sortValue === 'distance-asc') {
-            // For distance sorting, we need user location
-            if (userLocation) {
-                return (a.distance || Infinity) - (b.distance || Infinity);
-            } else {
-                // If no location, prompt user to enable location
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            userLocation = {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude
-                            };
-                            // Re-sort with new location
-                            const reSorted = sortDoctors([...doctorsToSort], 'distance-asc');
-                            displayDoctors(reSorted, doctorsGrid);
-                        },
-                        (error) => {
-                            alert('Location is required for sorting by distance. Please enable location services.');
-                        }
-                    );
-                }
-                return b.rating - a.rating; // Fallback to rating
-            }
-        } else if (sortValue === 'name-asc') {
-            return a.name.localeCompare(b.name);
-        }
-        return 0;
-    });
-}
-
-// Display doctors in the grid
-function displayDoctors(doctorsToShow, gridElement) {
-    gridElement.innerHTML = '';
+// Display search results
+function showSearchResults(doctors, message) {
+    console.log('Showing search results:', doctors.length, 'doctors');
     
-    if (doctorsToShow.length === 0) {
-        gridElement.innerHTML = '<p>No doctors found matching your criteria. Try different symptoms or filters.</p>';
-        if (gridElement === doctorsGrid) {
-            resultsCount.textContent = 'Showing 0 results';
-        }
+    const doctorsGrid = document.getElementById('doctors-grid');
+    const resultsCount = document.getElementById('results-count');
+    
+    if (!doctorsGrid || !resultsCount) return;
+    
+    doctorsGrid.innerHTML = '';
+    
+    if (doctors.length === 0) {
+        doctorsGrid.innerHTML = '<p>No doctors found matching your criteria.</p>';
+        resultsCount.textContent = 'No results found';
         return;
     }
-
-    // Apply filters for search results
-    if (gridElement === doctorsGrid) {
-        const distanceFilter = document.getElementById('location-filter').value;
-        const specialtyFilter = document.getElementById('specialty-filter').value;
-        const ratingFilter = parseFloat(document.getElementById('rating-filter').value);
-
-        doctorsToShow = doctorsToShow.filter(doctor => {
-            if (specialtyFilter !== 'all' && doctor.specialty.toLowerCase() !== specialtyFilter) {
-                return false;
-            }
-            
-            if (distanceFilter !== 'all' && userLocation) {
-                const maxDistance = parseFloat(distanceFilter);
-                if (doctor.distance > maxDistance) {
-                    return false;
-                }
-            }
-            
-            if (ratingFilter > 0 && doctor.rating < ratingFilter) {
-                return false;
-            }
-            
-            return true;
-        });
-    }
-
-    // Apply sorting for all doctors
-    if (gridElement === allDoctorsGrid) {
-        const sortValue = sortAllDoctors.value;
-        doctorsToShow.sort((a, b) => {
-            if (sortValue === 'rating-desc') {
-                return b.rating - a.rating;
-            } else if (sortValue === 'name-asc') {
-                return a.name.localeCompare(b.name);
-            } else if (sortValue === 'specialty-asc') {
-                return a.specialty.localeCompare(b.specialty);
-            }
-            return 0;
-        });
-    }
-
-    doctorsToShow.forEach(doctor => {
+    
+    // Display each doctor
+    doctors.forEach(doctor => {
         const doctorCard = document.createElement('div');
         doctorCard.className = 'doctor-card';
-        
-        // Determine specialty badge class
-        const specialtyClass = `specialty-${doctor.specialty.toLowerCase().replace(/ /g, '-')}`;
-        
-        // Format distance if available
-        let distanceText = '';
-        if (doctor.distance !== undefined) {
-            distanceText = `<p class="doctor-distance"><i class="fas fa-road"></i> ${doctor.distance.toFixed(1)} km away</p>`;
-        }
-        
-        // Check if user is patient to show book appointment button
-        const bookAppointmentButton = currentUser && currentUser.type !== 'doctor' 
-            ? `<button class="btn btn-small book-appointment-btn" data-id="${doctor._id}">Book Appointment</button>`
-            : '';
-        
         doctorCard.innerHTML = `
             <div class="doctor-image">
                 <i class="fas fa-user-md"></i>
             </div>
-            <div class="specialty-badge ${specialtyClass}">${doctor.specialty}</div>
+            <div class="specialty-badge specialty-${doctor.specialty.toLowerCase().replace(/ /g, '-')}">
+                ${doctor.specialty}
+            </div>
             <div class="doctor-info">
                 <h3 class="doctor-name">${doctor.name}</h3>
                 <p class="doctor-specialty">${doctor.specialty}</p>
@@ -294,71 +82,130 @@ function displayDoctors(doctorsToShow, gridElement) {
                     <span class="rating-value">${doctor.rating}</span>
                     <span class="reviews-count">(${doctor.reviewCount} reviews)</span>
                 </div>
-                ${distanceText}
                 <p class="doctor-experience">${doctor.experience} years experience</p>
                 <div class="doctor-actions">
-                    <button class="btn btn-small view-reviews" data-id="${doctor._id}">View Reviews</button>
-                    <button class="btn btn-small btn-warning add-review" data-id="${doctor._id}">Add Review</button>
-                    <button class="btn btn-small btn-secondary show-location" data-id="${doctor._id}">Show Location</button>
-                    ${bookAppointmentButton}
+                    <button class="btn btn-small view-reviews" data-id="${doctor._id}">
+                        View Reviews
+                    </button>
+                    <button class="btn btn-small btn-warning add-review" data-id="${doctor._id}">
+                        Add Review
+                    </button>
                 </div>
             </div>
         `;
-        gridElement.appendChild(doctorCard);
+        doctorsGrid.appendChild(doctorCard);
     });
-
-    if (gridElement === doctorsGrid) {
-        resultsCount.textContent = `Showing ${doctorsToShow.length} result${doctorsToShow.length !== 1 ? 's' : ''}`;
-    } else if (gridElement === allDoctorsGrid) {
-        allDoctorsCount.textContent = `Showing ${doctorsToShow.length} doctor${doctorsToShow.length !== 1 ? 's' : ''}`;
-    }
-
+    
+    resultsCount.textContent = message;
+    
     // Add event listeners to buttons
-    document.querySelectorAll('.view-reviews').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            console.log('View reviews clicked for doctor:', doctorId);
-            openReviewModal(doctorId, false);
+    setTimeout(() => {
+        document.querySelectorAll('.view-reviews').forEach(button => {
+            button.addEventListener('click', function() {
+                const doctorId = this.getAttribute('data-id');
+                console.log('View reviews for doctor:', doctorId);
+                if (typeof openReviewModal === 'function') {
+                    openReviewModal(doctorId, false);
+                }
+            });
         });
-    });
-
-    document.querySelectorAll('.add-review').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            console.log('Add review clicked for doctor:', doctorId);
-            openReviewModal(doctorId, true);
+        
+        document.querySelectorAll('.add-review').forEach(button => {
+            button.addEventListener('click', function() {
+                const doctorId = this.getAttribute('data-id');
+                console.log('Add review for doctor:', doctorId);
+                if (typeof openReviewModal === 'function') {
+                    openReviewModal(doctorId, true);
+                }
+            });
         });
-    });
-
-    document.querySelectorAll('.show-location').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            showDoctorLocation(doctorId);
-        });
-    });
-
-    // In the displayDoctors function, make sure this part exists:
-    document.querySelectorAll('.book-appointment-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const doctorId = e.target.getAttribute('data-id');
-            console.log('Book appointment clicked for doctor:', doctorId);
-            openBookingModal(doctorId);
-        });
-    });
+    }, 100);
 }
 
 // Display all doctors
 async function displayAllDoctors() {
+    console.log('Displaying all doctors');
+    
     try {
-        const allDoctors = await apiService.getDoctors();
-        displayDoctors(allDoctors, allDoctorsGrid);
+        const doctors = await apiService.getDoctors();
+        const allDoctorsGrid = document.getElementById('all-doctors-grid');
+        const allDoctorsCount = document.getElementById('all-doctors-count');
+        
+        if (!allDoctorsGrid || !allDoctorsCount) return;
+        
+        allDoctorsGrid.innerHTML = '';
+        
+        if (doctors.length === 0) {
+            allDoctorsGrid.innerHTML = '<p>No doctors registered yet.</p>';
+            allDoctorsCount.textContent = 'No doctors';
+            return;
+        }
+        
+        doctors.forEach(doctor => {
+            const doctorCard = document.createElement('div');
+            doctorCard.className = 'doctor-card';
+            doctorCard.innerHTML = `
+                <div class="doctor-image">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="specialty-badge specialty-${doctor.specialty.toLowerCase().replace(/ /g, '-')}">
+                    ${doctor.specialty}
+                </div>
+                <div class="doctor-info">
+                    <h3 class="doctor-name">${doctor.name}</h3>
+                    <p class="doctor-specialty">${doctor.specialty}</p>
+                    <p class="doctor-location">
+                        <i class="fas fa-map-marker-alt"></i> ${doctor.address}, ${doctor.city}
+                    </p>
+                    <div class="doctor-rating">
+                        <div class="stars">${getStarRating(doctor.rating)}</div>
+                        <span class="rating-value">${doctor.rating}</span>
+                        <span class="reviews-count">(${doctor.reviewCount} reviews)</span>
+                    </div>
+                    <p class="doctor-experience">${doctor.experience} years experience</p>
+                    <div class="doctor-actions">
+                        <button class="btn btn-small view-reviews" data-id="${doctor._id}">
+                            View Reviews
+                        </button>
+                        <button class="btn btn-small btn-warning add-review" data-id="${doctor._id}">
+                            Add Review
+                        </button>
+                    </div>
+                </div>
+            `;
+            allDoctorsGrid.appendChild(doctorCard);
+        });
+        
+        allDoctorsCount.textContent = `Showing ${doctors.length} doctors`;
+        
+        // Add event listeners
+        setTimeout(() => {
+            document.querySelectorAll('.view-reviews').forEach(button => {
+                button.addEventListener('click', function() {
+                    const doctorId = this.getAttribute('data-id');
+                    if (typeof openReviewModal === 'function') {
+                        openReviewModal(doctorId, false);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.add-review').forEach(button => {
+                button.addEventListener('click', function() {
+                    const doctorId = this.getAttribute('data-id');
+                    if (typeof openReviewModal === 'function') {
+                        openReviewModal(doctorId, true);
+                    }
+                });
+            });
+        }, 100);
+        
     } catch (error) {
-        alert('Failed to load doctors. Please try again.');
-        console.error('Load doctors error:', error);
+        console.error('Display doctors error:', error);
+        alert('Failed to load doctors.');
     }
 }
 
-// Generate star rating HTML
+// Star rating helper
 function getStarRating(rating) {
     let stars = '';
     const fullStars = Math.floor(rating);
@@ -379,3 +226,9 @@ function getStarRating(rating) {
     
     return stars;
 }
+
+// Make functions available globally
+window.searchBySymptoms = searchBySymptoms;
+window.findDoctorsByLocation = findDoctorsByLocation;
+window.displayAllDoctors = displayAllDoctors;
+window.getStarRating = getStarRating;

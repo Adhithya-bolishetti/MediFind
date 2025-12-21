@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediFind - Doctor Recommendation System</title>
+    <title>MediFind - Doctor Recommendation & Medical Shop System</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/style.css">
@@ -21,9 +21,11 @@
                     <ul>
                         <li><a href="#" class="active" id="nav-search">Find Doctors</a></li>
                         <li><a href="#" id="nav-all-doctors">All Doctors</a></li>
+                        <li><a href="#" id="nav-medical-shops">Medical Shops</a></li>
                         <li><a href="#" id="nav-register" style="display: none;">Doctor Registration</a></li>
                         <li><a href="#" id="nav-profile" style="display: none;">My Profile</a></li>
                         <li><a href="#" id="nav-appointments" style="display: none;">Appointments</a></li>
+                        <li><a href="#" id="nav-medical-shop-owner" style="display: none;">My Medical Shop</a></li>
                     </ul>
                 </nav>
                 <div class="user-auth">
@@ -52,6 +54,7 @@
                 <div class="login-options">
                     <div class="login-option active" data-type="customer">Customer</div>
                     <div class="login-option" data-type="doctor">Doctor</div>
+                    <div class="login-option" data-type="medical_shop">Medical Shop Owner</div>
                 </div>
                 
                 <form class="login-form active" id="customer-login-form">
@@ -79,6 +82,19 @@
                     </div>
                     <button type="submit" class="btn">Login as Doctor</button>
                 </form>
+
+                <form class="login-form" id="medical-shop-login-form">
+                    <h4>Medical Shop Owner Login</h4>
+                    <div class="form-group">
+                        <label for="shop-email">Email</label>
+                        <input type="email" id="shop-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shop-password">Password</label>
+                        <input type="password" id="shop-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn">Login as Shop Owner</button>
+                </form>
                 
                 <div style="margin-top: 1rem; text-align: center;">
                     <p>Don't have an account? <a href="#" id="switch-to-signup">Sign up here</a></p>
@@ -98,6 +114,7 @@
                 <div class="login-options">
                     <div class="login-option active" data-type="customer">Customer</div>
                     <div class="login-option" data-type="doctor">Doctor</div>
+                    <div class="login-option" data-type="medical_shop">Medical Shop Owner</div>
                 </div>
                 
                 <form class="login-form active" id="customer-signup-form">
@@ -133,6 +150,23 @@
                     </div>
                     <button type="submit" class="btn">Create Doctor Account</button>
                 </form>
+
+                <form class="login-form" id="medical-shop-signup-form">
+                    <h4>Medical Shop Owner Sign Up</h4>
+                    <div class="form-group">
+                        <label for="shop-owner-name">Full Name</label>
+                        <input type="text" id="shop-owner-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shop-owner-email">Email</label>
+                        <input type="email" id="shop-owner-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shop-owner-password">Password</label>
+                        <input type="password" id="shop-owner-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn">Create Shop Owner Account</button>
+                </form>
                 
                 <div style="margin-top: 1rem; text-align: center;">
                     <p>Already have an account? <a href="#" id="switch-to-login">Login here</a></p>
@@ -141,11 +175,42 @@
         </div>
     </div>
 
+    <!-- Medical Shop Registration Modal -->
+    <div class="modal" id="shop-registration-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Complete Medical Shop Registration</h3>
+                <button class="close-modal" id="close-shop-registration">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="medical-shop-registration-form">
+                    <div class="form-group">
+                        <label for="shop-name">Shop Name</label>
+                        <input type="text" id="shop-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shop-address">Shop Address</label>
+                        <input type="text" id="shop-address" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shop-license">License Number</label>
+                        <input type="text" id="shop-license" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shop-phone">Contact Phone</label>
+                        <input type="tel" id="shop-phone" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn">Register Medical Shop</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Map Modal -->
     <div class="modal" id="map-modal">
         <div class="map-modal-content">
             <div class="map-modal-header">
-                <h3 class="modal-title">Doctor Location</h3>
+                <h3 class="modal-title">Location</h3>
                 <button class="close-modal" id="close-map-modal">&times;</button>
             </div>
             <div class="map-modal-body">
@@ -157,7 +222,7 @@
         </div>
     </div>
 
-    <!-- New Booking Modal -->
+    <!-- Booking Modal -->
     <div class="modal" id="booking-modal">
         <div class="modal-content booking-modal-content">
             <div class="modal-header">
@@ -182,7 +247,6 @@
                             <label for="booking-time">Appointment Time</label>
                             <select id="booking-time" class="form-control" required>
                                 <option value="">Select Time</option>
-                                <!-- Time slots will be dynamically populated -->
                             </select>
                         </div>
                     </div>
@@ -192,7 +256,6 @@
                     <div class="available-slots" id="available-slots" style="display: none;">
                         <h4>Available Time Slots:</h4>
                         <div id="slot-options">
-                            <!-- Available slots will be dynamically inserted here -->
                         </div>
                     </div>
                     <div class="form-group">
@@ -201,6 +264,88 @@
                     </div>
                     <button type="submit" class="btn">Book Appointment</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Shop Products Modal -->
+    <div class="modal" id="shop-products-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="shop-products-title">Shop Products</h3>
+                <button class="close-modal" id="close-shop-products">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="shop-products-list" class="products-grid">
+                    <!-- Products will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add Product Modal -->
+    <div class="modal" id="add-product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Product</h3>
+                <button class="close-modal" id="close-add-product">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-product-form">
+                    <div class="form-group">
+                        <label for="product-name">Product Name</label>
+                        <input type="text" id="product-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Description</label>
+                        <textarea id="product-description" class="form-control" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product-category">Category</label>
+                            <select id="product-category" class="form-control" required>
+                                <option value="">Select Category</option>
+                                <option value="Medicines">Medicines</option>
+                                <option value="First Aid">First Aid</option>
+                                <option value="Personal Care">Personal Care</option>
+                                <option value="Baby Care">Baby Care</option>
+                                <option value="Health Supplements">Health Supplements</option>
+                                <option value="Medical Devices">Medical Devices</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-brand">Brand</label>
+                            <input type="text" id="product-brand" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product-price">Price (₹)</label>
+                            <input type="number" id="product-price" class="form-control" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-stock">Stock Quantity</label>
+                            <input type="number" id="product-stock" class="form-control" min="0" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Save Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal" id="order-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Order Details</h3>
+                <button class="close-modal" id="close-order-details">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="order-details-content">
+                    <!-- Order details will be dynamically inserted here -->
+                </div>
             </div>
         </div>
     </div>
@@ -236,6 +381,8 @@
                     <button class="symptom-btn" data-symptom="sore throat">Sore Throat</button>
                     <button class="symptom-btn" data-symptom="flu">Flu</button>
                     <button class="symptom-btn" data-symptom="fatigue">Fatigue</button>
+                    <button class="symptom-btn" data-symptom="stomach">Stomach Pain</button>
+                    <button class="symptom-btn" data-symptom="allergy">Allergy</button>
                 </div>
             </div>
             
@@ -254,11 +401,14 @@
                     <label for="specialty-filter">Specialty</label>
                     <select id="specialty-filter" class="filter-select">
                         <option value="all">All Specialties</option>
-                        <option value="general">General Practice</option>
-                        <option value="cardiology">Cardiology</option>
-                        <option value="dermatology">Dermatology</option>
-                        <option value="pediatrics">Pediatrics</option>
-                        <option value="orthopedics">Orthopedics</option>
+                        <option value="General Practice">General Practice</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Dermatology">Dermatology</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                        <option value="Orthopedics">Orthopedics</option>
+                        <option value="Neurology">Neurology</option>
+                        <option value="Gastroenterology">Gastroenterology</option>
+                        <option value="Psychiatry">Psychiatry</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -269,6 +419,16 @@
                         <option value="4.5">4.5+ Stars</option>
                     </select>
                 </div>
+            </div>
+        </section>
+
+        <!-- Remedies Section -->
+        <section class="remedies-section" id="remedies-section" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-leaf"></i> Natural Remedies & Medicines
+            </h2>
+            <div id="remedies-container">
+                <!-- Remedies will be dynamically inserted here -->
             </div>
         </section>
 
@@ -314,8 +474,28 @@
             </div>
         </section>
 
+        <!-- Medical Shops Section -->
+        <section class="medical-shops-section" id="medical-shops-section" style="display: none;">
+            <div class="results-header">
+                <h2 class="section-title">
+                    <i class="fas fa-clinic-medical"></i> Nearby Medical Shops
+                </h2>
+                <div class="results-count" id="medical-shops-count">Loading shops...</div>
+                <div class="sort-options">
+                    <select id="sort-medical-shops">
+                        <option value="name-asc">Name A-Z</option>
+                        <option value="rating-desc">Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="doctors-grid" id="medical-shops-grid">
+                <!-- Medical shop cards will be dynamically inserted here -->
+            </div>
+        </section>
+
         <!-- Doctor Registration Section -->
-        <section class="registration-section" id="registration-section">
+        <section class="registration-section" id="registration-section" style="display: none;">
             <h2 class="section-title">
                 <i class="fas fa-user-plus"></i> Doctor Registration
             </h2>
@@ -435,13 +615,150 @@
             </div>
         </section>
 
-        <!-- Appointments Section (Only for Doctors) -->
-        <section class="appointments-section" id="appointments-section">
+        <!-- Medical Shop Owner Section -->
+        <section class="medical-shop-owner-section" id="medical-shop-owner-section" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-store"></i> Medical Shop Dashboard
+            </h2>
+            
+            <div id="shop-registration-prompt" style="display: none;">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> You need to register your medical shop first.
+                </div>
+                <button class="btn" id="register-shop-btn">Register Your Medical Shop</button>
+            </div>
+            
+            <div id="shop-dashboard" style="display: none;">
+                <div class="shop-dashboard-header">
+                    <h3 id="shop-dashboard-name">Medical Shop Name</h3>
+                    <p id="shop-dashboard-address">Address will appear here</p>
+                    <p id="shop-dashboard-license">License: Loading...</p>
+                </div>
+                
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="total-products">0</div>
+                            <div class="stat-label">Total Products</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="total-orders">0</div>
+                            <div class="stat-label">Total Orders</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="total-revenue">₹0</div>
+                            <div class="stat-label">Total Revenue</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-tabs">
+                    <button class="tab-btn active" data-tab="products">Products</button>
+                    <button class="tab-btn" data-tab="orders">Orders</button>
+                    <button class="tab-btn" data-tab="analytics">Analytics</button>
+                </div>
+                
+                <div class="tab-content active" id="products-tab">
+                    <div class="tab-header">
+                        <h4>Product Management</h4>
+                        <button class="btn btn-small" id="add-product-btn">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                    </div>
+                    <div class="products-table-container">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Brand</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shop-products-table">
+                                <!-- Products will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="orders-tab">
+                    <div class="tab-header">
+                        <h4>Order Management</h4>
+                    </div>
+                    <div class="orders-table-container">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shop-orders-table">
+                                <!-- Orders will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="analytics-tab">
+                    <div class="tab-header">
+                        <h4>Shop Analytics</h4>
+                    </div>
+                    <div class="analytics-content">
+                        <div class="analytics-card">
+                            <h5>Top Selling Products</h5>
+                            <div id="top-products-list">
+                                <!-- Top products will be dynamically inserted here -->
+                            </div>
+                        </div>
+                        <div class="analytics-card">
+                            <h5>Revenue Overview</h5>
+                            <div id="revenue-chart">
+                                <!-- Revenue chart will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Appointments Section -->
+        <section class="appointments-section" id="appointments-section" style="display: none;">
             <h2 class="section-title">
                 <i class="fas fa-calendar-check"></i> My Appointments
             </h2>
             <div id="appointments-list">
                 <!-- Appointments will be dynamically inserted here -->
+            </div>
+        </section>
+
+        <!-- Customer Orders Section -->
+        <section class="customer-orders-section" id="customer-orders-section" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-shopping-bag"></i> My Orders
+            </h2>
+            <div id="customer-orders-list">
+                <!-- Customer orders will be dynamically inserted here -->
             </div>
         </section>
     </main>
@@ -451,7 +768,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="modal-doctor-name">Doctor Name</h3>
-                <button class="close-modal" id="close-modal">&times;</button>
+                <button class="close-modal" id="close-review-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <form class="review-form" id="review-form">
@@ -492,16 +809,16 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>About MediFind</h3>
-                    <p>MediFind helps you find the right healthcare professional based on your symptoms, location, and preferences.</p>
+                    <p>MediFind helps you find the right healthcare professional based on your symptoms, location, and preferences. Now with medical shop integration!</p>
                     <p><small>Location services powered by OpenStreetMap</small></p>
                 </div>
                 <div class="footer-section">
                     <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="#search-section">Find Doctors</a></li>
-                        <li><a href="#all-doctors-section">All Doctors</a></li>
-                        <li><a href="#registration-section">Doctor Registration</a></li>
-                        <li><a href="#appointments-section">Appointments</a></li>
+                        <li><a href="#" id="footer-find-doctors">Find Doctors</a></li>
+                        <li><a href="#" id="footer-all-doctors">All Doctors</a></li>
+                        <li><a href="#" id="footer-medical-shops">Medical Shops</a></li>
+                        <li><a href="#" id="footer-appointments">Appointments</a></li>
                         <li><a href="#">Privacy Policy</a></li>
                         <li><a href="#">Terms of Service</a></li>
                     </ul>
@@ -510,22 +827,34 @@
                     <h3>Contact Us</h3>
                     <p>Email: info@medifind.com</p>
                     <p>Phone: +1 (555) 123-4567</p>
+                    <p>Address: 123 Health Street, Medical City</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Features</h3>
+                    <ul>
+                        <li>Doctor Recommendations</li>
+                        <li>Natural Remedies</li>
+                        <li>Medical Shop Finder</li>
+                        <li>Online Medicine Ordering</li>
+                        <li>Appointment Booking</li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 MediFind. All rights reserved.</p>
+                <p>&copy; 2025 MediFind. All rights reserved. | <span id="current-year">2025</span></p>
             </div>
         </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="./js/api.js"></script>
-    <script src="./js/data.js"></script>
     <script src="./js/auth.js"></script>
     <script src="./js/map.js"></script>
     <script src="./js/doctors.js"></script>
     <script src="./js/appointments.js"></script>
     <script src="./js/reviews.js"></script>
+    <script src="./js/remedies.js"></script>
+    <script src="./js/medicalshop.js"></script>
     <script src="./js/app.js"></script>
 </body>
 </html>
