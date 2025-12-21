@@ -1,4 +1,3 @@
-
 // Global variables
 let currentUser = null;
 let userLocation = null;
@@ -246,6 +245,11 @@ function setupEventListeners() {
         medicalShopForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!currentUser || currentUser.type !== 'medical_shop') {
+                alert('Only medical shop owners can register a shop.');
+                return;
+            }
+            
             const shopData = {
                 shopName: document.getElementById('shop-name').value,
                 ownerName: document.getElementById('shop-owner-name').value,
@@ -267,6 +271,9 @@ function setupEventListeners() {
                 if (typeof loadMedicalShopOwnerDashboard === 'function') {
                     loadMedicalShopOwnerDashboard();
                 }
+                
+                // Close modal
+                document.getElementById('shop-registration-modal').style.display = 'none';
             } catch (error) {
                 console.error('Shop registration error:', error);
                 alert('Registration failed: ' + error.message);
@@ -276,6 +283,28 @@ function setupEventListeners() {
     
     // Setup login/signup modal tabs
     setupAuthModalTabs();
+    
+    // Medical shop search
+    const searchShopsBtn = document.getElementById('search-shops-btn');
+    if (searchShopsBtn) {
+        searchShopsBtn.addEventListener('click', function() {
+            if (typeof searchMedicalShops === 'function') {
+                searchMedicalShops();
+            }
+        });
+    }
+    
+    const searchMedicalShopsInput = document.getElementById('search-medical-shops');
+    if (searchMedicalShopsInput) {
+        searchMedicalShopsInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof searchMedicalShops === 'function') {
+                    searchMedicalShops();
+                }
+            }
+        });
+    }
     
     console.log('Event listeners setup complete');
 }
@@ -543,6 +572,137 @@ function updateActiveNav(navId) {
     }
 }
 
+// ==================== AUTHENTICATION FUNCTIONS ====================
+
+async function loginUser(email, password, type) {
+    console.log('Attempting login for:', email, 'type:', type);
+    
+    try {
+        const result = await apiService.login({ email, password });
+        
+        if (result.error) {
+            alert(result.error);
+            return;
+        }
+        
+        // Check if user type matches
+        if (type && result.type !== type) {
+            alert(`Please login as a ${result.type === 'medical_shop' ? 'Medical Shop Owner' : result.type}`);
+            return;
+        }
+        
+        currentUser = result;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateUIForUser();
+        
+        // Close modal
+        document.getElementById('auth-modal').style.display = 'none';
+        
+        alert(`Welcome back, ${currentUser.name}!`);
+        
+        // Redirect based on user type
+        if (currentUser.type === 'doctor') {
+            showRegistrationSection();
+        } else if (currentUser.type === 'medical_shop') {
+            showMedicalShopOwnerSection();
+        } else {
+            showSearchSection();
+        }
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please check your credentials.');
+    }
+}
+
+async function signupUser(name, email, password, type) {
+    console.log('Attempting signup for:', name, email, 'type:', type);
+    
+    try {
+        const result = await apiService.signup({ name, email, password, type });
+        
+        if (result.error) {
+            alert(result.error);
+            return;
+        }
+        
+        currentUser = result;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateUIForUser();
+        
+        // Close modal
+        document.getElementById('signup-modal').style.display = 'none';
+        
+        alert(`Account created successfully! Welcome, ${name}!`);
+        
+        // Redirect based on user type
+        if (currentUser.type === 'doctor') {
+            showRegistrationSection();
+        } else if (currentUser.type === 'medical_shop') {
+            showMedicalShopOwnerSection();
+        } else {
+            showSearchSection();
+        }
+        
+    } catch (error) {
+        console.error('Signup error:', error);
+        alert('Signup failed. Please try again.');
+    }
+}
+
+function logout() {
+    console.log('Logging out');
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    updateUIForUser();
+    alert('You have been logged out.');
+    showSearchSection();
+}
+
+function updateUIForUser() {
+    console.log('Updating UI for user:', currentUser);
+    
+    // Reset all nav items first
+    document.getElementById('nav-search').style.display = 'none';
+    document.getElementById('nav-all-doctors').style.display = 'none';
+    document.getElementById('nav-medical-shops').style.display = 'none';
+    document.getElementById('nav-register').style.display = 'none';
+    document.getElementById('nav-appointments').style.display = 'none';
+    document.getElementById('nav-medical-shop-owner').style.display = 'none';
+    
+    if (currentUser) {
+        // Show user info, hide auth buttons
+        document.getElementById('auth-buttons').style.display = 'none';
+        document.getElementById('user-info').style.display = 'flex';
+        document.getElementById('user-name').textContent = currentUser.name;
+        document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        
+        // Show appropriate navigation based on user type
+        if (currentUser.type === 'customer') {
+            document.getElementById('nav-search').style.display = 'block';
+            document.getElementById('nav-all-doctors').style.display = 'block';
+            document.getElementById('nav-medical-shops').style.display = 'block';
+            
+        } else if (currentUser.type === 'doctor') {
+            document.getElementById('nav-register').style.display = 'block';
+            document.getElementById('nav-appointments').style.display = 'block';
+            
+        } else if (currentUser.type === 'medical_shop') {
+            document.getElementById('nav-medical-shop-owner').style.display = 'block';
+        }
+        
+    } else {
+        // No user logged in
+        document.getElementById('auth-buttons').style.display = 'flex';
+        document.getElementById('user-info').style.display = 'none';
+        
+        // Show public navigation
+        document.getElementById('nav-search').style.display = 'block';
+        document.getElementById('nav-all-doctors').style.display = 'block';
+        document.getElementById('nav-medical-shops').style.display = 'block';
+    }
+}
+
 // ==================== UTILITY FUNCTIONS ====================
 
 function getRandomInRange(min, max) {
@@ -557,6 +717,9 @@ window.showRegistrationSection = showRegistrationSection;
 window.showAppointmentsSection = showAppointmentsSection;
 window.showMedicalShopOwnerSection = showMedicalShopOwnerSection;
 window.showProfileSection = showProfileSection;
+window.loginUser = loginUser;
+window.signupUser = signupUser;
+window.logout = logout;
 window.getRandomInRange = getRandomInRange;
 
 console.log('App.js loaded successfully');
