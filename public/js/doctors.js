@@ -3,6 +3,14 @@ async function searchBySymptoms(symptoms) {
     console.log('Searching by symptoms:', symptoms);
     
     try {
+        // Hide remedies section
+        const remediesSection = document.getElementById('remedies-section');
+        if (remediesSection) remediesSection.style.display = 'none';
+        
+        // Show results section
+        const resultsSection = document.getElementById('results-section');
+        if (resultsSection) resultsSection.style.display = 'block';
+        
         const params = {
             symptoms: symptoms,
             location: document.getElementById('location-input').value.trim(),
@@ -33,6 +41,14 @@ async function findDoctorsByLocation(location) {
     console.log('Finding doctors by location:', location);
     
     try {
+        // Hide remedies section
+        const remediesSection = document.getElementById('remedies-section');
+        if (remediesSection) remediesSection.style.display = 'none';
+        
+        // Show results section
+        const resultsSection = document.getElementById('results-section');
+        if (resultsSection) resultsSection.style.display = 'block';
+        
         const params = {
             location: location,
             specialty: document.getElementById('specialty-filter').value,
@@ -149,6 +165,10 @@ async function displayAllDoctors() {
     console.log('Displaying all doctors');
     
     try {
+        // Hide remedies section
+        const remediesSection = document.getElementById('remedies-section');
+        if (remediesSection) remediesSection.style.display = 'none';
+        
         const doctors = await apiService.getDoctors();
         const allDoctorsGrid = document.getElementById('all-doctors-grid');
         const allDoctorsCount = document.getElementById('all-doctors-count');
@@ -303,6 +323,14 @@ async function getCurrentLocationForSearch() {
                 } catch (error) {
                     console.error('Reverse geocoding error:', error);
                 }
+                
+                // Hide remedies section
+                const remediesSection = document.getElementById('remedies-section');
+                if (remediesSection) remediesSection.style.display = 'none';
+                
+                // Show results section
+                const resultsSection = document.getElementById('results-section');
+                if (resultsSection) resultsSection.style.display = 'block';
                 
                 // Search doctors by coordinates
                 const params = {
