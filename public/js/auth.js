@@ -1,5 +1,7 @@
-// User management functions - Simplified
+// User management functions
 async function loginUser(email, password, type) {
+    console.log('Login attempt for:', email, 'type:', type);
+    
     try {
         const result = await apiService.login({ email, password });
         
@@ -9,8 +11,14 @@ async function loginUser(email, password, type) {
         }
         
         // Verify user type matches login type
-        if (result.type !== type) {
-            alert(`Please login as a ${result.type === 'medical_shop' ? 'Medical Shop Owner' : result.type}`);
+        if (type && result.type !== type) {
+            let actualType = result.type;
+            if (result.type === 'medical_shop') {
+                actualType = 'Medical Shop Owner';
+            } else {
+                actualType = result.type.charAt(0).toUpperCase() + result.type.slice(1);
+            }
+            alert(`Please login as a ${actualType}`);
             return;
         }
         
@@ -41,6 +49,8 @@ async function loginUser(email, password, type) {
 }
 
 async function signupUser(name, email, password, type) {
+    console.log('Signup attempt for:', name, email, 'type:', type);
+    
     try {
         const result = await apiService.signup({ name, email, password, type });
         
