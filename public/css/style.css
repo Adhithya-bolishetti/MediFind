@@ -951,6 +951,243 @@ nav a:hover, nav a.active {
     color: #721c24;
 }
 
+
+/* Add these styles to your style.css file */
+
+/* Remedies Section Styles */
+.remedy-caution {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-left: 5px solid #ffc107;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+}
+
+.caution-content {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.caution-content i {
+    color: #856404;
+    font-size: 2rem;
+    margin-top: 0.25rem;
+}
+
+.remedy-search-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #28a745;
+}
+
+.remedy-search-info h3 {
+    color: #28a745;
+    margin-bottom: 0.5rem;
+}
+
+.remedy-disclaimer {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.remedy-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.remedy-card h3 {
+    color: #28a745;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.remedy-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #17a2b8;
+}
+
+.remedy-section h4 {
+    color: #17a2b8;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.remedy-list ul, .medicine-list ul, .diet-list ul, .selfcare-list ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.remedy-list li, .medicine-list li, .diet-list li, .selfcare-list li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.remedy-list li:last-child, .medicine-list li:last-child, 
+.diet-list li:last-child, .selfcare-list li:last-child {
+    border-bottom: none;
+}
+
+.remedy-list i, .medicine-list i, .diet-list i, .selfcare-list i {
+    color: #28a745;
+    font-size: 1.1rem;
+    margin-top: 0.25rem;
+}
+
+.remedy-warning {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 5px solid #dc3545;
+}
+
+.remedy-warning h4 {
+    color: #721c24;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.warning-tips {
+    background: white;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    border: 1px solid #f5c6cb;
+}
+
+.warning-tips p {
+    font-weight: bold;
+    color: #721c24;
+    margin-bottom: 0.5rem;
+}
+
+.warning-tips ul {
+    list-style: none;
+    padding-left: 1.5rem;
+}
+
+.warning-tips li {
+    position: relative;
+    padding: 0.25rem 0;
+    color: #721c24;
+}
+
+.warning-tips li:before {
+    content: '⚠';
+    position: absolute;
+    left: -1.5rem;
+    font-weight: bold;
+}
+
+.remedy-footer {
+    background: #e9ecef;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 2rem;
+    border: 1px solid #dee2e6;
+}
+
+.remedy-footer p {
+    margin: 0;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.remedy-loading {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.remedy-loading i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #28a745;
+}
+
+.remedy-error {
+    text-align: center;
+    padding: 3rem;
+    color: #721c24;
+    background: #f8d7da;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+}
+
+.remedy-error i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* Medical Shop Registration Styles */
+.location-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.location-input-group input {
+    flex: 1;
+}
+
+.location-help {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.registration-terms {
+    background: #e9ecef;
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 1.5rem 0;
+    text-align: center;
+    color: #495057;
+}
+
+.registration-terms i {
+    color: #17a2b8;
+    margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .remedy-section {
+        padding: 1rem;
+    }
+    
+    .remedy-card {
+        padding: 1.5rem;
+    }
+    
+    .location-input-group {
+        flex-direction: column;
+    }
+}
+
 /* Shop Owner Dashboard */
 .shop-dashboard {
     display: grid;
@@ -1018,66 +1255,6 @@ nav a:hover, nav a.active {
 .status-delivered { color: #28a745; }
 .status-cancelled { color: #dc3545; }
 
-/* Shopping Cart */
-.cart-icon {
-    position: relative;
-}
-
-#cart-count {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #dc3545;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cart-modal-content {
-    max-width: 800px;
-}
-
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.cart-item-info h4 {
-    margin-bottom: 0.25rem;
-}
-
-.cart-item-quantity {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.quantity-btn {
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.cart-total {
-    padding: 1.5rem;
-    border-top: 2px solid #e9ecef;
-    text-align: right;
-}
-
-.cart-total h3 {
-    margin-bottom: 0.5rem;
-}
 
 /* Medical Shop Navigation */
 #nav-medical-shops {
