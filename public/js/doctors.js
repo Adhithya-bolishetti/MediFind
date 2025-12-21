@@ -160,7 +160,7 @@ function showSearchResults(doctors, message) {
     }, 100);
 }
 
-// Display all doctors
+// Display all doctors - FIXED: Ensure this function works properly
 async function displayAllDoctors() {
     console.log('Displaying all doctors');
     
@@ -173,7 +173,10 @@ async function displayAllDoctors() {
         const allDoctorsGrid = document.getElementById('all-doctors-grid');
         const allDoctorsCount = document.getElementById('all-doctors-count');
         
-        if (!allDoctorsGrid || !allDoctorsCount) return;
+        if (!allDoctorsGrid || !allDoctorsCount) {
+            console.error('Required elements not found');
+            return;
+        }
         
         allDoctorsGrid.innerHTML = '';
         
