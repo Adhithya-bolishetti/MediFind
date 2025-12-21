@@ -57,47 +57,50 @@
                     <div class="login-option" data-type="medical_shop">Medical Shop Owner</div>
                 </div>
                 
+                <!-- Customer Login Form -->
                 <form class="login-form active" id="customer-login-form">
                     <h4>Customer Login</h4>
                     <div class="form-group">
                         <label for="customer-email">Email</label>
-                        <input type="email" id="customer-email" class="form-control" required>
+                        <input type="email" id="customer-email" class="form-control" required placeholder="Enter your email">
                     </div>
                     <div class="form-group">
                         <label for="customer-password">Password</label>
-                        <input type="password" id="customer-password" class="form-control" required>
+                        <input type="password" id="customer-password" class="form-control" required placeholder="Enter your password">
                     </div>
-                    <button type="submit" class="btn">Login as Customer</button>
+                    <button type="submit" class="btn btn-block">Login as Customer</button>
                 </form>
                 
+                <!-- Doctor Login Form -->
                 <form class="login-form" id="doctor-login-form">
                     <h4>Doctor Login</h4>
                     <div class="form-group">
                         <label for="doctor-email">Email</label>
-                        <input type="email" id="doctor-email" class="form-control" required>
+                        <input type="email" id="doctor-email" class="form-control" required placeholder="Enter your email">
                     </div>
                     <div class="form-group">
                         <label for="doctor-password">Password</label>
-                        <input type="password" id="doctor-password" class="form-control" required>
+                        <input type="password" id="doctor-password" class="form-control" required placeholder="Enter your password">
                     </div>
-                    <button type="submit" class="btn">Login as Doctor</button>
+                    <button type="submit" class="btn btn-block">Login as Doctor</button>
                 </form>
 
+                <!-- Medical Shop Owner Login Form -->
                 <form class="login-form" id="medical-shop-login-form">
                     <h4>Medical Shop Owner Login</h4>
                     <div class="form-group">
-                        <label for="shop-email">Email</label>
-                        <input type="email" id="shop-email" class="form-control" required>
+                        <label for="shop-login-email">Email</label>
+                        <input type="email" id="shop-login-email" class="form-control" required placeholder="Enter your email">
                     </div>
                     <div class="form-group">
-                        <label for="shop-password">Password</label>
-                        <input type="password" id="shop-password" class="form-control" required>
+                        <label for="shop-login-password">Password</label>
+                        <input type="password" id="shop-login-password" class="form-control" required placeholder="Enter your password">
                     </div>
-                    <button type="submit" class="btn">Login as Shop Owner</button>
+                    <button type="submit" class="btn btn-block">Login as Shop Owner</button>
                 </form>
                 
-                <div style="margin-top: 1rem; text-align: center;">
-                    <p>Don't have an account? <a href="#" id="switch-to-signup">Sign up here</a></p>
+                <div style="margin-top: 1.5rem; text-align: center; padding-top: 1rem; border-top: 1px solid #eee;">
+                    <p>Don't have an account? <a href="#" id="switch-to-signup" style="color: #667eea; font-weight: 500;">Sign up here</a></p>
                 </div>
             </div>
         </div>
@@ -117,63 +120,67 @@
                     <div class="login-option" data-type="medical_shop">Medical Shop Owner</div>
                 </div>
                 
+                <!-- Customer Signup Form -->
                 <form class="login-form active" id="customer-signup-form">
                     <h4>Customer Sign Up</h4>
                     <div class="form-group">
                         <label for="customer-signup-name">Full Name</label>
-                        <input type="text" id="customer-signup-name" class="form-control" required>
+                        <input type="text" id="customer-signup-name" class="form-control" required placeholder="Enter your full name">
                     </div>
                     <div class="form-group">
                         <label for="customer-signup-email">Email</label>
-                        <input type="email" id="customer-signup-email" class="form-control" required>
+                        <input type="email" id="customer-signup-email" class="form-control" required placeholder="Enter your email">
                     </div>
                     <div class="form-group">
                         <label for="customer-signup-password">Password</label>
-                        <input type="password" id="customer-signup-password" class="form-control" required>
+                        <input type="password" id="customer-signup-password" class="form-control" required placeholder="Create a password">
                     </div>
-                    <button type="submit" class="btn">Create Customer Account</button>
+                    <button type="submit" class="btn btn-block">Create Customer Account</button>
                 </form>
                 
+                <!-- Doctor Signup Form -->
                 <form class="login-form" id="doctor-signup-form">
                     <h4>Doctor Sign Up</h4>
                     <div class="form-group">
                         <label for="doctor-signup-name">Full Name</label>
-                        <input type="text" id="doctor-signup-name" class="form-control" required>
+                        <input type="text" id="doctor-signup-name" class="form-control" required placeholder="Enter your full name">
                     </div>
                     <div class="form-group">
                         <label for="doctor-signup-email">Email</label>
-                        <input type="email" id="doctor-signup-email" class="form-control" required>
+                        <input type="email" id="doctor-signup-email" class="form-control" required placeholder="Enter your email">
                     </div>
                     <div class="form-group">
                         <label for="doctor-signup-password">Password</label>
-                        <input type="password" id="doctor-signup-password" class="form-control" required>
+                        <input type="password" id="doctor-signup-password" class="form-control" required placeholder="Create a password">
                     </div>
-                    <button type="submit" class="btn">Create Doctor Account</button>
+                    <button type="submit" class="btn btn-block">Create Doctor Account</button>
                 </form>
 
+                <!-- Medical Shop Owner Signup Form -->
                 <form class="login-form" id="medical-shop-signup-form">
                     <h4>Medical Shop Owner Sign Up</h4>
                     <div class="form-group">
-                        <label for="shop-owner-name">Full Name</label>
-                        <input type="text" id="shop-owner-name" class="form-control" required>
+                        <label for="shop-signup-name">Full Name</label>
+                        <input type="text" id="shop-signup-name" class="form-control" required placeholder="Enter owner's full name">
                     </div>
                     <div class="form-group">
-                        <label for="shop-owner-email">Email</label>
-                        <input type="email" id="shop-owner-email" class="form-control" required>
+                        <label for="shop-signup-email">Email</label>
+                        <input type="email" id="shop-signup-email" class="form-control" required placeholder="Enter business email">
                     </div>
                     <div class="form-group">
-                        <label for="shop-owner-password">Password</label>
-                        <input type="password" id="shop-owner-password" class="form-control" required>
+                        <label for="shop-signup-password">Password</label>
+                        <input type="password" id="shop-signup-password" class="form-control" required placeholder="Create a password">
                     </div>
-                    <button type="submit" class="btn">Create Shop Owner Account</button>
+                    <button type="submit" class="btn btn-block">Create Shop Owner Account</button>
                 </form>
                 
-                <div style="margin-top: 1rem; text-align: center;">
-                    <p>Already have an account? <a href="#" id="switch-to-login">Login here</a></p>
+                <div style="margin-top: 1.5rem; text-align: center; padding-top: 1rem; border-top: 1px solid #eee;">
+                    <p>Already have an account? <a href="#" id="switch-to-login" style="color: #667eea; font-weight: 500;">Login here</a></p>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Medical Shop Registration Modal -->
     <div class="modal" id="shop-registration-modal">
