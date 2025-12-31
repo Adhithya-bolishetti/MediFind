@@ -1,6 +1,6 @@
 # MediFind - Doctor Recommendation System
 
-## 📋 Overview
+## Overview
 
 MediFind is a comprehensive web application that helps users find and book appointments with healthcare professionals based on their symptoms, location, and preferences. The platform also allows doctors to register their profiles and manage appointments.
 
