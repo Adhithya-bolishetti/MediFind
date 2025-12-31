@@ -4,24 +4,24 @@
 
 MediFind is a comprehensive web application that helps users find and book appointments with healthcare professionals based on their symptoms, location, and preferences. The platform also allows doctors to register their profiles and manage appointments.
 
-## ✨ Features
+## Features
 
-### 👨‍⚕️ For Patients
-- **🔍 Symptom-based Search**: Find doctors based on specific symptoms or medical conditions
-- **📍 Location-based Search**: Search doctors by location or use current location
-- **⚡ Advanced Filtering**: Filter by distance, specialty, and rating
-- **📄 Doctor Profiles**: View detailed information about doctors including education, experience, and reviews
-- **📅 Appointment Booking**: Book appointments with available time slots
-- **⭐ Review System**: Rate and review doctors
-- **🗺️ Interactive Map**: View doctor locations on an interactive map
+### For Patients
+- ** Symptom-based Search**: Find doctors based on specific symptoms or medical conditions
+- ** Location-based Search**: Search doctors by location or use current location
+- ** Advanced Filtering**: Filter by distance, specialty, and rating
+- ** Doctor Profiles**: View detailed information about doctors including education, experience, and reviews
+- ** Appointment Booking**: Book appointments with available time slots
+- ** Review System**: Rate and review doctors
+- ** Interactive Map**: View doctor locations on an interactive map
 
-### 🩺 For Doctors
-- **📝 Profile Registration**: Complete registration form with professional details
-- **👤 Profile Management**: View and edit professional profile
-- **📊 Appointment Management**: View and manage patient appointments
-- **🌟 Rating & Reviews**: Receive and display patient feedback
+###  For Doctors
+- ** Profile Registration**: Complete registration form with professional details
+- ** Profile Management**: View and edit professional profile
+- ** Appointment Management**: View and manage patient appointments
+- ** Rating & Reviews**: Receive and display patient feedback
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Maps**: Leaflet.js for interactive maps
@@ -30,7 +30,7 @@ MediFind is a comprehensive web application that helps users find and book appoi
 - **Data Storage**: Browser localStorage (for demo purposes)
 
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 - A modern web browser (Chrome, Firefox, Safari, or Edge)
