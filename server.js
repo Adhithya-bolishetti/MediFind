@@ -227,7 +227,7 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password, type } = req.body;
         
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, type });
         if (!user) {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
