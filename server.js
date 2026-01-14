@@ -557,3 +557,9 @@ app.listen(PORT, () => {
     console.log(`Access the application at http://localhost:${PORT}`);
     console.log(`MongoDB URI: ${MONGODB_URI}`);
 });
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
