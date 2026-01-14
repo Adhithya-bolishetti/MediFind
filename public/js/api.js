@@ -1,6 +1,6 @@
 const API_BASE_URL = window.location.hostname === "localhost"
     ? "http://localhost:3000/api"
-    : "https://medifind-app.onrender.com/api";
+    : "/api";
 
 async function handleResponse(response) {
     const text = await response.text();
