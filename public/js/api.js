@@ -1,7 +1,7 @@
-// api.js - Enhanced version with better error handling
-const API_BASE_URL = window.location.origin + '/api';
+const API_BASE_URL = window.location.hostname === "localhost"
+    ? "http://localhost:3000/api"
+    : "https://medifind-app.onrender.com/api";
 
-// Helper function to handle API responses
 async function handleResponse(response) {
     const text = await response.text();
     
@@ -24,7 +24,6 @@ async function handleResponse(response) {
 }
 
 const apiService = {
-    // Auth endpoints
     async signup(userData) {
         const response = await fetch(`${API_BASE_URL}/auth/signup`, {
             method: 'POST',
@@ -43,7 +42,6 @@ const apiService = {
         return handleResponse(response);
     },
 
-    // Doctor endpoints
     async getDoctors() {
         const response = await fetch(`${API_BASE_URL}/doctors`);
         return handleResponse(response);
@@ -80,7 +78,6 @@ const apiService = {
         return handleResponse(response);
     },
 
-    // Review endpoints
     async getReviews(doctorId) {
         const response = await fetch(`${API_BASE_URL}/reviews/doctor/${doctorId}`);
         return handleResponse(response);
@@ -95,7 +92,6 @@ const apiService = {
         return handleResponse(response);
     },
 
-    // Appointment endpoints
     async getDoctorAppointments(doctorId) {
         const response = await fetch(`${API_BASE_URL}/appointments/doctor/${doctorId}`);
         return handleResponse(response);
@@ -132,5 +128,4 @@ const apiService = {
     }
 };
 
-// Make apiService globally available
 window.apiService = apiService;
