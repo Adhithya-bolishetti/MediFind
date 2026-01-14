@@ -7,27 +7,27 @@ MediFind is a comprehensive web application that helps users find and book appoi
 ## Features
 
 ### For Patients
-- ** Symptom-based Search**: Find doctors based on specific symptoms or medical conditions
-- ** Location-based Search**: Search doctors by location or use current location
-- ** Advanced Filtering**: Filter by distance, specialty, and rating
-- ** Doctor Profiles**: View detailed information about doctors including education, experience, and reviews
-- ** Appointment Booking**: Book appointments with available time slots
-- ** Review System**: Rate and review doctors
-- ** Interactive Map**: View doctor locations on an interactive map
+- Symptom-based Search: Find doctors based on specific symptoms or medical conditions
+- Location-based Search: Search doctors by location or use current location
+- Advanced Filtering: Filter by distance, specialty, and rating
+- Doctor Profiles: View detailed information about doctors including education, experience, and reviews
+- Appointment Booking: Book appointments with available time slots
+- Review System: Rate and review doctors
+- Interactive Map: View doctor locations on an interactive map
 
 ###  For Doctors
-- ** Profile Registration**: Complete registration form with professional details
-- ** Profile Management**: View and edit professional profile
-- ** Appointment Management**: View and manage patient appointments
-- ** Rating & Reviews**: Receive and display patient feedback
+- Profile Registration: Complete registration form with professional details
+- Profile Management: View and edit professional profile
+- Appointment Management: View and manage patient appointments
+- Rating & Reviews: Receive and display patient feedback
 
 ##  Technology Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Maps**: Leaflet.js for interactive maps
-- **Icons**: Font Awesome for UI icons
-- **Styling**: Custom CSS with responsive design
-- **Data Storage**: Browser localStorage (for demo purposes)
+- Frontend: HTML5, CSS3, JavaScript (ES6+)
+- Maps: Leaflet.js for interactive maps
+- Icons: Font Awesome for UI icons
+- Styling: Custom CSS with responsive design
+- Data Storage: Browser localStorage (for demo purposes)
 
 
 ## Installation & Setup
