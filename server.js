@@ -9,7 +9,17 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://medifind-app.onrender.com"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, './public')));
@@ -30,6 +40,15 @@ mongoose.connect(MONGODB_URI, {
     console.error('MongoDB connection error:', error);
     console.log('Please check your MongoDB connection string');
 });
+
+mongoose.connection.on("error", err => {
+  console.error("MongoDB runtime error:", err);
+});
+
+mongoose.connection.once("open", () => {
+  console.log("MongoDB connected (production)");
+});
+
 
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -253,7 +272,7 @@ app.get('/api/doctors/search', async (req, res) => {
     try {
         const { symptoms, location, specialty, rating } = req.query;
         
-        console.log('🔍 SEARCH PARAMETERS RECEIVED:', { 
+        console.log('SEARCH PARAMETERS RECEIVED:', { 
             symptoms, 
             location, 
             specialty, 
@@ -279,7 +298,7 @@ app.get('/api/doctors/search', async (req, res) => {
         
         if (symptoms && symptoms.trim() !== '') {
             const symptomsLower = symptoms.toLowerCase().trim();
-            console.log('🤒 Searching for symptoms:', symptomsLower);
+            console.log('Searching for symptoms:', symptomsLower);
             
             let suggestedSpecialties = [];
             Object.keys(symptomMapping).forEach(symptom => {
@@ -290,7 +309,7 @@ app.get('/api/doctors/search', async (req, res) => {
             
             suggestedSpecialties = [...new Set(suggestedSpecialties)];
             
-            console.log('🎯 Suggested specialties:', suggestedSpecialties);
+            console.log('Suggested specialties:', suggestedSpecialties);
             
             const symptomsConditions = {
                 $or: [
