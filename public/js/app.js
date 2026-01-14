@@ -1,4 +1,3 @@
-// Global variables
 let currentUser = null;
 let userLocation = null;
 let map = null;
@@ -8,7 +7,6 @@ let currentDoctorId = null;
 let currentSearchType = null;
 let currentSearchResults = [];
 
-// DOM Elements
 const searchSection = document.getElementById('search-section');
 const resultsSection = document.getElementById('results-section');
 const allDoctorsSection = document.getElementById('all-doctors-section');
@@ -38,7 +36,6 @@ const sortAllDoctors = document.getElementById('sort-all-doctors');
 const sortResults = document.getElementById('sort-results');
 const symptomButtons = document.querySelectorAll('.symptom-btn');
 
-// Auth elements
 const authButtons = document.getElementById('auth-buttons');
 const userInfo = document.getElementById('user-info');
 const userName = document.getElementById('user-name');
@@ -58,13 +55,11 @@ const doctorSignupForm = document.getElementById('doctor-signup-form');
 const switchToSignup = document.getElementById('switch-to-signup');
 const switchToLogin = document.getElementById('switch-to-login');
 
-// Map modal elements
 const mapModal = document.getElementById('map-modal');
 const closeMapModal = document.getElementById('close-map-modal');
 const mapInfo = document.getElementById('map-info');
 const mapDoctorName = document.getElementById('map-doctor-name');
 
-// New booking modal elements
 const bookingModal = document.getElementById('booking-modal');
 const closeBookingModal = document.getElementById('close-booking-modal');
 const bookingForm = document.getElementById('booking-form');
@@ -76,10 +71,8 @@ const slotError = document.getElementById('slot-error');
 const availableSlots = document.getElementById('available-slots');
 const slotOptions = document.getElementById('slot-options');
 
-// Appointments elements
 const appointmentsList = document.getElementById('appointments-list');
 
-// Profile elements
 const profileSuccessMessage = document.getElementById('profile-success-message');
 const editProfileBtn = document.getElementById('edit-profile-btn');
 const viewAppointmentsBtn = document.getElementById('view-appointments-btn');
@@ -96,29 +89,22 @@ const profileBio = document.getElementById('profile-bio');
 const profileExperience = document.getElementById('profile-experience');
 const registrationSubmitBtn = document.getElementById('registration-submit-btn');
 
-// Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is already logged in
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
         updateUIForUser();
     }
     
-    // Initialize map
     initMap();
     
-    // Set up event listeners
     setupEventListeners();
     
-    // Show search section by default
     showSearchSection();
     
-    // Set minimum date to today for booking
     const today = new Date().toISOString().split('T')[0];
     bookingDate.min = today;
     
-    // Add event listener for date change to update available slots
     bookingDate.addEventListener('change', function() {
         if (currentDoctorId) {
             updateAvailableSlots(currentDoctorId, this.value);
@@ -127,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-    // Navigation
     navSearch.addEventListener('click', (e) => {
         e.preventDefault();
         showSearchSection();
@@ -153,7 +138,6 @@ function setupEventListeners() {
         showAppointmentsSection();
     });
 
-    // Location functionality
     useCurrentLocationBtn.addEventListener('click', function() {
         const locationText = locationInput.value.trim();
         currentSearchType = 'location';
@@ -165,7 +149,6 @@ function setupEventListeners() {
         }
     });
 
-    // Auth
     loginBtn.addEventListener('click', () => {
         authModal.style.display = 'flex';
     });
@@ -192,18 +175,14 @@ function setupEventListeners() {
         bookingModal.style.display = 'none';
     });
 
-    // Login options
     loginOptions.forEach(option => {
         option.addEventListener('click', function() {
             const type = this.getAttribute('data-type');
             
-            // Remove active class from all options
             loginOptions.forEach(opt => opt.classList.remove('active'));
             
-            // Add active class to clicked option
             this.classList.add('active');
             
-            // Show appropriate form
             if (this.closest('.modal').id === 'auth-modal') {
                 customerLoginForm.classList.remove('active');
                 doctorLoginForm.classList.remove('active');
@@ -226,7 +205,6 @@ function setupEventListeners() {
         });
     });
 
-    // Login forms
     customerLoginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('customer-email').value;
@@ -241,7 +219,6 @@ function setupEventListeners() {
         loginUser(email, password, 'doctor');
     });
 
-    // Signup forms
     customerSignupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('customer-signup-name').value;
@@ -258,7 +235,6 @@ function setupEventListeners() {
         signupUser(name, email, password, 'doctor');
     });
 
-    // Switch between login and signup
     switchToSignup.addEventListener('click', (e) => {
         e.preventDefault();
         authModal.style.display = 'none';
@@ -271,7 +247,6 @@ function setupEventListeners() {
         authModal.style.display = 'flex';
     });
 
-    // Quick symptom buttons
     symptomButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const symptom = e.target.getAttribute('data-symptom');
@@ -281,7 +256,6 @@ function setupEventListeners() {
         });
     });
 
-    // Search functionality
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const symptoms = symptomsInput.value.trim().toLowerCase();
@@ -295,12 +269,10 @@ function setupEventListeners() {
         searchBySymptoms(symptoms);
     });
 
-    // Doctor registration
     doctorRegistrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         try {
-            // Check if this is an update or new registration
             const allDoctors = await apiService.getDoctors();
             const existingDoctor = allDoctors.find(d => 
                 d.email === currentUser.email || d.userId === currentUser.id
@@ -330,7 +302,6 @@ function setupEventListeners() {
                 alert('Registration successful! Your profile has been added to our system.');
             }
             
-            // Update user data
             if (currentUser && currentUser.type === 'doctor') {
                 currentUser.name = doctor.name;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -344,7 +315,6 @@ function setupEventListeners() {
         }
     });
 
-    // Review modal functionality
     closeModal.addEventListener('click', () => {
         reviewModal.style.display = 'none';
     });
@@ -357,7 +327,6 @@ function setupEventListeners() {
         if (e.target === bookingModal) bookingModal.style.display = 'none';
     });
 
-    // Star rating interaction
     document.querySelectorAll('.star').forEach(star => {
         star.addEventListener('click', (e) => {
             const rating = parseInt(e.target.getAttribute('data-rating'));
@@ -365,14 +334,12 @@ function setupEventListeners() {
         });
     });
 
-    // Sort all doctors when sort option changes
     sortAllDoctors.addEventListener('change', () => {
         if (allDoctorsSection.style.display !== 'none') {
             displayAllDoctors();
         }
     });
 
-    // Sort results when sort option changes
     sortResults.addEventListener('change', () => {
         if (resultsSection.style.display !== 'none' && currentSearchResults.length > 0) {
             const sortedResults = sortDoctors([...currentSearchResults], sortResults.value);
@@ -380,13 +347,11 @@ function setupEventListeners() {
         }
     });
 
-    // Booking form submission
     bookingForm.addEventListener('submit', (e) => {
         e.preventDefault();
         bookAppointment();
     });
 
-    // Profile buttons
     editProfileBtn.addEventListener('click', () => {
         showRegistrationSection();
     });
@@ -396,7 +361,6 @@ function setupEventListeners() {
     });
 }
 
-// Navigation functions
 function showSearchSection() {
     hideAllSections();
     searchSection.style.display = 'block';
@@ -417,7 +381,6 @@ function showRegistrationSection() {
         registrationSection.style.display = 'block';
         updateActiveNav(navRegister);
         
-        // Pre-fill form with existing data or user data
         apiService.getDoctors().then(allDoctors => {
             const existingDoctor = allDoctors.find(d => 
                 d.email === currentUser.email || d.userId === currentUser.id
@@ -470,11 +433,9 @@ function showProfileSection(doctor = null) {
     profileSection.style.display = 'block';
     updateActiveNav(navProfile);
     
-    // Load and display profile data
     loadProfileData(doctor);
 }
 
-// Helper functions
 function hideAllSections() {
     const sections = [searchSection, resultsSection, allDoctorsSection, 
                      registrationSection, appointmentsSection, profileSection];
@@ -509,7 +470,6 @@ async function loadProfileData(doctor = null) {
             return;
         }
         
-        // Update profile information
         profileDoctorName.textContent = currentDoctor.name;
         profileSpecialty.textContent = currentDoctor.specialty;
         profileLocation.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${currentDoctor.address}, ${currentDoctor.city}`;
@@ -533,7 +493,6 @@ async function loadProfileData(doctor = null) {
     }
 }
 
-// Make functions globally available
 window.showSearchSection = showSearchSection;
 window.showRegistrationSection = showRegistrationSection;
 window.showAppointmentsSection = showAppointmentsSection;
