@@ -11,12 +11,36 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        # ─────────────── Auth Service ───────────────
         - id: auth-service
           uri: lb://AUTH-SERVICE
           predicates:
             - Path=/api/auth/**
 
+        # ─────────────── User Service ───────────────
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+
+        # ─────────────── Doctor Service ─────────────
+        - id: doctor-service
+          uri: lb://DOCTOR-SERVICE
+          predicates:
+            - Path=/api/doctors/**
+
+        # ─────────────── Hospital Service ───────────
+        - id: hospital-service
+          uri: lb://HOSPITAL-SERVICE
+          predicates:
+            - Path=/api/hospitals/**
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
