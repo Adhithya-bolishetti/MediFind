@@ -65,6 +65,15 @@ public class Doctor {
     @Column(nullable = false)
     private boolean available;
 
+    // Day 3 additions for Availability
+    private String workingDays; // e.g. "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY"
+
+    private String consultationStartTime; // e.g. "09:00"
+
+    private String consultationEndTime; // e.g. "17:00"
+
+    private Integer appointmentDuration; // in minutes e.g. 30
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

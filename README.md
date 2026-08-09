@@ -8,8 +8,10 @@ This project is structured as a multi-module Maven project. The components inclu
 
 - **Discovery Server (Eureka)**: Service registry for microservices.
 - **API Gateway (Spring Cloud Gateway)**: Single entry point, routing requests to appropriate services.
-- **Auth Service**: Manages user registration, authentication, and JWT token generation.
-- **User Service**: (Skeleton) Will handle user profiles and details.
+- **User Service (Port 8082):** Manages user profiles.
+- **Doctor Service (Port 8083):** Manages doctor profiles, availability, reviews, and recommendations.
+- **Hospital Service (Port 8084):** Manages hospital profiles.
+- **Appointment Service (Port 8086):** Manages appointment bookings, cancellations, and status updates.
 
 ## Folder Structure
 

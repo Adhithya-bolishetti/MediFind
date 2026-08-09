@@ -48,4 +48,15 @@ public interface DoctorService {
      */
     List<DoctorResponse> searchDoctors(String specialization, String city, Long hospitalId,
                                        Boolean available, Double minimumRating, Integer experience);
+
+    // Day 3
+    com.medifind.doctor.dto.DoctorAvailabilityResponse getDoctorAvailability(Long doctorId);
+    com.medifind.doctor.dto.AvailableSlotResponse getAvailableSlots(Long doctorId, String date);
+    
+    com.medifind.doctor.dto.ReviewResponse createReview(Long doctorId, com.medifind.doctor.dto.ReviewRequest request, Long userId);
+    List<com.medifind.doctor.dto.ReviewResponse> getDoctorReviews(Long doctorId);
+    com.medifind.doctor.dto.ReviewResponse updateReview(Long doctorId, Long reviewId, com.medifind.doctor.dto.ReviewRequest request, Long userId);
+    void deleteReview(Long doctorId, Long reviewId, Long userId, boolean isAdmin);
+    
+    List<com.medifind.doctor.dto.DoctorRecommendationResponse> getRecommendations(String specialization, String city, Double minimumRating, Integer minimumExperience, Boolean available);
 }

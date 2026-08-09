@@ -16,6 +16,7 @@
         <module>user-service</module>
         <module>doctor-service</module>
         <module>hospital-service</module>
+        <module>appointment-service</module>
     </modules>
 
     <properties>

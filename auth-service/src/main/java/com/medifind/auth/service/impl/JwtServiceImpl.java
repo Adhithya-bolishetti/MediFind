@@ -42,6 +42,9 @@ public class JwtServiceImpl implements JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         extraClaims.put("roles", roles);
+        if (userDetails instanceof com.medifind.auth.entity.User) {
+            extraClaims.put("userId", ((com.medifind.auth.entity.User) userDetails).getId());
+        }
         return generateToken(extraClaims, userDetails);
     }
 
