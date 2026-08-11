@@ -1,4 +1,4 @@
-package com.medifind.appointment.exception;
+package com.medifind.hospital.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
