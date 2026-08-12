@@ -97,26 +97,47 @@ public class DoctorServiceImpl implements DoctorService {
     public ReviewResponse createReview(Long doctorId, ReviewRequest request, Long userId) {
         Doctor doctor = getDoctor(doctorId);
 
-        if (reviewRepository.existsByDoctorIdAndUserId(doctorId, userId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User has already reviewed this doctor");
+        if (reviewRepository.existsByAppointmentId(request.getAppointmentId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A review already exists for this appointment");
         }
 
-        boolean hasCompleted = false;
         try {
-            hasCompleted = appointmentClient.hasCompletedAppointment(doctorId, userId);
+            java.util.Map<String, Object> appointment = appointmentClient.getAppointmentById(request.getAppointmentId());
+            if (appointment == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found");
+            }
+            
+            // Validate appointment belongs to this patient and doctor
+            Number appUserId = (Number) appointment.get("userId");
+            Number appDoctorId = (Number) appointment.get("doctorId");
+            String status = (String) appointment.get("status");
+            
+            if (appUserId == null || appUserId.longValue() != userId) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Appointment does not belong to you");
+            }
+            if (appDoctorId == null || appDoctorId.longValue() != doctorId) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment does not match this doctor");
+            }
+            if (!"COMPLETED".equals(status)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Review not allowed. You must have a completed appointment.");
+            }
+        } catch (feign.FeignException e) {
+            if (e.status() == 404) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found");
+            }
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify appointment details");
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify completed appointments");
-        }
-
-        if (!hasCompleted) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Review not allowed. You must have a completed appointment.");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify appointment details");
         }
 
         Review review = Review.builder()
                 .doctorId(doctorId)
                 .userId(userId)
+                .appointmentId(request.getAppointmentId())
                 .rating(request.getRating())
                 .comment(request.getComment())
+                .recommendation(request.getRecommendation())
+                .status(com.medifind.doctor.entity.ReviewStatus.APPROVED) // Auto-approve for now
                 .build();
 
         review = reviewRepository.save(review);
@@ -143,6 +164,7 @@ public class DoctorServiceImpl implements DoctorService {
 
         review.setRating(request.getRating());
         review.setComment(request.getComment());
+        review.setRecommendation(request.getRecommendation());
         review = reviewRepository.save(review);
         
         Doctor doctor = getDoctor(doctorId);
@@ -212,9 +234,31 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     private void updateDoctorRating(Doctor doctor) {
-        List<Review> reviews = reviewRepository.findByDoctorId(doctor.getId());
-        double avg = reviews.isEmpty() ? 0.0 : reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
-        doctor.setRating(Math.round(avg * 100.0) / 100.0);
+        List<Review> reviews = reviewRepository.findByDoctorId(doctor.getId())
+                .stream()
+                .filter(r -> r.getStatus() == com.medifind.doctor.entity.ReviewStatus.APPROVED)
+                .collect(Collectors.toList());
+                
+        int total = reviews.size();
+        int r5 = 0, r4 = 0, r3 = 0, r2 = 0, r1 = 0;
+        
+        for (Review r : reviews) {
+            if (r.getRating() == 5) r5++;
+            else if (r.getRating() == 4) r4++;
+            else if (r.getRating() == 3) r3++;
+            else if (r.getRating() == 2) r2++;
+            else if (r.getRating() == 1) r1++;
+        }
+        
+        double avg = total == 0 ? 0.0 : reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
+        
+        doctor.setTotalReviews(total);
+        doctor.setRating5(r5);
+        doctor.setRating4(r4);
+        doctor.setRating3(r3);
+        doctor.setRating2(r2);
+        doctor.setRating1(r1);
+        doctor.setRating(Math.round(avg * 10.0) / 10.0);
         doctorRepository.save(doctor);
     }
     
@@ -223,8 +267,11 @@ public class DoctorServiceImpl implements DoctorService {
                 .id(review.getId())
                 .doctorId(review.getDoctorId())
                 .userId(review.getUserId())
+                .appointmentId(review.getAppointmentId())
                 .rating(review.getRating())
                 .comment(review.getComment())
+                .recommendation(review.getRecommendation())
+                .status(review.getStatus() != null ? review.getStatus().name() : null)
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();

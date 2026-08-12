@@ -54,6 +54,34 @@ public class Hospital {
     @Column(nullable = false)
     private boolean emergencyAvailable;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Double rating = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer totalReviews = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer rating5 = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer rating4 = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer rating3 = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer rating2 = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer rating1 = 0;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

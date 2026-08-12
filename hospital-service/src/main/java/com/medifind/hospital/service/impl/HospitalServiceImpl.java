@@ -145,6 +145,17 @@ public class HospitalServiceImpl implements HospitalService {
                 .emergencyAvailable(hospital.isEmergencyAvailable())
                 .createdAt(hospital.getCreatedAt())
                 .updatedAt(hospital.getUpdatedAt())
+                .rating(hospital.getRating())
+                .totalReviews(hospital.getTotalReviews())
+                .ratingDistribution(com.medifind.hospital.dto.RatingDistribution.builder()
+                        .averageRating(hospital.getRating())
+                        .totalReviews(hospital.getTotalReviews())
+                        .rating5(hospital.getRating5())
+                        .rating4(hospital.getRating4())
+                        .rating3(hospital.getRating3())
+                        .rating2(hospital.getRating2())
+                        .rating1(hospital.getRating1())
+                        .build())
                 .build();
     }
 }

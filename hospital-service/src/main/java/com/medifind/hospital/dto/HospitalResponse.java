@@ -26,4 +26,8 @@ public class HospitalResponse {
     private boolean emergencyAvailable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    private Double rating;
+    private Integer totalReviews;
+    private RatingDistribution ratingDistribution;
 }

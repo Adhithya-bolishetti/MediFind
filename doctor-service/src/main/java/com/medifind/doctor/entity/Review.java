@@ -26,8 +26,17 @@ public class Review {
     @Column(nullable = false)
     private Integer rating;
 
-    @Column(length = 1000)
+    @Column(length = 2000)
     private String comment;
+
+    @Column(name = "appointment_id", unique = true)
+    private Long appointmentId;
+
+    private Boolean recommendation;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReviewStatus status = ReviewStatus.PENDING;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

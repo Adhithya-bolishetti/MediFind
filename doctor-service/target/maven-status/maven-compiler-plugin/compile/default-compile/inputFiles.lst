@@ -5,6 +5,7 @@ D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\AvailableSlotRe
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\security\JwtAuthFilter.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\service\DoctorServiceImpl.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\entity\Specialization.java
+D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\RatingDistribution.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\DoctorRecommendationResponse.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\DoctorAvailabilityResponse.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\controller\DoctorAdminController.java
@@ -29,4 +30,6 @@ D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\DoctorProfileRe
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\DoctorResponse.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\security\JwtService.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\DoctorServiceApplication.java
+D:\medifind\doctor-service\src\main\java\com\medifind\doctor\entity\ReviewStatus.java
+D:\medifind\doctor-service\src\main\java\com\medifind\doctor\dto\DoctorReviewResponse.java
 D:\medifind\doctor-service\src\main\java\com\medifind\doctor\controller\DoctorController.java

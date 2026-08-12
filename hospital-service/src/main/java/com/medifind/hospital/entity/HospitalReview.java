@@ -1,4 +1,4 @@
-package com.medifind.doctor.entity;
+package com.medifind.hospital.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "doctor_reviews", uniqueConstraints = {
+@Table(name = "hospital_reviews", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"appointment_id"})
 })
 @Getter
@@ -14,14 +14,14 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DoctorReview {
+public class HospitalReview {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long doctorId;
+    private Long hospitalId;
 
     @Column(nullable = false)
     private Long patientId;
@@ -30,15 +30,14 @@ public class DoctorReview {
     private Long appointmentId;
 
     @Column(nullable = false)
-    private Integer rating; // 1 to 5
+    private Integer rating;
 
     @Column(length = 2000)
     private String reviewText;
 
-    private Boolean recommendation;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private ReviewStatus status = ReviewStatus.PENDING;
 
     @Column(updatable = false)
