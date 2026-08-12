@@ -33,6 +33,11 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getDoctorProfileByUserId(userId));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<DoctorProfileResponse> getDoctorById(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.getDoctorProfileByUserId(doctorService.getDoctorById(id).getUserId()));
+    }
+
     @PutMapping("/profile/me")
     public ResponseEntity<DoctorProfileResponse> updateMyProfile(
             @Valid @RequestBody DoctorProfileRequest request,
