@@ -97,6 +97,24 @@ public class Doctor {
     @Column(nullable = false)
     private Double rating = 0.0;
 
+    @Column(nullable = false)
+    private Integer totalReviews = 0;
+
+    @Column(nullable = false)
+    private Integer rating5 = 0;
+
+    @Column(nullable = false)
+    private Integer rating4 = 0;
+
+    @Column(nullable = false)
+    private Integer rating3 = 0;
+
+    @Column(nullable = false)
+    private Integer rating2 = 0;
+
+    @Column(nullable = false)
+    private Integer rating1 = 0;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

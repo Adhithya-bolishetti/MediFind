@@ -42,4 +42,8 @@ public class DoctorProfileResponse {
     private VerificationStatus verificationStatus;
     private String licenseCertificatePath;
     private String rejectionReason;
+    
+    private Double rating;
+    private Integer totalReviews;
+    private RatingDistribution ratingDistribution;
 }

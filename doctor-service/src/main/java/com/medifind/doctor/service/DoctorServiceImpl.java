@@ -376,6 +376,17 @@ public class DoctorServiceImpl implements DoctorService {
                 .verificationStatus(doctor.getVerificationStatus())
                 .licenseCertificatePath(doctor.getLicenseCertificatePath())
                 .rejectionReason(doctor.getRejectionReason())
+                .rating(doctor.getRating())
+                .totalReviews(doctor.getTotalReviews())
+                .ratingDistribution(RatingDistribution.builder()
+                        .averageRating(doctor.getRating())
+                        .totalReviews(doctor.getTotalReviews())
+                        .rating5(doctor.getRating5())
+                        .rating4(doctor.getRating4())
+                        .rating3(doctor.getRating3())
+                        .rating2(doctor.getRating2())
+                        .rating1(doctor.getRating1())
+                        .build())
                 .build();
     }
 }
