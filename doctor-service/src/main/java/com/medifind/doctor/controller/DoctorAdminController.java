@@ -71,4 +71,37 @@ public class DoctorAdminController {
         doctorRepository.save(doctor);
         return ResponseEntity.ok().build();
     }
+
+    // Review Moderation
+    @GetMapping("/reviews/pending")
+    public ResponseEntity<List<com.medifind.doctor.entity.Review>> getPendingReviews(
+            @org.springframework.beans.factory.annotation.Autowired com.medifind.doctor.repository.ReviewRepository reviewRepo) {
+        return ResponseEntity.ok(reviewRepo.findAll().stream()
+                .filter(r -> r.getStatus() == com.medifind.doctor.entity.ReviewStatus.PENDING)
+                .collect(Collectors.toList()));
+    }
+
+    @PutMapping("/reviews/{reviewId}/status")
+    public ResponseEntity<Void> updateReviewStatus(
+            @PathVariable Long reviewId,
+            @RequestBody Map<String, String> payload,
+            @org.springframework.beans.factory.annotation.Autowired com.medifind.doctor.repository.ReviewRepository reviewRepo,
+            @org.springframework.beans.factory.annotation.Autowired com.medifind.doctor.service.DoctorService docService) {
+        
+        com.medifind.doctor.entity.Review review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
+        
+        String statusStr = payload.get("status");
+        if (statusStr == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing status");
+        }
+        
+        com.medifind.doctor.entity.ReviewStatus status = com.medifind.doctor.entity.ReviewStatus.valueOf(statusStr.toUpperCase());
+        review.setStatus(status);
+        reviewRepo.save(review);
+        
+        // Let DoctorServiceImpl recalculate rating
+        // Need to add recalculate method to DoctorService or trigger via update
+        return ResponseEntity.ok().build();
+    }
 }

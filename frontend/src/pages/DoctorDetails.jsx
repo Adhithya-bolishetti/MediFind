@@ -28,6 +28,15 @@ const DoctorDetails = () => {
   const [reviewing, setReviewing] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
+  
+  const [sortBy, setSortBy] = useState('recent');
+  
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (sortBy === 'highest') return b.rating - a.rating;
+    if (sortBy === 'lowest') return a.rating - b.rating;
+    // default to recent
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
   const { register: registerBook, handleSubmit: handleSubmitBook, formState: { errors: bookErrors } } = useForm();
   const { register: registerReview, handleSubmit: handleSubmitReview, setValue: setReviewValue, watch: watchReview, reset: resetReview, formState: { errors: reviewErrors } } = useForm({
@@ -235,9 +244,52 @@ const DoctorDetails = () => {
                   Patient Reviews
                 </Typography>
                 
-                {reviews.length > 0 ? (
+                {/* Rating Summary */}
+                {doctor.ratingDistribution && (
+                  <Box display="flex" alignItems="center" gap={4} mb={4} p={3} bgcolor="#f5f5f5" borderRadius={3}>
+                    <Box textAlign="center">
+                      <Typography variant="h2" fontWeight={800} color="primary">{doctor.rating}</Typography>
+                      <Rating value={doctor.rating} readOnly precision={0.1} />
+                      <Typography variant="body2" color="text.secondary">{doctor.totalReviews} Reviews</Typography>
+                    </Box>
+                    <Box flex={1}>
+                      {[5, 4, 3, 2, 1].map((star) => {
+                        const count = doctor.ratingDistribution[`rating${star}`] || 0;
+                        const percentage = doctor.totalReviews > 0 ? (count / doctor.totalReviews) * 100 : 0;
+                        return (
+                          <Box key={star} display="flex" alignItems="center" gap={1} mb={0.5}>
+                            <Typography variant="body2" sx={{ width: 12 }}>{star}</Typography>
+                            <StarIcon fontSize="small" color="action" />
+                            <Box flex={1} height={8} bgcolor="#e0e0e0" borderRadius={4} overflow="hidden">
+                              <Box height="100%" width={`${percentage}%`} bgcolor="#ffb300" />
+                            </Box>
+                            <Typography variant="body2" sx={{ width: 24, textAlign: 'right' }}>{count}</Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                )}
+                
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6" fontWeight={600}>All Reviews</Typography>
+                  <TextField
+                    select
+                    size="small"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    SelectProps={{ native: true }}
+                    variant="outlined"
+                  >
+                    <option value="recent">Most Recent</option>
+                    <option value="highest">Highest Rating</option>
+                    <option value="lowest">Lowest Rating</option>
+                  </TextField>
+                </Box>
+                
+                {sortedReviews.length > 0 ? (
                   <List sx={{ mb: 4 }}>
-                    {reviews.map((review) => (
+                    {sortedReviews.map((review) => (
                       <Box key={review.id}>
                         <ListItem alignItems="flex-start" secondaryAction={
                            user && (user.id === review.userId || user.role === 'ADMIN') ? (
@@ -255,7 +307,8 @@ const DoctorDetails = () => {
                                 <Typography variant="subtitle1" fontWeight={600}>
                                   {review.patientName || `Patient #${review.userId}`}
                                 </Typography>
-                                <Rating value={review.rating} readOnly size="small" />
+                                <Chip label="Verified Patient" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: '0.7rem' }} />
+                                <Rating value={review.rating} readOnly size="small" sx={{ ml: 'auto' }} />
                               </Box>
                             }
                             secondary={

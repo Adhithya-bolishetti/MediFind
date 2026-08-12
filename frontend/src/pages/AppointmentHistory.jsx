@@ -6,11 +6,36 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import ReviewModal from '../components/ReviewModal';
 
 const AppointmentHistory = () => {
   const { user } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [reviewType, setReviewType] = useState('doctor');
+  
+  // Track reviewed status locally for demo purposes
+  // Ideally, backend should return this with the appointment
+  const [reviewedStatus, setReviewedStatus] = useState({});
+
+  const handleOpenReview = (appt, type) => {
+    setSelectedAppointment(appt);
+    setReviewType(type);
+    setReviewModalOpen(true);
+  };
+
+  const handleReviewSuccess = (type) => {
+    setReviewedStatus(prev => ({
+      ...prev,
+      [selectedAppointment.id]: {
+        ...(prev[selectedAppointment.id] || {}),
+        [type]: true
+      }
+    }));
+  };
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -117,16 +142,41 @@ const AppointmentHistory = () => {
                       </Typography>
                     </Box>
 
-                    {appt.status === 'PENDING' || appt.status === 'CONFIRMED' ? (
-                      <Button 
-                        variant="outlined" 
-                        color="error" 
-                        onClick={() => cancelAppointment(appt.id)}
-                        sx={{ textTransform: 'none', borderRadius: 2 }}
-                      >
-                        Cancel Appointment
-                      </Button>
-                    ) : null}
+                    <Box display="flex" flexDirection="column" gap={1} alignItems="flex-end">
+                      {(appt.status === 'PENDING' || appt.status === 'CONFIRMED') && (
+                        <Button 
+                          variant="outlined" 
+                          color="error" 
+                          onClick={() => cancelAppointment(appt.id)}
+                          sx={{ textTransform: 'none', borderRadius: 2 }}
+                        >
+                          Cancel Appointment
+                        </Button>
+                      )}
+
+                      {appt.status === 'COMPLETED' && user.role === 'PATIENT' && (
+                        <Box display="flex" gap={1}>
+                          <Button 
+                            variant={reviewedStatus[appt.id]?.doctor ? "text" : "contained"} 
+                            color="primary"
+                            disabled={reviewedStatus[appt.id]?.doctor}
+                            onClick={() => handleOpenReview(appt, 'doctor')}
+                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                          >
+                            {reviewedStatus[appt.id]?.doctor ? 'Doctor Reviewed ✓' : 'Rate Doctor'}
+                          </Button>
+                          <Button 
+                            variant={reviewedStatus[appt.id]?.hospital ? "text" : "contained"} 
+                            color="secondary"
+                            disabled={reviewedStatus[appt.id]?.hospital}
+                            onClick={() => handleOpenReview(appt, 'hospital')}
+                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                          >
+                            {reviewedStatus[appt.id]?.hospital ? 'Hospital Reviewed ✓' : 'Rate Hospital'}
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
                   </Paper>
                 </motion.div>
               </Grid>
@@ -134,6 +184,16 @@ const AppointmentHistory = () => {
           </Grid>
         )}
       </Container>
+      
+      {reviewModalOpen && selectedAppointment && (
+        <ReviewModal
+          open={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          appointment={selectedAppointment}
+          type={reviewType}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
     </Box>
   );
 };

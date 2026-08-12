@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
+import StarIcon from '@mui/icons-material/Star';
 import axios from 'axios';
 
 const HospitalSearch = () => {
@@ -146,8 +147,17 @@ const HospitalSearch = () => {
           <>
             <DialogTitle>
               <Typography variant="h4" fontWeight={700} color="#1a237e">
-                {selectedHospital.name}
+                {selectedHospital.name || selectedHospital.hospitalName}
               </Typography>
+              <Box display="flex" alignItems="center" gap={1} mt={1}>
+                <Typography variant="h6" fontWeight={700} color="primary">
+                  {selectedHospital.rating || 'New'}
+                </Typography>
+                <StarIcon sx={{ color: '#ffb300', fontSize: 20 }} />
+                <Typography variant="body2" color="text.secondary">
+                  ({selectedHospital.totalReviews || 0} reviews)
+                </Typography>
+              </Box>
             </DialogTitle>
             <DialogContent>
               <Box my={2}>

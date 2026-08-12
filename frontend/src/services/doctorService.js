@@ -63,7 +63,7 @@ const doctorService = {
     return response.data;
   },
 
-  // Admin APIs
+  // Admin Operations
   getPendingDoctors: async () => {
     const response = await api.get('/admin/doctors/pending');
     return response.data;
@@ -76,6 +76,16 @@ const doctorService = {
 
   rejectDoctor: async (id, reason) => {
     const response = await api.put(`/admin/doctors/${id}/reject`, { reason });
+    return response.data;
+  },
+
+  getPendingReviews: async () => {
+    const response = await api.get('/admin/doctors/reviews/pending');
+    return response.data;
+  },
+
+  updateReviewStatus: async (reviewId, status) => {
+    const response = await api.put(`/admin/doctors/reviews/${reviewId}/status`, { status });
     return response.data;
   }
 };

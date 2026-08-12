@@ -15,12 +15,15 @@ import java.time.LocalDateTime;
 public class DoctorResponse {
 
     private Long id;
+    private Long userId;
     private String doctorName;
     private String specialization;
     private String qualification;
     private Integer experience;
     private Double consultationFee;
     private Double rating;
+    private Integer totalReviews;
+    private RatingDistribution ratingDistribution;
     private Long hospitalId;
 
     /** Enriched hospital information fetched via Feign — may be null if Hospital Service is unavailable. */

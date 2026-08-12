@@ -16,21 +16,27 @@ const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
   const [stats, setStats] = useState({ doctors: 0, hospitals: 0 });
   const [pendingDoctors, setPendingDoctors] = useState([]);
+  const [pendingDoctorReviews, setPendingDoctorReviews] = useState([]);
+  const [pendingHospitalReviews, setPendingHospitalReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [docs, hosps, pending] = await Promise.all([
+        const [docs, hosps, pending, pendingDRev, pendingHRev] = await Promise.all([
           doctorService.getAll(),
           hospitalService.getAll(),
-          doctorService.getPendingDoctors().catch(() => [])
+          doctorService.getPendingDoctors().catch(() => []),
+          doctorService.getPendingReviews ? doctorService.getPendingReviews().catch(() => []) : Promise.resolve([]),
+          hospitalService.getPendingReviews ? hospitalService.getPendingReviews().catch(() => []) : Promise.resolve([])
         ]);
         setStats({
           doctors: docs.length,
           hospitals: hosps.length
         });
         setPendingDoctors(pending);
+        setPendingDoctorReviews(pendingDRev);
+        setPendingHospitalReviews(pendingHRev);
       } catch (err) {
         console.error("Failed to fetch admin stats", err);
       } finally {
@@ -168,6 +174,100 @@ const AdminDashboard = () => {
                               alert("Failed to reject");
                             }
                           }
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Paper>
+
+        <Paper elevation={2} sx={{ p: 4, mt: 6, borderRadius: 4 }}>
+          <Typography variant="h5" fontWeight={700} mb={3}>Pending Review Moderation</Typography>
+          
+          <Typography variant="h6" fontWeight={600} mb={2}>Doctor Reviews</Typography>
+          {pendingDoctorReviews.length === 0 ? (
+            <Typography variant="body1" color="text.secondary" mb={4}>No pending doctor reviews.</Typography>
+          ) : (
+            <Grid container spacing={3} mb={4}>
+              {pendingDoctorReviews.map(review => (
+                <Grid item xs={12} key={review.id}>
+                  <Card variant="outlined" sx={{ borderRadius: 3, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="h6" fontWeight={700}>Doctor ID: {review.doctorId} | Rating: {review.rating}</Typography>
+                      <Typography variant="body2" color="text.secondary">Patient ID: {review.userId}</Typography>
+                      <Typography variant="body1" sx={{ mt: 1 }}>{review.comment}</Typography>
+                    </Box>
+                    <Box display="flex" flexDirection="column" gap={1}>
+                      <Button 
+                        variant="contained" 
+                        color="success" 
+                        onClick={async () => {
+                          try {
+                            await doctorService.updateReviewStatus(review.id, 'APPROVED');
+                            setPendingDoctorReviews(pendingDoctorReviews.filter(r => r.id !== review.id));
+                          } catch (e) {}
+                        }}
+                      >
+                        Approve
+                      </Button>
+                      <Button 
+                        variant="outlined" 
+                        color="error" 
+                        onClick={async () => {
+                          try {
+                            await doctorService.updateReviewStatus(review.id, 'REJECTED');
+                            setPendingDoctorReviews(pendingDoctorReviews.filter(r => r.id !== review.id));
+                          } catch (e) {}
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          <Typography variant="h6" fontWeight={600} mb={2}>Hospital Reviews</Typography>
+          {pendingHospitalReviews.length === 0 ? (
+            <Typography variant="body1" color="text.secondary">No pending hospital reviews.</Typography>
+          ) : (
+            <Grid container spacing={3}>
+              {pendingHospitalReviews.map(review => (
+                <Grid item xs={12} key={review.id}>
+                  <Card variant="outlined" sx={{ borderRadius: 3, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="h6" fontWeight={700}>Hospital ID: {review.hospitalId} | Rating: {review.rating}</Typography>
+                      <Typography variant="body2" color="text.secondary">Patient ID: {review.patientId}</Typography>
+                      <Typography variant="body1" sx={{ mt: 1 }}>{review.reviewText}</Typography>
+                    </Box>
+                    <Box display="flex" flexDirection="column" gap={1}>
+                      <Button 
+                        variant="contained" 
+                        color="success" 
+                        onClick={async () => {
+                          try {
+                            await hospitalService.updateReviewStatus(review.id, 'APPROVED');
+                            setPendingHospitalReviews(pendingHospitalReviews.filter(r => r.id !== review.id));
+                          } catch (e) {}
+                        }}
+                      >
+                        Approve
+                      </Button>
+                      <Button 
+                        variant="outlined" 
+                        color="error" 
+                        onClick={async () => {
+                          try {
+                            await hospitalService.updateReviewStatus(review.id, 'REJECTED');
+                            setPendingHospitalReviews(pendingHospitalReviews.filter(r => r.id !== review.id));
+                          } catch (e) {}
                         }}
                       >
                         Reject

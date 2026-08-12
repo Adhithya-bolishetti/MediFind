@@ -34,7 +34,15 @@ public class DoctorServiceImpl implements DoctorService {
     public List<DoctorResponse> getAllDoctors() { return List.of(); }
 
     @Override
-    public DoctorResponse getDoctorById(Long id) { return null; }
+    public DoctorResponse getDoctorById(Long id) {
+        Doctor d = getDoctor(id);
+        return DoctorResponse.builder()
+                .id(d.getId())
+                .doctorName(d.getDoctorName())
+                .userId(d.getUserId())
+                .hospitalId(d.getHospitalId())
+                .build(); // Simple mapped response for now
+    }
 
     @Override
     public DoctorResponse updateDoctor(Long id, DoctorRequest request) { return null; }

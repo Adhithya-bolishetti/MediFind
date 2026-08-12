@@ -8,6 +8,6 @@ import java.util.Map;
 @FeignClient(name = "doctor-service")
 public interface DoctorClient {
 
-    @GetMapping("/api/doctors/profile/{userId}")
-    Map<String, Object> getDoctorProfileByUserId(@PathVariable("userId") Long userId);
+    @GetMapping("/api/doctors/{id}")
+    Map<String, Object> getDoctorById(@PathVariable("id") Long id);
 }
