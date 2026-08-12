@@ -11,6 +11,7 @@ import HospitalSearch from './pages/HospitalSearch';
 import DoctorDetails from './pages/DoctorDetails';
 import AppointmentHistory from './pages/AppointmentHistory';
 import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
 import NotificationMenu from './components/NotificationMenu';
 import EmergencyHelp from './components/EmergencyHelp';
 
@@ -21,7 +22,7 @@ function App() {
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
           <EmergencyHelp />
-          <main style={{ flexGrow: 1, padding: '24px' }}>
+          <main style={{ flexGrow: 1 }}>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
@@ -37,6 +38,9 @@ function App() {
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationMenu /></ProtectedRoute>} />
               
+              {/* Admin Route */}
+              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

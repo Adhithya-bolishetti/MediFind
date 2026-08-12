@@ -4,36 +4,48 @@ import { motion } from 'framer-motion';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import notificationService from '../services/notificationService';
 
 const NotificationMenu = () => {
   const { user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchNotifications = async () => {
+    try {
+      const data = await notificationService.getAll();
+      // Ensure we have an array to work with
+      setNotifications(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const res = await axios.get(`http://localhost:8080/api/notifications/user/${user.id}`, {
-          headers: { Authorization: `Bearer ${user.token}` }
-        });
-        setNotifications(res.data);
-      } catch (err) {
-        console.error("Failed to fetch notifications", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (user) fetchNotifications();
+    if (user) {
+      fetchNotifications();
+      // Poll every 30 seconds
+      const intervalId = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(intervalId);
+    }
   }, [user]);
 
   const markAsRead = async (id) => {
     try {
-      await axios.put(`http://localhost:8080/api/notifications/${id}/read`, {}, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
+      await notificationService.markAsRead(id);
       setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteNotification = async (id) => {
+    try {
+      await notificationService.delete(id);
+      setNotifications(notifications.filter(n => n.id !== id));
     } catch (err) {
       console.error(err);
     }
@@ -74,11 +86,16 @@ const NotificationMenu = () => {
                       '&:hover': { backgroundColor: '#f8f9fa' }
                     }}
                     secondaryAction={
-                      !notification.isRead && (
-                        <IconButton edge="end" color="primary" onClick={() => markAsRead(notification.id)}>
-                          <CheckCircleIcon />
+                      <Box>
+                        {!notification.isRead && (
+                          <IconButton edge="end" color="primary" onClick={() => markAsRead(notification.id)} title="Mark as Read">
+                            <CheckCircleIcon />
+                          </IconButton>
+                        )}
+                        <IconButton edge="end" color="error" onClick={() => deleteNotification(notification.id)} title="Delete Notification" sx={{ ml: 1 }}>
+                          <DeleteIcon />
                         </IconButton>
-                      )
+                      </Box>
                     }
                   >
                     <ListItemIcon>
@@ -87,7 +104,7 @@ const NotificationMenu = () => {
                     <ListItemText
                       primary={
                         <Typography variant="h6" fontWeight={notification.isRead ? 500 : 700}>
-                          {notification.title}
+                          {notification.title || notification.type || 'Notification'}
                         </Typography>
                       }
                       secondary={

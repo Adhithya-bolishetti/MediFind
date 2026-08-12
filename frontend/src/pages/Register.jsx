@@ -2,32 +2,38 @@ import { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper, Container, MenuItem } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { useForm } from 'react-hook-form';
+import authService from '../services/authService';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phoneNumber: '',
-    role: 'PATIENT'
-  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      role: 'PATIENT'
+    }
+  });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setError('');
     setLoading(true);
     
     try {
-      await axios.post('http://localhost:8080/api/auth/register', formData);
+      const payload = {
+        fullName: `${data.firstName} ${data.lastName}`,
+        email: data.email,
+        password: data.password
+      };
+      
+      // Register with auth service
+      await authService.register(payload);
+      
+      // Note: role and phoneNumber are not supported by the current auth-service's 
+      // RegisterRequest, which defaults to Role.USER. A separate step is needed 
+      // to create user/doctor profiles later if needed.
+      
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -54,68 +60,66 @@ const Register = () => {
               </Typography>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <TextField
                   fullWidth
                   label="First Name"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
+                  {...register("firstName", { required: "First Name is required" })}
+                  error={!!errors.firstName}
+                  helperText={errors.firstName?.message}
                 />
                 <TextField
                   fullWidth
                   label="Last Name"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
+                  {...register("lastName", { required: "Last Name is required" })}
+                  error={!!errors.lastName}
+                  helperText={errors.lastName?.message}
                 />
               </Box>
               
               <TextField
                 fullWidth
                 label="Email Address"
-                name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                {...register("email", { 
+                  required: "Email is required",
+                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email" }
+                })}
+                error={!!errors.email}
+                helperText={errors.email?.message}
                 margin="normal"
-                required
               />
               
               <TextField
                 fullWidth
                 label="Password"
-                name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register("password", { required: "Password is required", minLength: { value: 6, message: "Minimum 6 characters"} })}
+                error={!!errors.password}
+                helperText={errors.password?.message}
                 margin="normal"
-                required
               />
               
               <TextField
                 fullWidth
                 label="Phone Number"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
+                {...register("phoneNumber", { required: "Phone number is required" })}
+                error={!!errors.phoneNumber}
+                helperText={errors.phoneNumber?.message}
                 margin="normal"
-                required
               />
               
               <TextField
                 fullWidth
                 select
                 label="Account Type"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
+                {...register("role", { required: "Role is required" })}
+                error={!!errors.role}
+                helperText={errors.role?.message}
                 margin="normal"
-                required
                 sx={{ mb: 3 }}
+                defaultValue="PATIENT"
               >
                 <MenuItem value="PATIENT">Patient</MenuItem>
                 <MenuItem value="DOCTOR">Doctor</MenuItem>

@@ -3,30 +3,26 @@ import { Box, Button, TextField, Typography, Paper, Container } from '@mui/mater
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import { useForm } from 'react-hook-form';
+import authService from '../services/authService';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setError('');
     setLoading(true);
     
     try {
-      // Direct call since Gateway routes /api/auth
-      const res = await axios.post('http://localhost:8080/api/auth/login', formData);
-      const { token, id, role } = res.data;
+      const res = await authService.login(data);
+      const { token, id, role } = res;
       
-      login({ token, id, role });
+      login(token, { id, role });
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -53,27 +49,25 @@ const Login = () => {
               </Typography>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <TextField
                 fullWidth
                 label="Email Address"
-                name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                {...register("email", { required: "Email is required" })}
+                error={!!errors.email}
+                helperText={errors.email?.message}
                 margin="normal"
-                required
                 variant="outlined"
               />
               <TextField
                 fullWidth
                 label="Password"
-                name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register("password", { required: "Password is required" })}
+                error={!!errors.password}
+                helperText={errors.password?.message}
                 margin="normal"
-                required
                 variant="outlined"
                 sx={{ mb: 3 }}
               />

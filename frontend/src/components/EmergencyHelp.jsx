@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { Box, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, TextField, CircularProgress, Alert } from '@mui/material';
+import { Box, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, TextField, CircularProgress, Alert, Paper } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import axios from 'axios';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import emergencyService from '../services/emergencyService';
+import hospitalService from '../services/hospitalService';
 
 const EmergencyHelp = () => {
   const [open, setOpen] = useState(false);
   const [symptom, setSymptom] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [nearestHospital, setNearestHospital] = useState(null);
   const [error, setError] = useState('');
 
   const handleCheck = async (e) => {
@@ -16,16 +19,48 @@ const EmergencyHelp = () => {
     
     setLoading(true);
     setError('');
+    setResult(null);
+    setNearestHospital(null);
+
     try {
-      // The API Gateway routes to doctor-service for recommendations
-      // There's a new emergency triage endpoint added in Day 4: /api/doctors/emergency
-      const res = await axios.post('http://localhost:8080/api/doctors/emergency', { symptom });
-      setResult(res.data);
+      // Note: Assuming emergencyService.checkEmergency returns an object with a boolean like 'isEmergency' or similar based on backend implementation
+      const res = await emergencyService.checkEmergency(symptom);
+      
+      // Adapt this check based on the actual backend response format
+      const isEmergency = res.isEmergency !== undefined ? res.isEmergency : (res.requiresEmergency !== undefined ? res.requiresEmergency : true); 
+      setResult({ ...res, isEmergency });
+
+      if (isEmergency) {
+        findNearestHospital();
+      }
     } catch (err) {
       console.error(err);
       setError('Could not process triage request.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const findNearestHospital = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const hospital = await hospitalService.getNearest(latitude, longitude);
+            setNearestHospital(hospital);
+          } catch (err) {
+            console.error("Failed to fetch nearest hospital", err);
+            // Fallback: tell user to search hospitals
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setError("Location access denied or unavailable. Please manually search for hospitals.");
+        }
+      );
+    } else {
+      setError("Geolocation is not supported by this browser.");
     }
   };
 
@@ -56,7 +91,7 @@ const EmergencyHelp = () => {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" color="text.secondary" paragraph mt={2}>
-            Describe your symptoms. This is NOT a medical diagnosis system. In a true medical emergency, please call 911 immediately.
+            Describe your symptoms. This is NOT a medical diagnosis system. In a true medical emergency, please call your local emergency services immediately.
           </Typography>
           
           <form onSubmit={handleCheck}>
@@ -86,14 +121,35 @@ const EmergencyHelp = () => {
           {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
 
           {result && (
-            <Box mt={4} p={3} bgcolor={result.requiresEmergency ? '#ffebee' : '#e8f5e9'} borderRadius={3}>
-              <Typography variant="h6" color={result.requiresEmergency ? "error.main" : "success.main"} fontWeight={700} gutterBottom>
-                {result.requiresEmergency ? "CRITICAL: SEEK IMMEDIATE CARE" : "NON-CRITICAL"}
+            <Box mt={4} p={3} bgcolor={result.isEmergency ? '#ffebee' : '#e8f5e9'} borderRadius={3}>
+              <Typography variant="h6" color={result.isEmergency ? "error.main" : "success.main"} fontWeight={700} gutterBottom>
+                {result.isEmergency ? "CRITICAL: SEEK IMMEDIATE CARE" : "NON-CRITICAL"}
               </Typography>
               <Typography variant="body1">
-                {result.recommendation}
+                {result.recommendation || result.message || "Please proceed to the nearest emergency room if you feel your condition is life-threatening."}
               </Typography>
             </Box>
+          )}
+
+          {nearestHospital && (
+            <Paper elevation={3} sx={{ mt: 3, p: 3, borderLeft: '6px solid #d32f2f' }}>
+              <Box display="flex" alignItems="center" gap={1} mb={2} color="#d32f2f">
+                <LocalHospitalIcon />
+                <Typography variant="h6" fontWeight={700}>Nearest Emergency Hospital</Typography>
+              </Box>
+              <Typography variant="h6">{nearestHospital.name}</Typography>
+              <Typography variant="body2" color="text.secondary" mb={1}>{nearestHospital.address}, {nearestHospital.city}</Typography>
+              <Typography variant="body1" fontWeight={600} mb={2}>Phone: {nearestHospital.phone || nearestHospital.phoneNumber}</Typography>
+              
+              <Button 
+                variant="outlined" 
+                color="error" 
+                fullWidth
+                onClick={() => window.open(`https://maps.google.com/?q=${nearestHospital.latitude},${nearestHospital.longitude}`, '_blank')}
+              >
+                View on Map
+              </Button>
+            </Paper>
           )}
         </DialogContent>
         <DialogActions>

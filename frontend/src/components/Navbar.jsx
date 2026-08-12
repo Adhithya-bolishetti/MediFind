@@ -26,6 +26,9 @@ const Navbar = () => {
           
           {user ? (
             <>
+              {user.role === 'ADMIN' && (
+                <Button color="error" component={RouterLink} to="/admin" sx={{ fontWeight: 'bold' }}>Admin</Button>
+              )}
               <Button color="inherit" component={RouterLink} to="/dashboard">Dashboard</Button>
               <Button color="inherit" component={RouterLink} to="/appointments">Appointments</Button>
               <Button color="inherit" component={RouterLink} to="/notifications">Notifications</Button>

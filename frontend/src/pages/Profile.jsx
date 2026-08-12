@@ -1,9 +1,11 @@
 import { useState, useEffect, useContext } from 'react';
 import { Box, Typography, Container, Paper, Grid, TextField, Button, Avatar, Divider, Alert, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { useForm } from 'react-hook-form';
 import { AuthContext } from '../context/AuthContext';
 import PersonIcon from '@mui/icons-material/Person';
+import userService from '../services/userService';
+import doctorService from '../services/doctorService';
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
@@ -12,17 +14,19 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const endpoint = user.role === 'DOCTOR' 
-          ? `http://localhost:8080/api/doctors/${user.id}` // Wait, doctors login with user id or doctor id?
-          : `http://localhost:8080/api/users/${user.id}`;
-        
-        const res = await axios.get(endpoint, {
-          headers: { Authorization: `Bearer ${user.token}` }
-        });
-        setProfile(res.data);
+        let data;
+        if (user.role === 'DOCTOR') {
+          data = await doctorService.getById(user.id);
+        } else {
+          data = await userService.getProfile(user.id);
+        }
+        setProfile(data);
+        reset(data); // Set form default values
       } catch (err) {
         console.error("Failed to fetch profile", err);
       } finally {
@@ -30,31 +34,26 @@ const Profile = () => {
       }
     };
     if (user) fetchProfile();
-  }, [user]);
+  }, [user, reset]);
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setSaving(true);
     setMessage('');
     try {
-      const endpoint = user.role === 'DOCTOR' 
-        ? `http://localhost:8080/api/doctors/${user.id}`
-        : `http://localhost:8080/api/users/${user.id}`;
-        
-      await axios.put(endpoint, profile, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
+      if (user.role === 'DOCTOR') {
+        // Need a doctor profile update API or fall back to user API. For now, assume userService handles it if backend allows
+        await userService.updateProfile(user.id, data);
+      } else {
+        await userService.updateProfile(user.id, data);
+      }
       setMessage('Profile updated successfully!');
+      setProfile({ ...profile, ...data });
     } catch (err) {
       console.error(err);
       setMessage('Failed to update profile.');
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
   if (loading) {
@@ -92,33 +91,34 @@ const Profile = () => {
               </Alert>
             )}
 
-            <form onSubmit={handleSave}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="First Name"
-                    name="firstName"
-                    value={profile.firstName || ''}
-                    onChange={handleChange}
+                    {...register("firstName", { required: "First Name is required" })}
+                    error={!!errors.firstName}
+                    helperText={errors.firstName?.message}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Last Name"
-                    name="lastName"
-                    value={profile.lastName || ''}
-                    onChange={handleChange}
+                    {...register("lastName", { required: "Last Name is required" })}
+                    error={!!errors.lastName}
+                    helperText={errors.lastName?.message}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Phone Number"
-                    name="phoneNumber"
-                    value={profile.phoneNumber || ''}
-                    onChange={handleChange}
+                    {...register("phoneNumber")}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
                 
@@ -128,10 +128,8 @@ const Profile = () => {
                       fullWidth
                       type="date"
                       label="Date of Birth"
-                      name="dateOfBirth"
+                      {...register("dateOfBirth")}
                       InputLabelProps={{ shrink: true }}
-                      value={profile.dateOfBirth || ''}
-                      onChange={handleChange}
                     />
                   </Grid>
                 )}
@@ -141,9 +139,8 @@ const Profile = () => {
                     <TextField
                       fullWidth
                       label="Address"
-                      name="address"
-                      value={profile.address || ''}
-                      onChange={handleChange}
+                      {...register("address")}
+                      InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
                 )}
@@ -151,13 +148,13 @@ const Profile = () => {
                 {user.role === 'DOCTOR' && (
                   <>
                     <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label="Specialty" name="specialty" value={profile.specialty || ''} onChange={handleChange} />
+                      <TextField fullWidth label="Specialty" {...register("specialty")} InputLabelProps={{ shrink: true }} />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label="Experience (Years)" type="number" name="experienceYears" value={profile.experienceYears || ''} onChange={handleChange} />
+                      <TextField fullWidth label="Experience (Years)" type="number" {...register("experienceYears")} InputLabelProps={{ shrink: true }} />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField fullWidth multiline rows={3} label="Qualifications" name="qualifications" value={profile.qualifications || ''} onChange={handleChange} />
+                      <TextField fullWidth multiline rows={3} label="Qualifications" {...register("qualifications")} InputLabelProps={{ shrink: true }} />
                     </Grid>
                   </>
                 )}

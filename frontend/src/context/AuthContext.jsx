@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import authService from '../services/authService';
+import api from '../services/api';
 
 export const AuthContext = createContext(null);
 
@@ -9,25 +10,33 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // In a real app, you would validate the token or fetch user profile here
-      // For now, we'll just mock a user object based on the token presence
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ id: payload.userId, role: payload.role, sub: payload.sub });
-      } catch (e) {
-        logout();
+    const initAuth = async () => {
+      if (token) {
+        try {
+          const userData = await authService.me();
+          setUser(userData);
+        } catch (e) {
+          logout();
+        }
       }
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initAuth();
+
+    // Listen for unauthorized events to trigger logout
+    const handleUnauthorized = () => logout();
+    window.addEventListener('unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('unauthorized', handleUnauthorized);
+    };
   }, [token]);
 
-  const login = (newToken) => {
+  const login = (newToken, userData) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
+    setUser(userData);
   };
 
   const logout = () => {
