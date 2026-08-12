@@ -36,7 +36,11 @@ const Register = () => {
       
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      if (err.code === 'ERR_NETWORK') {
+        setError('Cannot connect to the server. Please ensure the backend services (API Gateway, Auth Service) are running.');
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
