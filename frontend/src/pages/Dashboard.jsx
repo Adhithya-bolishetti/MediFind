@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Box, Typography, Container, Grid, Paper, CardActionArea } from '@mui/material';
+import { Box, Typography, Container, Grid, Paper, CardActionArea, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -12,13 +12,22 @@ const Dashboard = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [greeting, setGreeting] = useState('');
+  const [doctorStatus, setDoctorStatus] = useState(null);
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
-  }, []);
+
+    if (user?.role === 'DOCTOR') {
+      import('../services/doctorService').then(module => {
+        module.default.getProfileStatus()
+          .then(res => setDoctorStatus(res.status))
+          .catch(() => setDoctorStatus('NEW'));
+      });
+    }
+  }, [user]);
 
   const getPatientActions = () => [
     { title: 'Find a Doctor', icon: <PersonSearchIcon fontSize="large" color="primary" />, path: '/doctors', color: '#e3f2fd' },
@@ -51,6 +60,23 @@ const Dashboard = () => {
       </Box>
 
       <Container maxWidth="lg" sx={{ mt: -6 }}>
+        {user?.role === 'DOCTOR' && doctorStatus !== 'VERIFIED' && (
+          <Paper elevation={3} sx={{ p: 4, mb: 4, borderRadius: 4, bgcolor: doctorStatus === 'PENDING' ? '#fff3e0' : '#ffebee' }}>
+            <Typography variant="h6" fontWeight={700} color={doctorStatus === 'PENDING' ? 'warning.main' : 'error.main'}>
+              {doctorStatus === 'PENDING' ? 'Profile Under Verification' : 'Action Required: Complete Onboarding'}
+            </Typography>
+            <Typography variant="body1" mb={2}>
+              {doctorStatus === 'PENDING' 
+                ? 'Your profile is currently being reviewed by an admin. You will be notified once verified.' 
+                : 'You must complete your profile and upload your medical license before you can accept appointments.'}
+            </Typography>
+            {doctorStatus !== 'PENDING' && (
+              <Button variant="contained" onClick={() => navigate('/onboarding')}>
+                Complete Onboarding
+              </Button>
+            )}
+          </Paper>
+        )}
         <Grid container spacing={4}>
           {actions.map((action, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>

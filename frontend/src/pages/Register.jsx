@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, Container, MenuItem } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Box, Button, TextField, Typography, Paper, Container, MenuItem, LinearProgress } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -9,12 +9,24 @@ const Register = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
   
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
       role: 'PATIENT'
     }
   });
+
+  const watchPassword = watch("password", "");
+
+  useEffect(() => {
+    let strength = 0;
+    if (watchPassword.length > 5) strength += 25;
+    if (watchPassword.length > 8) strength += 25;
+    if (/[A-Z]/.test(watchPassword)) strength += 25;
+    if (/[0-9]/.test(watchPassword) || /[^A-Za-z0-9]/.test(watchPassword)) strength += 25;
+    setPasswordStrength(strength);
+  }, [watchPassword]);
 
   const onSubmit = async (data) => {
     setError('');
@@ -24,15 +36,13 @@ const Register = () => {
       const payload = {
         fullName: `${data.firstName} ${data.lastName}`,
         email: data.email,
-        password: data.password
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        role: data.role
       };
       
       // Register with auth service
       await authService.register(payload);
-      
-      // Note: role and phoneNumber are not supported by the current auth-service's 
-      // RegisterRequest, which defaults to Role.USER. A separate step is needed 
-      // to create user/doctor profiles later if needed.
       
       navigate('/login');
     } catch (err) {
@@ -102,6 +112,37 @@ const Register = () => {
                 {...register("password", { required: "Password is required", minLength: { value: 6, message: "Minimum 6 characters"} })}
                 error={!!errors.password}
                 helperText={errors.password?.message}
+                margin="normal"
+              />
+              
+              {watchPassword && (
+                <Box sx={{ width: '100%', mb: 2, mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Password Strength: {passwordStrength < 50 ? 'Weak' : passwordStrength < 100 ? 'Good' : 'Strong'}
+                  </Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={passwordStrength} 
+                    color={passwordStrength < 50 ? 'error' : passwordStrength < 100 ? 'warning' : 'success'}
+                    sx={{ height: 6, borderRadius: 3 }}
+                  />
+                </Box>
+              )}
+
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                type="password"
+                {...register("confirmPassword", { 
+                  required: "Please confirm your password",
+                  validate: val => {
+                    if (watch('password') !== val) {
+                      return "Your passwords do not match";
+                    }
+                  }
+                })}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
                 margin="normal"
               />
               

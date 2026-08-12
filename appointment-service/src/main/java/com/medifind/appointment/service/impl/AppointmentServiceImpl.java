@@ -214,6 +214,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private void sendNotification(Long userId, String type, String title, String message) {
         try {
+            // 1. Send In-App Notification
             NotificationRequest request = NotificationRequest.builder()
                     .userId(userId)
                     .type(type)
@@ -221,6 +222,17 @@ public class AppointmentServiceImpl implements AppointmentService {
                     .message(message)
                     .build();
             notificationClient.createNotification(request, "Bearer system_token");
+
+            // 2. Fetch User to get Email
+            UserResponse user = userClient.getUserById(userId);
+            if (user != null && user.getEmail() != null) {
+                java.util.Map<String, Object> emailRequest = new java.util.HashMap<>();
+                emailRequest.put("to", user.getEmail());
+                emailRequest.put("subject", title);
+                emailRequest.put("body", message);
+                emailRequest.put("isHtml", false);
+                notificationClient.sendEmail(emailRequest, "Bearer system_token");
+            }
         } catch (Exception e) {
             System.err.println("Failed to send notification: " + e.getMessage());
         }

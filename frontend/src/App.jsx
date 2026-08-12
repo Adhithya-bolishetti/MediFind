@@ -12,6 +12,7 @@ import DoctorDetails from './pages/DoctorDetails';
 import AppointmentHistory from './pages/AppointmentHistory';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import DoctorOnboarding from './pages/DoctorOnboarding';
 import NotificationMenu from './components/NotificationMenu';
 import EmergencyHelp from './components/EmergencyHelp';
 
@@ -36,6 +37,7 @@ function App() {
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/appointments" element={<ProtectedRoute><AppointmentHistory /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/onboarding" element={<ProtectedRoute><DoctorOnboarding /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationMenu /></ProtectedRoute>} />
               
               {/* Admin Route */}

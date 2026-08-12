@@ -21,12 +21,28 @@ const Profile = () => {
       try {
         let data;
         if (user.role === 'DOCTOR') {
-          data = await doctorService.getById(user.id);
+          // Attempt to get doctor profile
+          try {
+            data = await doctorService.getMyProfile();
+          } catch (e) {
+            // If not found, might be a new doctor who hasn't onboarded, default to empty
+            data = { doctorName: '', email: user.email, specialization: '' };
+          }
+          // Mapping fields for the form
+          reset({
+            firstName: data.doctorName ? data.doctorName.split(' ')[0] : '',
+            lastName: data.doctorName ? data.doctorName.split(' ').slice(1).join(' ') : '',
+            phoneNumber: data.phoneNumber || '',
+            specialization: data.specialization || '',
+            experience: data.experience || '',
+            about: data.about || '',
+            consultationFee: data.consultationFee || ''
+          });
         } else {
           data = await userService.getProfile(user.id);
+          reset(data);
         }
         setProfile(data);
-        reset(data); // Set form default values
       } catch (err) {
         console.error("Failed to fetch profile", err);
       } finally {
@@ -41,8 +57,15 @@ const Profile = () => {
     setMessage('');
     try {
       if (user.role === 'DOCTOR') {
-        // Need a doctor profile update API or fall back to user API. For now, assume userService handles it if backend allows
-        await userService.updateProfile(user.id, data);
+        const payload = {
+          doctorName: `${data.firstName} ${data.lastName}`,
+          phoneNumber: data.phoneNumber,
+          specialization: data.specialization,
+          experience: data.experience,
+          about: data.about,
+          consultationFee: data.consultationFee
+        };
+        await doctorService.updateProfile(payload);
       } else {
         await userService.updateProfile(user.id, data);
       }
@@ -148,13 +171,23 @@ const Profile = () => {
                 {user.role === 'DOCTOR' && (
                   <>
                     <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label="Specialty" {...register("specialty")} InputLabelProps={{ shrink: true }} />
+                      <TextField fullWidth label="Specialization" select {...register("specialization")} defaultValue="CARDIOLOGY" InputLabelProps={{ shrink: true }}>
+                        <MenuItem value="CARDIOLOGY">Cardiology</MenuItem>
+                        <MenuItem value="NEUROLOGY">Neurology</MenuItem>
+                        <MenuItem value="DERMATOLOGY">Dermatology</MenuItem>
+                        <MenuItem value="ORTHOPEDICS">Orthopedics</MenuItem>
+                        <MenuItem value="PEDIATRICS">Pediatrics</MenuItem>
+                        <MenuItem value="GENERAL_MEDICINE">General Medicine</MenuItem>
+                      </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label="Experience (Years)" type="number" {...register("experienceYears")} InputLabelProps={{ shrink: true }} />
+                      <TextField fullWidth label="Experience (Years)" type="number" {...register("experience")} InputLabelProps={{ shrink: true }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth label="Consultation Fee" type="number" {...register("consultationFee")} InputLabelProps={{ shrink: true }} />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField fullWidth multiline rows={3} label="Qualifications" {...register("qualifications")} InputLabelProps={{ shrink: true }} />
+                      <TextField fullWidth multiline rows={3} label="About" {...register("about")} InputLabelProps={{ shrink: true }} />
                     </Grid>
                   </>
                 )}

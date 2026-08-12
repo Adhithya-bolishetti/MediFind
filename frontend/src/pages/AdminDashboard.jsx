@@ -1,10 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
-import { Box, Typography, Container, Paper, Grid, CircularProgress, Card, CardContent } from '@mui/material';
+import { Box, Typography, Container, Paper, Grid, CircularProgress, Card, CardContent, Button, Divider } from '@mui/material';
 import { motion } from 'framer-motion';
 import PeopleIcon from '@mui/icons-material/People';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { AuthContext } from '../context/AuthContext';
 import doctorService from '../services/doctorService';
 import hospitalService from '../services/hospitalService';
@@ -13,19 +15,22 @@ import hospitalService from '../services/hospitalService';
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
   const [stats, setStats] = useState({ doctors: 0, hospitals: 0 });
+  const [pendingDoctors, setPendingDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [docs, hosps] = await Promise.all([
+        const [docs, hosps, pending] = await Promise.all([
           doctorService.getAll(),
-          hospitalService.getAll()
+          hospitalService.getAll(),
+          doctorService.getPendingDoctors().catch(() => [])
         ]);
         setStats({
           doctors: docs.length,
           hospitals: hosps.length
         });
+        setPendingDoctors(pending);
       } catch (err) {
         console.error("Failed to fetch admin stats", err);
       } finally {
@@ -116,6 +121,64 @@ const AdminDashboard = () => {
             </motion.div>
           </Grid>
         </Grid>
+
+        <Paper elevation={2} sx={{ p: 4, mt: 6, borderRadius: 4 }}>
+          <Typography variant="h5" fontWeight={700} mb={3}>Pending Doctor Approvals</Typography>
+          {pendingDoctors.length === 0 ? (
+            <Typography variant="body1" color="text.secondary">No pending doctors for verification.</Typography>
+          ) : (
+            <Grid container spacing={3}>
+              {pendingDoctors.map(doctor => (
+                <Grid item xs={12} md={6} key={doctor.id}>
+                  <Card variant="outlined" sx={{ borderRadius: 3, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="h6" fontWeight={700}>{doctor.doctorName}</Typography>
+                      <Typography variant="body2" color="text.secondary">{doctor.specialization}</Typography>
+                      <Typography variant="body2" color="text.secondary">{doctor.email} | {doctor.phoneNumber}</Typography>
+                      <Typography variant="body2" color="text.secondary">Exp: {doctor.experience} yrs | Fee: ₹{doctor.consultationFee}</Typography>
+                    </Box>
+                    <Box display="flex" flexDirection="column" gap={1}>
+                      <Button 
+                        variant="contained" 
+                        color="success" 
+                        startIcon={<CheckCircleIcon />}
+                        onClick={async () => {
+                          try {
+                            await doctorService.approveDoctor(doctor.id);
+                            setPendingDoctors(pendingDoctors.filter(d => d.id !== doctor.id));
+                            setStats(s => ({ ...s, doctors: s.doctors + 1 }));
+                          } catch (e) {
+                            alert("Failed to approve");
+                          }
+                        }}
+                      >
+                        Approve
+                      </Button>
+                      <Button 
+                        variant="outlined" 
+                        color="error" 
+                        startIcon={<CancelIcon />}
+                        onClick={async () => {
+                          const reason = prompt("Enter rejection reason:");
+                          if (reason !== null) {
+                            try {
+                              await doctorService.rejectDoctor(doctor.id, reason);
+                              setPendingDoctors(pendingDoctors.filter(d => d.id !== doctor.id));
+                            } catch (e) {
+                              alert("Failed to reject");
+                            }
+                          }
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Paper>
 
         <Paper elevation={2} sx={{ p: 4, mt: 6, borderRadius: 4 }}>
           <Typography variant="h5" fontWeight={700} mb={2}>System Status</Typography>
