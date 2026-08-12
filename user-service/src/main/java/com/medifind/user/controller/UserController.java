@@ -30,4 +30,36 @@ public class UserController {
                 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUserProfile(
+            @PathVariable Long id,
+            @RequestBody com.medifind.user.dto.UserProfileUpdateRequest request) {
+        
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (request.getFullName() != null) user.setFullName(request.getFullName());
+        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth());
+        if (request.getAddress() != null) user.setAddress(request.getAddress());
+        if (request.getCity() != null) user.setCity(request.getCity());
+        if (request.getState() != null) user.setState(request.getState());
+        if (request.getPincode() != null) user.setPincode(request.getPincode());
+        if (request.getProfileImage() != null) user.setProfileImage(request.getProfileImage());
+        if (request.getEmergencyContactName() != null) user.setEmergencyContactName(request.getEmergencyContactName());
+        if (request.getEmergencyContactPhone() != null) user.setEmergencyContactPhone(request.getEmergencyContactPhone());
+
+        userRepository.save(user);
+
+        UserResponse response = UserResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+                
+        return ResponseEntity.ok(response);
+    }
 }

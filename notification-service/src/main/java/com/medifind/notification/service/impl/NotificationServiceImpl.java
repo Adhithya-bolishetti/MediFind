@@ -21,6 +21,9 @@ import java.util.stream.Collectors;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final com.medifind.notification.service.EmailService emailService;
+    private final com.medifind.notification.service.SmsService smsService;
+    private final com.medifind.notification.repository.NotificationLogRepository notificationLogRepository;
 
     @Override
     @Transactional
@@ -89,5 +92,58 @@ public class NotificationServiceImpl implements NotificationService {
                 .read(notification.isRead())
                 .createdAt(notification.getCreatedAt())
                 .build();
+    }
+
+    // Day 6: System Notifications
+    @Override
+    public void sendSystemEmail(com.medifind.notification.dto.SendEmailRequest request) {
+        com.medifind.notification.entity.NotificationLog logEntry = com.medifind.notification.entity.NotificationLog.builder()
+                .recipient(request.getTo())
+                .type("EMAIL")
+                .subject(request.getSubject())
+                .content(request.getBody())
+                .status(com.medifind.notification.entity.NotificationStatus.PENDING)
+                .build();
+        
+        logEntry = notificationLogRepository.save(logEntry);
+        
+        try {
+            if (request.isHtml()) {
+                emailService.sendHtmlEmail(request.getTo(), request.getSubject(), request.getBody());
+            } else {
+                emailService.sendEmail(request.getTo(), request.getSubject(), request.getBody());
+            }
+            logEntry.setStatus(com.medifind.notification.entity.NotificationStatus.SENT);
+        } catch (Exception e) {
+            logEntry.setStatus(com.medifind.notification.entity.NotificationStatus.FAILED);
+            logEntry.setErrorMessage(e.getMessage());
+            log.error("Failed to send system email to {}", request.getTo(), e);
+        } finally {
+            notificationLogRepository.save(logEntry);
+        }
+    }
+
+    @Override
+    public void sendSystemSms(com.medifind.notification.dto.SendSmsRequest request) {
+        com.medifind.notification.entity.NotificationLog logEntry = com.medifind.notification.entity.NotificationLog.builder()
+                .recipient(request.getPhoneNumber())
+                .type("SMS")
+                .subject("SMS Notification") // Default subject for SMS log
+                .content(request.getMessage())
+                .status(com.medifind.notification.entity.NotificationStatus.PENDING)
+                .build();
+        
+        logEntry = notificationLogRepository.save(logEntry);
+        
+        try {
+            smsService.sendSms(request.getPhoneNumber(), request.getMessage());
+            logEntry.setStatus(com.medifind.notification.entity.NotificationStatus.SENT);
+        } catch (Exception e) {
+            logEntry.setStatus(com.medifind.notification.entity.NotificationStatus.FAILED);
+            logEntry.setErrorMessage(e.getMessage());
+            log.error("Failed to send system SMS to {}", request.getPhoneNumber(), e);
+        } finally {
+            notificationLogRepository.save(logEntry);
+        }
     }
 }

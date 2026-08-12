@@ -59,4 +59,11 @@ public interface DoctorService {
     void deleteReview(Long doctorId, Long reviewId, Long userId, boolean isAdmin);
     
     List<com.medifind.doctor.dto.DoctorRecommendationResponse> getRecommendations(String specialization, String city, Double minimumRating, Integer minimumExperience, Boolean available);
+
+    // Day 6: Onboarding
+    com.medifind.doctor.dto.DoctorProfileResponse createDoctorProfile(com.medifind.doctor.dto.DoctorProfileRequest request, Long userId);
+    com.medifind.doctor.dto.DoctorProfileResponse getDoctorProfileByUserId(Long userId);
+    com.medifind.doctor.dto.DoctorProfileResponse updateDoctorProfile(com.medifind.doctor.dto.DoctorProfileRequest request, Long userId);
+    void updateLicensePath(Long doctorId, String filePath);
+    void submitForVerification(Long doctorId);
 }

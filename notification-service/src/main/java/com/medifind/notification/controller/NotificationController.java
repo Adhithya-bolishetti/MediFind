@@ -59,4 +59,20 @@ public class NotificationController {
         notificationService.deleteNotification(id, userId);
         return ResponseEntity.noContent().build();
     }
+
+    // Day 6: Email and SMS Endpoints
+    @PostMapping("/email")
+    public ResponseEntity<Void> sendEmail(@RequestBody com.medifind.notification.dto.SendEmailRequest request) {
+        // We inject the services here, or we can use the notificationService facade.
+        // For simplicity, let's just assume we have it or update the constructor.
+        // Actually, we should update NotificationService interface and implementation.
+        notificationService.sendSystemEmail(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/sms")
+    public ResponseEntity<Void> sendSms(@RequestBody com.medifind.notification.dto.SendSmsRequest request) {
+        notificationService.sendSystemSms(request);
+        return ResponseEntity.ok().build();
+    }
 }

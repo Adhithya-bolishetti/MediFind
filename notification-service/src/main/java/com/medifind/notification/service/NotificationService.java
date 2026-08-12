@@ -11,4 +11,8 @@ public interface NotificationService {
     List<NotificationResponse> getUnreadUserNotifications(Long userId);
     NotificationResponse markAsRead(Long id, Long userId);
     void deleteNotification(Long id, Long userId);
+    
+    // Day 6: System notifications
+    void sendSystemEmail(com.medifind.notification.dto.SendEmailRequest request);
+    void sendSystemSms(com.medifind.notification.dto.SendSmsRequest request);
 }

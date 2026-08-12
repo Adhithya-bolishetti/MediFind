@@ -170,7 +170,7 @@ public class DoctorServiceImpl implements DoctorService {
         List<Doctor> allDoctors = doctorRepository.findAll();
         
         return allDoctors.stream()
-                .filter(d -> specialization == null || (d.getSpecialization() != null && d.getSpecialization().equalsIgnoreCase(specialization)))
+                .filter(d -> specialization == null || (d.getSpecialization() != null && d.getSpecialization().name().equalsIgnoreCase(specialization)))
                 .filter(d -> minimumRating == null || d.getRating() >= minimumRating)
                 .filter(d -> minimumExperience == null || d.getExperience() >= minimumExperience)
                 .filter(d -> available == null || d.isAvailable() == available)
@@ -193,7 +193,7 @@ public class DoctorServiceImpl implements DoctorService {
                     return DoctorRecommendationResponse.builder()
                             .doctorId(d.getId())
                             .doctorName(d.getDoctorName())
-                            .specialization(d.getSpecialization())
+                            .specialization(d.getSpecialization() != null ? d.getSpecialization().name() : null)
                             .experience(d.getExperience())
                             .rating(d.getRating())
                             .hospital(hospitalName)
@@ -227,6 +227,155 @@ public class DoctorServiceImpl implements DoctorService {
                 .comment(review.getComment())
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
+                .build();
+    }
+
+    // Day 6: Onboarding Methods
+    @Override
+    public DoctorProfileResponse createDoctorProfile(DoctorProfileRequest request, Long userId) {
+        if (doctorRepository.findByUserId(userId).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Doctor profile already exists for this user");
+        }
+
+        Doctor doctor = Doctor.builder()
+                .userId(userId)
+                .doctorName(request.getDoctorName())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .gender(request.getGender())
+                .dateOfBirth(request.getDateOfBirth())
+                .profileImage(request.getProfileImage())
+                .specialization(request.getSpecialization())
+                .subSpecialization(request.getSubSpecialization())
+                .qualification(request.getQualification())
+                .medicalCollege(request.getMedicalCollege())
+                .medicalLicenseNumber(request.getMedicalLicenseNumber())
+                .experience(request.getExperience() != null ? request.getExperience() : 0)
+                .about(request.getAbout())
+                .consultationFee(request.getConsultationFee() != null ? request.getConsultationFee() : 0.0)
+                .languages(request.getLanguages())
+                .clinicName(request.getClinicName())
+                .clinicAddress(request.getClinicAddress())
+                .city(request.getCity())
+                .state(request.getState())
+                .country(request.getCountry())
+                .pincode(request.getPincode())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .workingDays(request.getWorkingDays())
+                .consultationStartTime(request.getConsultationStartTime())
+                .consultationEndTime(request.getConsultationEndTime())
+                .appointmentDuration(request.getAppointmentDuration())
+                .availableForOnlineConsultation(request.isAvailableForOnlineConsultation())
+                .availableForEmergency(request.isAvailableForEmergency())
+                .verificationStatus(com.medifind.doctor.entity.VerificationStatus.PENDING)
+                .available(false) // Not available until approved
+                .build();
+
+        doctor = doctorRepository.save(doctor);
+        return mapToDoctorProfileResponse(doctor);
+    }
+
+    @Override
+    public DoctorProfileResponse getDoctorProfileByUserId(Long userId) {
+        Doctor doctor = doctorRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor profile not found"));
+        return mapToDoctorProfileResponse(doctor);
+    }
+
+    @Override
+    public DoctorProfileResponse updateDoctorProfile(DoctorProfileRequest request, Long userId) {
+        Doctor doctor = doctorRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor profile not found"));
+
+        // Update fields
+        if (request.getDoctorName() != null) doctor.setDoctorName(request.getDoctorName());
+        if (request.getPhoneNumber() != null) doctor.setPhoneNumber(request.getPhoneNumber());
+        if (request.getGender() != null) doctor.setGender(request.getGender());
+        if (request.getDateOfBirth() != null) doctor.setDateOfBirth(request.getDateOfBirth());
+        if (request.getProfileImage() != null) doctor.setProfileImage(request.getProfileImage());
+        if (request.getSpecialization() != null) doctor.setSpecialization(request.getSpecialization());
+        if (request.getSubSpecialization() != null) doctor.setSubSpecialization(request.getSubSpecialization());
+        if (request.getQualification() != null) doctor.setQualification(request.getQualification());
+        if (request.getMedicalCollege() != null) doctor.setMedicalCollege(request.getMedicalCollege());
+        if (request.getMedicalLicenseNumber() != null) doctor.setMedicalLicenseNumber(request.getMedicalLicenseNumber());
+        if (request.getExperience() != null) doctor.setExperience(request.getExperience());
+        if (request.getAbout() != null) doctor.setAbout(request.getAbout());
+        if (request.getConsultationFee() != null) doctor.setConsultationFee(request.getConsultationFee());
+        if (request.getLanguages() != null) doctor.setLanguages(request.getLanguages());
+        if (request.getClinicName() != null) doctor.setClinicName(request.getClinicName());
+        if (request.getClinicAddress() != null) doctor.setClinicAddress(request.getClinicAddress());
+        if (request.getCity() != null) doctor.setCity(request.getCity());
+        if (request.getState() != null) doctor.setState(request.getState());
+        if (request.getCountry() != null) doctor.setCountry(request.getCountry());
+        if (request.getPincode() != null) doctor.setPincode(request.getPincode());
+        if (request.getLatitude() != null) doctor.setLatitude(request.getLatitude());
+        if (request.getLongitude() != null) doctor.setLongitude(request.getLongitude());
+        if (request.getWorkingDays() != null) doctor.setWorkingDays(request.getWorkingDays());
+        if (request.getConsultationStartTime() != null) doctor.setConsultationStartTime(request.getConsultationStartTime());
+        if (request.getConsultationEndTime() != null) doctor.setConsultationEndTime(request.getConsultationEndTime());
+        if (request.getAppointmentDuration() != null) doctor.setAppointmentDuration(request.getAppointmentDuration());
+        
+        doctor.setAvailableForOnlineConsultation(request.isAvailableForOnlineConsultation());
+        doctor.setAvailableForEmergency(request.isAvailableForEmergency());
+
+        doctor = doctorRepository.save(doctor);
+        return mapToDoctorProfileResponse(doctor);
+    }
+
+    @Override
+    public void updateLicensePath(Long doctorId, String filePath) {
+        Doctor doctor = getDoctor(doctorId);
+        doctor.setLicenseCertificatePath(filePath);
+        doctorRepository.save(doctor);
+    }
+
+    @Override
+    public void submitForVerification(Long doctorId) {
+        Doctor doctor = getDoctor(doctorId);
+        if (doctor.getVerificationStatus() == com.medifind.doctor.entity.VerificationStatus.PENDING) {
+            // Already pending, or could add more validation here
+            // e.g. check if required fields are filled
+        }
+        doctorRepository.save(doctor);
+        // Here we could trigger a Notification event for admin
+    }
+
+    private DoctorProfileResponse mapToDoctorProfileResponse(Doctor doctor) {
+        return DoctorProfileResponse.builder()
+                .id(doctor.getId())
+                .doctorName(doctor.getDoctorName())
+                .email(doctor.getEmail())
+                .phoneNumber(doctor.getPhoneNumber())
+                .gender(doctor.getGender())
+                .dateOfBirth(doctor.getDateOfBirth())
+                .profileImage(doctor.getProfileImage())
+                .specialization(doctor.getSpecialization())
+                .subSpecialization(doctor.getSubSpecialization())
+                .qualification(doctor.getQualification())
+                .medicalCollege(doctor.getMedicalCollege())
+                .medicalLicenseNumber(doctor.getMedicalLicenseNumber())
+                .experience(doctor.getExperience())
+                .about(doctor.getAbout())
+                .consultationFee(doctor.getConsultationFee())
+                .languages(doctor.getLanguages())
+                .clinicName(doctor.getClinicName())
+                .clinicAddress(doctor.getClinicAddress())
+                .city(doctor.getCity())
+                .state(doctor.getState())
+                .country(doctor.getCountry())
+                .pincode(doctor.getPincode())
+                .latitude(doctor.getLatitude())
+                .longitude(doctor.getLongitude())
+                .workingDays(doctor.getWorkingDays())
+                .consultationStartTime(doctor.getConsultationStartTime())
+                .consultationEndTime(doctor.getConsultationEndTime())
+                .appointmentDuration(doctor.getAppointmentDuration())
+                .availableForOnlineConsultation(doctor.isAvailableForOnlineConsultation())
+                .availableForEmergency(doctor.isAvailableForEmergency())
+                .verificationStatus(doctor.getVerificationStatus())
+                .licenseCertificatePath(doctor.getLicenseCertificatePath())
+                .rejectionReason(doctor.getRejectionReason())
                 .build();
     }
 }

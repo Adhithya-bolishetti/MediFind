@@ -24,55 +24,78 @@ public class Doctor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private Long userId;
+
     @Column(nullable = false)
     private String doctorName;
-
-    @Column(nullable = false)
-    private String specialization;
-
-    private String qualification;
-
-    /** Years of clinical experience. */
-    @Column(nullable = false)
-    private Integer experience;
-
-    /** Consultation fee in INR. */
-    @Column(nullable = false)
-    private Double consultationFee;
-
-    /** Aggregate rating out of 5.0. */
-    @Column(nullable = false)
-    private Double rating;
-
-    /** Foreign key referencing the hospital (stored in hospital-service). */
-    private Long hospitalId;
-
-    @Column(nullable = false)
-    private String city;
-
-    private String state;
-
-    @Column(nullable = false)
-    private String phoneNumber;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    /** URL to the doctor's profile image. */
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    private String gender;
+    private java.time.LocalDate dateOfBirth;
     private String profileImage;
 
-    /** Whether the doctor is currently accepting appointments. */
+    // Professional Information
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Specialization specialization;
+
+    private String subSpecialization;
+    private String qualification;
+    private String medicalCollege;
+    private String medicalLicenseNumber;
+
+    @Column(nullable = false)
+    private Integer experience;
+
+    @Column(length = 2000)
+    private String about;
+
+    @Column(nullable = false)
+    private Double consultationFee;
+
+    private String languages;
+
+    // Location / Hospital
+    private Long hospitalId;
+    private String clinicName;
+    private String clinicAddress;
+    
+    @Column(nullable = false)
+    private String city;
+    
+    private String state;
+    private String country;
+    private String pincode;
+    private Double latitude;
+    private Double longitude;
+
+    // Availability
     @Column(nullable = false)
     private boolean available;
-
-    // Day 3 additions for Availability
     private String workingDays; // e.g. "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY"
-
     private String consultationStartTime; // e.g. "09:00"
-
     private String consultationEndTime; // e.g. "17:00"
-
     private Integer appointmentDuration; // in minutes e.g. 30
+    private boolean availableForOnlineConsultation;
+    private boolean availableForEmergency;
+
+    // Verification and License Storage
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
+    
+    private String licenseCertificatePath;
+    private String rejectionReason;
+
+    /** Aggregate rating out of 5.0. */
+    @Column(nullable = false)
+    private Double rating = 0.0;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

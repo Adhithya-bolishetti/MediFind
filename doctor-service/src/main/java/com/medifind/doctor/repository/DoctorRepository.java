@@ -19,4 +19,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long>, JpaSpecif
 
     /** Find a doctor by their unique email address. */
     Optional<Doctor> findByEmail(String email);
+
+    /** Find a doctor by their unique user ID. */
+    Optional<Doctor> findByUserId(Long userId);
 }

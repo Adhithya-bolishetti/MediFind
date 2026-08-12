@@ -15,6 +15,59 @@ import java.util.List;
 public class DoctorController {
 
     private final DoctorService doctorService;
+    private final com.medifind.doctor.service.FileStorageService fileStorageService;
+
+    // Day 6: Doctor Onboarding APIs
+    @PostMapping("/profile")
+    public ResponseEntity<DoctorProfileResponse> createProfile(
+            @Valid @RequestBody DoctorProfileRequest request,
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if(userId == null) userId = 1L; // Fallback
+        return ResponseEntity.ok(doctorService.createDoctorProfile(request, userId));
+    }
+
+    @GetMapping("/profile/me")
+    public ResponseEntity<DoctorProfileResponse> getMyProfile(
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if(userId == null) userId = 1L;
+        return ResponseEntity.ok(doctorService.getDoctorProfileByUserId(userId));
+    }
+
+    @PutMapping("/profile/me")
+    public ResponseEntity<DoctorProfileResponse> updateMyProfile(
+            @Valid @RequestBody DoctorProfileRequest request,
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if(userId == null) userId = 1L;
+        return ResponseEntity.ok(doctorService.updateDoctorProfile(request, userId));
+    }
+
+    @PostMapping("/profile/license")
+    public ResponseEntity<String> uploadLicense(
+            @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if(userId == null) userId = 1L;
+        DoctorProfileResponse doc = doctorService.getDoctorProfileByUserId(userId);
+        String filePath = fileStorageService.storeFile(file, doc.getId());
+        doctorService.updateLicensePath(doc.getId(), filePath);
+        return ResponseEntity.ok("License uploaded successfully");
+    }
+
+    @GetMapping("/profile/status")
+    public ResponseEntity<com.medifind.doctor.entity.VerificationStatus> getProfileStatus(
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if(userId == null) userId = 1L;
+        DoctorProfileResponse doc = doctorService.getDoctorProfileByUserId(userId);
+        return ResponseEntity.ok(doc.getVerificationStatus());
+    }
+
+    @PostMapping("/profile/submit")
+    public ResponseEntity<String> submitProfile(
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if(userId == null) userId = 1L;
+        DoctorProfileResponse doc = doctorService.getDoctorProfileByUserId(userId);
+        doctorService.submitForVerification(doc.getId());
+        return ResponseEntity.ok("Profile submitted for verification");
+    }
 
     // Day 3: Availability
     @GetMapping("/{doctorId}/availability")

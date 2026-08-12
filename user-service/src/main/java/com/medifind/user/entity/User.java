@@ -29,6 +29,17 @@ public class User {
     @Column(nullable = false)
     private String role;
 
+    private String phone;
+    private String gender;
+    private java.time.LocalDate dateOfBirth;
+    private String address;
+    private String city;
+    private String state;
+    private String pincode;
+    private String profileImage;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
