@@ -69,14 +69,14 @@ const DoctorProfileSetup = () => {
           email: data.email,
           phoneNumber: data.mobileNumber,
           gender: data.gender,
-          dateOfBirth: data.dateOfBirth,
+          dateOfBirth: data.dateOfBirth || null,
           profileImage: profileImage,
           specialization: data.specialization,
           qualification: data.qualification,
           medicalLicenseNumber: data.medicalLicenseNumber,
-          experience: parseInt(data.experience, 10),
+          experience: data.experience ? parseInt(data.experience, 10) : null,
           about: data.about,
-          consultationFee: parseFloat(data.consultationFee),
+          consultationFee: data.consultationFee ? parseFloat(data.consultationFee) : null,
           languages: Array.isArray(data.languages) ? data.languages.join(',') : data.languages,
           clinicName: data.clinicName,
           clinicAddress: data.clinicAddress,
@@ -84,8 +84,8 @@ const DoctorProfileSetup = () => {
           state: data.state,
           pincode: data.pincode,
           workingDays: data.workingDays,
-          consultationStartTime: data.consultationStartTime,
-          consultationEndTime: data.consultationEndTime,
+          consultationStartTime: data.consultationStartTime || null,
+          consultationEndTime: data.consultationEndTime || null,
           availableForOnlineConsultation: data.consultationMode === 'Online' || data.consultationMode === 'Both'
         };
 

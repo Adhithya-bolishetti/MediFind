@@ -57,7 +57,7 @@ const PatientProfileSetup = () => {
           fullName: data.fullName,
           phone: data.mobileNumber,
           gender: data.gender,
-          dateOfBirth: data.dateOfBirth,
+          dateOfBirth: data.dateOfBirth || null,
           profileImage: profileImage,
           address: data.address,
           city: data.city,
