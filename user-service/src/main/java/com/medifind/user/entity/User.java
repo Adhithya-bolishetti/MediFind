@@ -36,6 +36,7 @@ public class User {
     private String city;
     private String state;
     private String pincode;
+    @Column(columnDefinition = "LONGTEXT")
     private String profileImage;
     private String emergencyContactName;
     private String emergencyContactPhone;

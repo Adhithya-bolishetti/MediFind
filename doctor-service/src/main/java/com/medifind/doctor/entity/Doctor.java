@@ -38,6 +38,7 @@ public class Doctor {
 
     private String gender;
     private java.time.LocalDate dateOfBirth;
+    @Column(columnDefinition = "LONGTEXT")
     private String profileImage;
 
     // Professional Information
