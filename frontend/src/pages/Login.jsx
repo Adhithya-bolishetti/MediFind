@@ -35,10 +35,42 @@ const Login = () => {
       };
 
       const res = await authService.login(payload);
-      const { token, id, role } = res;
+      const { token, id, role, fullName } = res;
       
-      login(token, { id, role });
-      navigate('/dashboard');
+      // We assume user response has id, role, and fullName
+      login(token, { id, role, fullName, email: fakeEmail });
+      
+      // Determine post-login routing
+      if (role === 'DOCTOR') {
+        try {
+          const profileStatus = await doctorService.getProfileStatus();
+          // If status indicates completion or pending verification, go to dashboard
+          if (profileStatus && profileStatus.status !== 'INCOMPLETE') {
+            navigate('/dashboard');
+          } else {
+            navigate('/doctor/profile');
+          }
+        } catch (statusErr) {
+          // If the profile status endpoint fails (e.g. 404 Not Found if profile doesn't exist)
+          navigate('/doctor/profile');
+        }
+      } else if (role === 'PATIENT') {
+        try {
+          const { default: userService } = await import('../services/userService');
+          const fullProfile = await userService.getProfile(id);
+          if (!fullProfile.phone || !fullProfile.gender) {
+            navigate('/patient/profile');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (profileErr) {
+          navigate('/patient/profile');
+        }
+      } else {
+        // ADMIN or other roles
+        navigate('/dashboard');
+      }
+
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
