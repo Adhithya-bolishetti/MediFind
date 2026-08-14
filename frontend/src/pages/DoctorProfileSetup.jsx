@@ -7,6 +7,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 
 import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import doctorService from '../services/doctorService';
 import ProfileSetupLayout from '../components/profile/ProfileSetupLayout';
 import ProfileInfoPanel from '../components/profile/ProfileInfoPanel';
@@ -18,7 +19,8 @@ const DoctorProfileSetup = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user } = useContext(AuthContext);
+  const { user, refreshUser } = useContext(AuthContext);
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const { register, handleSubmit, control, formState: { errors }, watch, setValue } = useForm({
@@ -92,8 +94,9 @@ const DoctorProfileSetup = () => {
         await doctorService.createProfile(payload);
         await doctorService.submitProfile();
         
-        // Force a hard reload to re-initialize the auth context and correctly evaluate route protection
-        window.location.href = '/dashboard';
+        await refreshUser();
+        showToast('Successfully profile created');
+        navigate('/dashboard');
       } catch (err) {
         console.error(err);
         setError(err.response?.data?.message || 'Failed to submit profile. Please try again.');

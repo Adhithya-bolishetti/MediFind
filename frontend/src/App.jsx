@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -20,8 +21,9 @@ import EmergencyHelp from './components/EmergencyHelp';
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <ToastProvider>
+        <AuthProvider>
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
           <EmergencyHelp />
           <main style={{ flexGrow: 1 }}>
@@ -50,6 +52,7 @@ function App() {
           </main>
         </div>
       </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

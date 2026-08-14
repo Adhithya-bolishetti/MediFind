@@ -31,17 +31,16 @@ public class DoctorServiceImpl implements DoctorService {
     public DoctorResponse createDoctor(DoctorRequest request) { return null; }
 
     @Override
-    public List<DoctorResponse> getAllDoctors() { return List.of(); }
+    public List<DoctorResponse> getAllDoctors() {
+        return doctorRepository.findAll().stream()
+                .map(this::mapToDoctorResponse)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public DoctorResponse getDoctorById(Long id) {
         Doctor d = getDoctor(id);
-        return DoctorResponse.builder()
-                .id(d.getId())
-                .doctorName(d.getDoctorName())
-                .userId(d.getUserId())
-                .hospitalId(d.getHospitalId())
-                .build(); // Simple mapped response for now
+        return mapToDoctorResponse(d);
     }
 
     @Override
@@ -52,7 +51,15 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<DoctorResponse> searchDoctors(String specialization, String city, Long hospitalId, Boolean available, Double minimumRating, Integer experience) {
-        return List.of();
+        return doctorRepository.findAll().stream()
+                .filter(d -> specialization == null || (d.getSpecialization() != null && d.getSpecialization().name().toLowerCase().contains(specialization.toLowerCase())))
+                .filter(d -> city == null || (d.getCity() != null && d.getCity().toLowerCase().contains(city.toLowerCase())))
+                .filter(d -> hospitalId == null || (d.getHospitalId() != null && d.getHospitalId().equals(hospitalId)))
+                .filter(d -> available == null || d.isAvailable() == available)
+                .filter(d -> minimumRating == null || d.getRating() >= minimumRating)
+                .filter(d -> experience == null || d.getExperience() >= experience)
+                .map(this::mapToDoctorResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -282,6 +289,24 @@ public class DoctorServiceImpl implements DoctorService {
                 .status(review.getStatus() != null ? review.getStatus().name() : null)
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
+                .build();
+    }
+
+    private DoctorResponse mapToDoctorResponse(Doctor doctor) {
+        return DoctorResponse.builder()
+                .id(doctor.getId())
+                .doctorName(doctor.getDoctorName())
+                .userId(doctor.getUserId())
+                .hospitalId(doctor.getHospitalId())
+                .specialization(doctor.getSpecialization() != null ? doctor.getSpecialization().name() : null)
+                .qualification(doctor.getQualification())
+                .experience(doctor.getExperience())
+                .consultationFee(doctor.getConsultationFee())
+                .city(doctor.getCity())
+                .available(doctor.isAvailable())
+                .rating(doctor.getRating())
+                .totalReviews(doctor.getTotalReviews())
+                .profileImage(doctor.getProfileImage())
                 .build();
     }
 

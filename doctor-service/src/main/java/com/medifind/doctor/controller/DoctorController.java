@@ -17,6 +17,22 @@ public class DoctorController {
     private final DoctorService doctorService;
     private final com.medifind.doctor.service.FileStorageService fileStorageService;
 
+    @GetMapping
+    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
+        return ResponseEntity.ok(doctorService.getAllDoctors());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<DoctorResponse>> searchDoctors(
+            @RequestParam(required = false) String specialty,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Long hospitalId,
+            @RequestParam(required = false) Boolean available,
+            @RequestParam(required = false) Double minimumRating,
+            @RequestParam(required = false) Integer experience) {
+        return ResponseEntity.ok(doctorService.searchDoctors(specialty, city, hospitalId, available, minimumRating, experience));
+    }
+
     // Day 6: Doctor Onboarding APIs
     @PostMapping("/profile")
     public ResponseEntity<DoctorProfileResponse> createProfile(

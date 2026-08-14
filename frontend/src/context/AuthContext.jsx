@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       if (userData.role === 'DOCTOR') {
         try {
           const status = await doctorService.getProfileStatus();
-          isProfileComplete = status && status.status !== 'INCOMPLETE';
+          isProfileComplete = status && status !== 'INCOMPLETE';
         } catch (e) {
           isProfileComplete = false;
         }
@@ -74,6 +74,12 @@ export const AuthProvider = ({ children }) => {
     return await fetchAndSetUser(newToken);
   };
 
+  const refreshUser = async () => {
+    if (token) {
+      return await fetchAndSetUser(token);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -81,7 +87,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
