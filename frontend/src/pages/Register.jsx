@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, Paper, Container, MenuItem, LinearProgress } from '@mui/material';
+import { useState } from 'react';
+import { Box, Button, Typography, Paper, TextField, InputAdornment, IconButton, Select, MenuItem, FormControl, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import authService from '../services/authService';
+import AuthLayout from '../components/auth/AuthLayout';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 
 const Register = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [countryCode, setCountryCode] = useState('+91');
   
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
     defaultValues: {
       role: 'PATIENT'
     }
@@ -19,35 +25,29 @@ const Register = () => {
 
   const watchPassword = watch("password", "");
 
-  useEffect(() => {
-    let strength = 0;
-    if (watchPassword.length > 5) strength += 25;
-    if (watchPassword.length > 8) strength += 25;
-    if (/[A-Z]/.test(watchPassword)) strength += 25;
-    if (/[0-9]/.test(watchPassword) || /[^A-Za-z0-9]/.test(watchPassword)) strength += 25;
-    setPasswordStrength(strength);
-  }, [watchPassword]);
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
   const onSubmit = async (data) => {
     setError('');
     setLoading(true);
     
     try {
+      const fakeEmail = `${countryCode.replace('+', '')}${data.mobileNumber}@medifind.com`;
+      
       const payload = {
-        fullName: `${data.firstName} ${data.lastName}`,
-        email: data.email,
+        fullName: data.fullName,
+        email: fakeEmail,
         password: data.password,
         confirmPassword: data.confirmPassword,
         role: data.role
       };
       
-      // Register with auth service
       await authService.register(payload);
-      
       navigate('/login');
     } catch (err) {
       if (err.code === 'ERR_NETWORK') {
-        setError('Cannot connect to the server. Please ensure the backend services (API Gateway, Auth Service) are running.');
+        setError('Cannot connect to the server. Please ensure the backend services are running.');
       } else {
         setError(err.response?.data?.message || 'Registration failed. Please try again.');
       }
@@ -57,148 +57,257 @@ const Register = () => {
   };
 
   return (
-    <Box sx={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', background: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)', py: 4 }}>
-      <Container maxWidth="sm">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Paper elevation={10} sx={{ p: 5, borderRadius: 4, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
-            <Typography variant="h4" fontWeight={700} textAlign="center" gutterBottom color="primary">
-              Create an Account
-            </Typography>
-            <Typography variant="body1" textAlign="center" color="text.secondary" mb={4}>
-              Join MediFind to manage your healthcare journey
-            </Typography>
+    <AuthLayout>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: { xs: 4, md: 5 }, 
+          borderRadius: 4, 
+          width: '100%', 
+          maxWidth: 500,
+          boxShadow: '0px 10px 40px rgba(16, 27, 54, 0.08)' 
+        }}
+      >
+        <Typography variant="h4" fontWeight={700} textAlign="center" gutterBottom color="#101B36">
+          Create Your Account
+        </Typography>
+        <Typography variant="body1" textAlign="center" color="#5C6780" mb={4}>
+          Join MediFind and find the right care
+        </Typography>
 
-            {error && (
-              <Typography color="error" textAlign="center" mb={2}>
-                {error}
-              </Typography>
-            )}
+        {error && (
+          <Typography color="error" textAlign="center" mb={2} sx={{ fontSize: '0.9rem' }}>
+            {error}
+          </Typography>
+        )}
 
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  {...register("firstName", { required: "First Name is required" })}
-                  error={!!errors.firstName}
-                  helperText={errors.firstName?.message}
-                />
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  {...register("lastName", { required: "Last Name is required" })}
-                  error={!!errors.lastName}
-                  helperText={errors.lastName?.message}
-                />
-              </Box>
-              
-              <TextField
-                fullWidth
-                label="Email Address"
-                type="email"
-                {...register("email", { 
-                  required: "Email is required",
-                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email" }
-                })}
-                error={!!errors.email}
-                helperText={errors.email?.message}
-                margin="normal"
-              />
-              
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                {...register("password", { required: "Password is required", minLength: { value: 6, message: "Minimum 6 characters"} })}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                margin="normal"
-              />
-              
-              {watchPassword && (
-                <Box sx={{ width: '100%', mb: 2, mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Password Strength: {passwordStrength < 50 ? 'Weak' : passwordStrength < 100 ? 'Good' : 'Strong'}
-                  </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={passwordStrength} 
-                    color={passwordStrength < 50 ? 'error' : passwordStrength < 100 ? 'warning' : 'success'}
-                    sx={{ height: 6, borderRadius: 3 }}
-                  />
-                </Box>
-              )}
-
-              <TextField
-                fullWidth
-                label="Confirm Password"
-                type="password"
-                {...register("confirmPassword", { 
-                  required: "Please confirm your password",
-                  validate: val => {
-                    if (watch('password') !== val) {
-                      return "Your passwords do not match";
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <Controller
+              name="role"
+              control={control}
+              render={({ field }) => (
+                <ToggleButtonGroup
+                  {...field}
+                  exclusive
+                  onChange={(_, newValue) => {
+                    if (newValue !== null) {
+                      field.onChange(newValue);
                     }
-                  }
-                })}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                margin="normal"
-              />
-              
-              <TextField
-                fullWidth
-                label="Phone Number"
-                {...register("phoneNumber", { required: "Phone number is required" })}
-                error={!!errors.phoneNumber}
-                helperText={errors.phoneNumber?.message}
-                margin="normal"
-              />
-              
-              <TextField
-                fullWidth
-                select
-                label="Account Type"
-                {...register("role", { required: "Role is required" })}
-                error={!!errors.role}
-                helperText={errors.role?.message}
-                margin="normal"
-                sx={{ mb: 3 }}
-                defaultValue="PATIENT"
-              >
-                <MenuItem value="PATIENT">Patient</MenuItem>
-                <MenuItem value="DOCTOR">Doctor</MenuItem>
-              </TextField>
+                  }}
+                  sx={{
+                    '& .MuiToggleButtonGroup-grouped': {
+                      border: '1px solid #D9DEE8',
+                      borderRadius: '8px !important',
+                      mx: 1,
+                      px: 4,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      color: '#5C6780',
+                      '&.Mui-selected': {
+                        bgcolor: 'rgba(7, 154, 154, 0.1)',
+                        color: '#079A9A',
+                        borderColor: '#079A9A',
+                        '&:hover': {
+                          bgcolor: 'rgba(7, 154, 154, 0.2)',
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <ToggleButton value="PATIENT">
+                    Patient
+                  </ToggleButton>
+                  <ToggleButton value="DOCTOR">
+                    Doctor
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              )}
+            />
+          </Box>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                disabled={loading}
-                sx={{ 
-                  py: 1.5, 
-                  borderRadius: 2,
-                  fontSize: '1.1rem',
-                  textTransform: 'none',
-                  mb: 2,
-                  background: 'linear-gradient(45deg, #1976d2, #9c27b0)'
-                }}
-              >
-                {loading ? 'Creating Account...' : 'Sign Up'}
-              </Button>
-            </form>
-            
-            <Typography textAlign="center" color="text.secondary">
-              Already have an account?{' '}
-              <Link to="/login" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>
-                Sign In
-              </Link>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>
+              Full Name
             </Typography>
-          </Paper>
-        </motion.div>
-      </Container>
-    </Box>
+            <TextField
+              fullWidth
+              placeholder="Enter your full name"
+              {...register("fullName", { required: "Full name is required" })}
+              error={!!errors.fullName}
+              helperText={errors.fullName?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonOutlineRoundedIcon sx={{ color: '#9AA4B2' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ 
+                '& .MuiOutlinedInput-root': { 
+                  borderRadius: 2,
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: '#D9DEE8' },
+                  '&:hover fieldset': { borderColor: '#079A9A' },
+                  '&.Mui-focused fieldset': { borderColor: '#079A9A' },
+                } 
+              }}
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>
+              Mobile Number
+            </Typography>
+            <Box sx={{ display: 'flex' }}>
+              <FormControl sx={{ width: 100, mr: 1 }}>
+                <Select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  sx={{ 
+                    bgcolor: '#fff', 
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#D9DEE8' },
+                  }}
+                >
+                  <MenuItem value="+91">+91</MenuItem>
+                  <MenuItem value="+1">+1</MenuItem>
+                  <MenuItem value="+44">+44</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                placeholder="Enter your mobile number"
+                {...register("mobileNumber", { 
+                  required: "Mobile Number is required",
+                  pattern: { value: /^[0-9]{10}$/, message: "Must be a 10-digit number" }
+                })}
+                error={!!errors.mobileNumber}
+                helperText={errors.mobileNumber?.message}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 2,
+                    bgcolor: '#fff',
+                    '& fieldset': { borderColor: '#D9DEE8' },
+                    '&:hover fieldset': { borderColor: '#079A9A' },
+                    '&.Mui-focused fieldset': { borderColor: '#079A9A' },
+                  } 
+                }}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>
+              Password
+            </Typography>
+            <TextField
+              fullWidth
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Create a password"
+              {...register("password", { required: "Password is required", minLength: { value: 6, message: "Minimum 6 characters"} })}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon sx={{ color: '#9AA4B2' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleClickShowPassword} edge="end">
+                      {showPassword ? <VisibilityOff sx={{ color: '#9AA4B2' }}/> : <Visibility sx={{ color: '#9AA4B2' }}/>}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ 
+                '& .MuiOutlinedInput-root': { 
+                  borderRadius: 2,
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: '#D9DEE8' },
+                  '&:hover fieldset': { borderColor: '#079A9A' },
+                  '&.Mui-focused fieldset': { borderColor: '#079A9A' },
+                } 
+              }}
+            />
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>
+              Confirm Password
+            </Typography>
+            <TextField
+              fullWidth
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Confirm your password"
+              {...register("confirmPassword", { 
+                required: "Please confirm your password",
+                validate: val => {
+                  if (watchPassword !== val) {
+                    return "Your passwords do not match";
+                  }
+                }
+              })}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon sx={{ color: '#9AA4B2' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleClickShowConfirmPassword} edge="end">
+                      {showConfirmPassword ? <VisibilityOff sx={{ color: '#9AA4B2' }}/> : <Visibility sx={{ color: '#9AA4B2' }}/>}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ 
+                '& .MuiOutlinedInput-root': { 
+                  borderRadius: 2,
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: '#D9DEE8' },
+                  '&:hover fieldset': { borderColor: '#079A9A' },
+                  '&.Mui-focused fieldset': { borderColor: '#079A9A' },
+                } 
+              }}
+            />
+          </Box>
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={loading}
+            disableElevation
+            sx={{ 
+              py: 1.5, 
+              borderRadius: 2,
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              bgcolor: '#079A9A',
+              '&:hover': { bgcolor: '#068A8A' },
+              mb: 3
+            }}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </Button>
+        </form>
+        
+        <Typography textAlign="center" sx={{ color: '#5C6780', fontSize: '0.9rem' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: '#079A9A', textDecoration: 'none', fontWeight: 600 }}>
+            Log In
+          </Link>
+        </Typography>
+      </Paper>
+    </AuthLayout>
   );
 };
 
