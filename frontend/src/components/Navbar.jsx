@@ -1,44 +1,120 @@
 import React, { useContext } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+
+const TEAL = '#079A9A';
+
+// Public-only routes where the top navbar is shown.
+// Authenticated dashboard pages use the Sidebar instead.
+const PUBLIC_PATHS = ['/', '/login', '/register'];
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Hide the top navbar on all authenticated dashboard pages
+  // (they have the sidebar). Show it on public paths and
+  // on doctor/patient details pages that don't require auth.
+  const isPublicOrDetailPage =
+    PUBLIC_PATHS.includes(location.pathname) ||
+    location.pathname.startsWith('/doctors/') ||
+    location.pathname.startsWith('/hospitals') ||
+    (!user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/profile'));
+
+  if (!isPublicOrDetailPage) return null;
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   return (
-    <AppBar position="static" color="default" elevation={1}>
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{
+        bgcolor: '#fff',
+        borderBottom: '1px solid #E8EDF2',
+      }}
+    >
       <Toolbar>
-        <LocalHospitalIcon color="primary" sx={{ mr: 1 }} />
-        <Typography variant="h6" component={RouterLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}>
-          <span className="gradient-text">MediFind</span>
-        </Typography>
-        <Box>
-          <Button color="inherit" component={RouterLink} to="/doctors">Find Doctors</Button>
-          <Button color="inherit" component={RouterLink} to="/hospitals">Hospitals</Button>
-          
+        {/* Logo */}
+        <Box
+          component={RouterLink}
+          to="/"
+          sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', flexGrow: 1 }}
+        >
+          <Box
+            sx={{
+              width: 32, height: 32, bgcolor: TEAL, borderRadius: '8px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <AddBoxOutlinedIcon sx={{ color: '#fff', fontSize: 18 }} />
+          </Box>
+          <Typography
+            variant="h6"
+            fontWeight={800}
+            sx={{
+              background: `linear-gradient(135deg, ${TEAL}, #045F5F)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Medi<span style={{ fontWeight: 400 }}>Find</span>
+          </Typography>
+        </Box>
+
+        <Box display="flex" alignItems="center" gap={1}>
+          <Button color="inherit" component={RouterLink} to="/doctors" sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}>
+            Find Doctors
+          </Button>
+          <Button color="inherit" component={RouterLink} to="/hospitals" sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}>
+            Hospitals
+          </Button>
+
           {user ? (
             <>
               {user.role === 'ADMIN' && (
-                <Button color="error" component={RouterLink} to="/admin" sx={{ fontWeight: 'bold' }}>Admin</Button>
+                <Button component={RouterLink} to="/admin" sx={{ textTransform: 'none', color: '#DC2626', fontWeight: 700 }}>
+                  Admin
+                </Button>
               )}
-              <Button color="inherit" component={RouterLink} to="/dashboard">Dashboard</Button>
-              <Button color="inherit" component={RouterLink} to="/appointments">Appointments</Button>
-              <Button color="inherit" component={RouterLink} to="/notifications">Notifications</Button>
-              <Button color="inherit" component={RouterLink} to="/profile">Profile</Button>
-              <Button variant="outlined" color="primary" onClick={handleLogout} sx={{ ml: 2 }}>Logout</Button>
+              <Button
+                component={RouterLink}
+                to="/dashboard"
+                sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}
+              >
+                Dashboard
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleLogout}
+                sx={{ textTransform: 'none', borderRadius: 2, borderColor: TEAL, color: TEAL, fontWeight: 600, ml: 1 }}
+              >
+                Logout
+              </Button>
             </>
           ) : (
             <>
-              <Button color="inherit" component={RouterLink} to="/login">Login</Button>
-              <Button variant="contained" color="primary" component={RouterLink} to="/register" sx={{ ml: 1 }}>Register</Button>
+              <Button
+                component={RouterLink}
+                to="/login"
+                sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}
+              >
+                Login
+              </Button>
+              <Button
+                variant="contained"
+                component={RouterLink}
+                to="/register"
+                sx={{ textTransform: 'none', borderRadius: 2, bgcolor: TEAL, fontWeight: 600, ml: 1, '&:hover': { bgcolor: '#068A8A' } }}
+              >
+                Register
+              </Button>
             </>
           )}
         </Box>

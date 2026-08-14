@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Box, Typography, Container, Paper, List, ListItem, ListItemText, ListItemIcon, CircularProgress, IconButton } from '@mui/material';
+import { Box, Typography, Paper, List, ListItem, ListItemText, ListItemIcon, CircularProgress, IconButton } from '@mui/material';
 import { motion } from 'framer-motion';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -60,11 +60,15 @@ const NotificationMenu = () => {
   }
 
   return (
-    <Box sx={{ pb: 8, pt: 4, background: '#f8f9fa', minHeight: '100vh' }}>
-      <Container maxWidth="md">
-        <Typography variant="h3" fontWeight={800} gutterBottom sx={{ color: '#1a237e', mb: 4 }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box mb={3}>
+        <Typography variant="h5" fontWeight={800} color="#101B36">
           Notifications
         </Typography>
+        <Typography variant="body2" color="text.secondary" mt={0.3}>
+          Your latest updates and alerts.
+        </Typography>
+      </Box>
 
         <Paper elevation={2} sx={{ borderRadius: 4, overflow: 'hidden' }}>
           {notifications.length === 0 ? (
@@ -124,7 +128,6 @@ const NotificationMenu = () => {
             </List>
           )}
         </Paper>
-      </Container>
     </Box>
   );
 };

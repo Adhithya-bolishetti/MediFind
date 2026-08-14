@@ -348,8 +348,8 @@ public class DoctorServiceImpl implements DoctorService {
                 .appointmentDuration(request.getAppointmentDuration())
                 .availableForOnlineConsultation(request.isAvailableForOnlineConsultation())
                 .availableForEmergency(request.isAvailableForEmergency())
-                .verificationStatus(com.medifind.doctor.entity.VerificationStatus.PENDING)
-                .available(false) // Not available until approved
+                .verificationStatus(com.medifind.doctor.entity.VerificationStatus.APPROVED)
+                .available(true)
                 .build();
 
         doctor = doctorRepository.save(doctor);

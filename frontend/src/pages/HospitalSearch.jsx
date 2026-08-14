@@ -41,7 +41,7 @@ const HospitalSearch = () => {
   };
 
   return (
-    <Box sx={{ pb: 8, pt: 4, background: '#f5f7fa', minHeight: '100vh' }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Container maxWidth="lg">
         <Typography variant="h3" fontWeight={800} gutterBottom sx={{ color: '#c62828' }}>
           Find a <span style={{ background: 'linear-gradient(45deg, #d32f2f, #f44336)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Hospital</span>

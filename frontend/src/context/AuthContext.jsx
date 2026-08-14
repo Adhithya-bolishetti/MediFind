@@ -39,7 +39,10 @@ export const AuthProvider = ({ children }) => {
       setUser(fullUser);
       return fullUser;
     } catch (e) {
-      logout();
+      console.error('Error fetching user data:', e);
+      if (e?.response?.status === 401 || e?.response?.status === 403) {
+        logout();
+      }
       throw e;
     }
   };

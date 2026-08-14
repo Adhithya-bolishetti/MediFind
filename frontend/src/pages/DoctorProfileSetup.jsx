@@ -51,13 +51,51 @@ const DoctorProfileSetup = () => {
   });
 
   const [profileImage, setProfileImage] = useState(null);
+  const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
 
-  // Pre-populate mobile number if we stored it as email prefix
   useEffect(() => {
-    if (user?.email && user.email.includes('@medifind.com')) {
-      const mobile = user.email.split('@')[0];
-      setValue('mobileNumber', mobile);
-    }
+    const fetchExistingProfile = async () => {
+      try {
+        const profile = await doctorService.getMyProfile();
+        if (profile) {
+          setIsUpdateMode(true);
+          // Pre-populate fields
+          setValue('fullName', profile.doctorName || '');
+          setValue('email', profile.email || '');
+          setValue('mobileNumber', profile.phoneNumber || '');
+          setValue('gender', profile.gender || '');
+          setValue('dateOfBirth', profile.dateOfBirth || '');
+          setValue('specialization', profile.specialization || '');
+          setValue('qualification', profile.qualification || '');
+          setValue('medicalLicenseNumber', profile.medicalLicenseNumber || '');
+          setValue('experience', profile.experience || '');
+          setValue('about', profile.about || '');
+          setValue('consultationFee', profile.consultationFee || '');
+          if (profile.languages) setValue('languages', profile.languages.split(','));
+          setValue('clinicName', profile.clinicName || '');
+          setValue('clinicAddress', profile.clinicAddress || '');
+          setValue('city', profile.city || '');
+          setValue('state', profile.state || '');
+          setValue('pincode', profile.pincode || '');
+          setValue('workingDays', profile.workingDays || '');
+          setValue('consultationStartTime', profile.consultationStartTime || '');
+          setValue('consultationEndTime', profile.consultationEndTime || '');
+          if (profile.availableForOnlineConsultation) {
+            setValue('consultationMode', 'Online');
+          }
+        }
+      } catch (e) {
+        // If 404, it means profile doesn't exist, which is expected for new doctors
+        if (user?.email && user.email.includes('@medifind.com')) {
+          const mobile = user.email.split('@')[0];
+          setValue('mobileNumber', mobile);
+        }
+      } finally {
+        setInitialFetchDone(true);
+      }
+    };
+    fetchExistingProfile();
   }, [user, setValue]);
 
   const handleNext = async (data) => {
@@ -91,15 +129,20 @@ const DoctorProfileSetup = () => {
           availableForOnlineConsultation: data.consultationMode === 'Online' || data.consultationMode === 'Both'
         };
 
-        await doctorService.createProfile(payload);
+        if (isUpdateMode) {
+          await doctorService.updateProfile(payload);
+        } else {
+          await doctorService.createProfile(payload);
+        }
         await doctorService.submitProfile();
         
         await refreshUser();
         showToast('Successfully profile created');
         navigate('/dashboard');
       } catch (err) {
-        console.error(err);
-        setError(err.response?.data?.message || 'Failed to submit profile. Please try again.');
+        console.error("Doctor profile creation/update error:", err.response?.data || err);
+        const backendMessage = err.response?.data?.message || err.response?.data?.error;
+        setError(backendMessage || 'Failed to submit profile. Please try again.');
       } finally {
         setLoading(false);
       }

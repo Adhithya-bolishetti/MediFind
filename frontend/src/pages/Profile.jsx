@@ -90,7 +90,7 @@ const Profile = () => {
   if (!profile) return <Typography align="center" mt={10}>Profile not found.</Typography>;
 
   return (
-    <Box sx={{ pb: 8, pt: 4, background: '#f8f9fa', minHeight: '100vh' }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Container maxWidth="md">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
           <Paper elevation={2} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4 }}>
