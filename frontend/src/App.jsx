@@ -35,15 +35,15 @@ function App() {
               <Route path="/hospitals" element={<HospitalSearch />} />
               
               {/* Protected Routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/appointments" element={<ProtectedRoute><AppointmentHistory /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/doctor/profile" element={<ProtectedRoute><DoctorProfileSetup /></ProtectedRoute>} />
-              <Route path="/patient/profile" element={<ProtectedRoute><PatientProfileSetup /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><NotificationMenu /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute requireProfileComplete><Dashboard /></ProtectedRoute>} />
+              <Route path="/appointments" element={<ProtectedRoute requireProfileComplete><AppointmentHistory /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute requireProfileComplete><Profile /></ProtectedRoute>} />
+              <Route path="/doctor/profile" element={<ProtectedRoute requireProfileIncomplete allowedRole="DOCTOR"><DoctorProfileSetup /></ProtectedRoute>} />
+              <Route path="/patient/profile" element={<ProtectedRoute requireProfileIncomplete allowedRole="PATIENT"><PatientProfileSetup /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute requireProfileComplete><NotificationMenu /></ProtectedRoute>} />
               
               {/* Admin Route */}
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute allowedRole="ADMIN"><AdminDashboard /></ProtectedRoute>} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

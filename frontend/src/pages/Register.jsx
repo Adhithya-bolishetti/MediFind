@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Box, Button, Typography, Paper, TextField, InputAdornment, IconButton, Select, MenuItem, FormControl, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import authService from '../services/authService';
+import { AuthContext } from '../context/AuthContext';
 import AuthLayout from '../components/auth/AuthLayout';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Visibility from '@mui/icons-material/Visibility';
@@ -28,6 +29,8 @@ const Register = () => {
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
+  const { login } = useContext(AuthContext);
+
   const onSubmit = async (data) => {
     setError('');
     setLoading(true);
@@ -44,7 +47,23 @@ const Register = () => {
       };
       
       await authService.register(payload);
-      navigate('/login');
+      
+      // Immediately log the user in
+      const loginRes = await authService.login({
+        email: fakeEmail,
+        password: data.password
+      });
+
+      const user = await login(loginRes.accessToken);
+
+      // Determine where to route them
+      if (user.role === 'DOCTOR') {
+        navigate('/doctor/profile');
+      } else if (user.role === 'PATIENT') {
+        navigate('/patient/profile');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       if (err.code === 'ERR_NETWORK') {
         setError('Cannot connect to the server. Please ensure the backend services are running.');

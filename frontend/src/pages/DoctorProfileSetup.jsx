@@ -92,7 +92,8 @@ const DoctorProfileSetup = () => {
         await doctorService.createProfile(payload);
         await doctorService.submitProfile();
         
-        navigate('/dashboard');
+        // Force a hard reload to re-initialize the auth context and correctly evaluate route protection
+        window.location.href = '/dashboard';
       } catch (err) {
         console.error(err);
         setError(err.response?.data?.message || 'Failed to submit profile. Please try again.');

@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import authService from '../services/authService';
 import api from '../services/api';
+import doctorService from '../services/doctorService';
+import userService from '../services/userService';
 
 export const AuthContext = createContext(null);
 
@@ -9,14 +11,46 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
+  const fetchAndSetUser = async (currentToken) => {
+    try {
+      const userData = await authService.me();
+      let isProfileComplete = false;
+
+      if (userData.role === 'DOCTOR') {
+        try {
+          const status = await doctorService.getProfileStatus();
+          isProfileComplete = status && status.status !== 'INCOMPLETE';
+        } catch (e) {
+          isProfileComplete = false;
+        }
+      } else if (userData.role === 'PATIENT') {
+        try {
+          const profile = await userService.getProfile(userData.id);
+          // Assuming phone and gender are the minimum required fields for a completed patient profile
+          isProfileComplete = !!(profile.phone && profile.gender);
+        } catch (e) {
+          isProfileComplete = false;
+        }
+      } else {
+        isProfileComplete = true; // Admin or other roles
+      }
+
+      const fullUser = { ...userData, isProfileComplete };
+      setUser(fullUser);
+      return fullUser;
+    } catch (e) {
+      logout();
+      throw e;
+    }
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       if (token) {
         try {
-          const userData = await authService.me();
-          setUser(userData);
+          await fetchAndSetUser(token);
         } catch (e) {
-          logout();
+          // fetchAndSetUser handles logout on failure
         }
       }
       setLoading(false);
@@ -33,10 +67,11 @@ export const AuthProvider = ({ children }) => {
     };
   }, [token]);
 
-  const login = (newToken, userData) => {
+  const login = async (newToken) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
-    setUser(userData);
+    // Explicitly fetch user so callers can await this and route appropriately
+    return await fetchAndSetUser(newToken);
   };
 
   const logout = () => {

@@ -35,37 +35,15 @@ const Login = () => {
       };
 
       const res = await authService.login(payload);
-      const { token, id, role, fullName } = res;
       
-      // We assume user response has id, role, and fullName
-      login(token, { id, role, fullName, email: fakeEmail });
+      // We now await login which fetches the full user and profile completion status
+      const user = await login(res.accessToken);
       
       // Determine post-login routing
-      if (role === 'DOCTOR') {
-        try {
-          const profileStatus = await doctorService.getProfileStatus();
-          // If status indicates completion or pending verification, go to dashboard
-          if (profileStatus && profileStatus.status !== 'INCOMPLETE') {
-            navigate('/dashboard');
-          } else {
-            navigate('/doctor/profile');
-          }
-        } catch (statusErr) {
-          // If the profile status endpoint fails (e.g. 404 Not Found if profile doesn't exist)
-          navigate('/doctor/profile');
-        }
-      } else if (role === 'PATIENT') {
-        try {
-          const { default: userService } = await import('../services/userService');
-          const fullProfile = await userService.getProfile(id);
-          if (!fullProfile.phone || !fullProfile.gender) {
-            navigate('/patient/profile');
-          } else {
-            navigate('/dashboard');
-          }
-        } catch (profileErr) {
-          navigate('/patient/profile');
-        }
+      if (user.role === 'DOCTOR') {
+        navigate(user.isProfileComplete ? '/dashboard' : '/doctor/profile');
+      } else if (user.role === 'PATIENT') {
+        navigate(user.isProfileComplete ? '/dashboard' : '/patient/profile');
       } else {
         // ADMIN or other roles
         navigate('/dashboard');
