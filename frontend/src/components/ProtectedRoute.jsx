@@ -4,10 +4,10 @@ import { Box, CircularProgress } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children, requireProfileComplete, requireProfileIncomplete, allowedRole }) => {
-  const { user, loading } = useContext(AuthContext);
+  const { user, token, loading } = useContext(AuthContext);
   const location = useLocation();
 
-  if (loading) {
+  if (loading || (token && !user)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F7F9FC' }}>
         <CircularProgress sx={{ color: '#079A9A' }} />
