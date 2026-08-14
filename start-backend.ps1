@@ -12,5 +12,21 @@ Start-Sleep -Seconds 5
 
 Write-Host "Starting User Service (Optional for full profile)..."
 Start-Process "mvn.cmd" -ArgumentList "spring-boot:run -pl user-service" -WorkingDirectory "d:\medifind"
+Start-Sleep -Seconds 5
+
+Write-Host "Starting Doctor Service..."
+Start-Process "mvn.cmd" -ArgumentList "spring-boot:run -pl doctor-service" -WorkingDirectory "d:\medifind"
+Start-Sleep -Seconds 5
+
+Write-Host "Starting Hospital Service..."
+Start-Process "mvn.cmd" -ArgumentList "spring-boot:run -pl hospital-service" -WorkingDirectory "d:\medifind"
+Start-Sleep -Seconds 5
+
+Write-Host "Starting Appointment Service..."
+Start-Process "mvn.cmd" -ArgumentList "spring-boot:run -pl appointment-service" -WorkingDirectory "d:\medifind"
+Start-Sleep -Seconds 5
+
+Write-Host "Starting Notification Service..."
+Start-Process "mvn.cmd" -ArgumentList "spring-boot:run -pl notification-service" -WorkingDirectory "d:\medifind"
 
 Write-Host "Backend services started in separate windows. Please wait a moment for them to fully initialize."

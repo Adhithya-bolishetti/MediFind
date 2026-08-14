@@ -208,13 +208,13 @@ const DoctorProfileSetup = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>Specialization *</Typography>
-                <TextField select fullWidth {...register("specialization", { required: true })} error={!!errors.specialization} defaultValue="GENERAL_MEDICINE">
-                  <MenuItem value="GENERAL_MEDICINE">General Physician</MenuItem>
-                  <MenuItem value="CARDIOLOGY">Cardiologist</MenuItem>
-                  <MenuItem value="DERMATOLOGY">Dermatologist</MenuItem>
-                  <MenuItem value="NEUROLOGY">Neurologist</MenuItem>
-                  <MenuItem value="ORTHOPEDICS">Orthopedic</MenuItem>
-                  <MenuItem value="PEDIATRICS">Pediatrician</MenuItem>
+                <TextField select fullWidth {...register("specialization", { required: true })} error={!!errors.specialization} defaultValue="GENERAL_PHYSICIAN">
+                  <MenuItem value="GENERAL_PHYSICIAN">General Physician</MenuItem>
+                  <MenuItem value="CARDIOLOGIST">Cardiologist</MenuItem>
+                  <MenuItem value="DERMATOLOGIST">Dermatologist</MenuItem>
+                  <MenuItem value="NEUROLOGIST">Neurologist</MenuItem>
+                  <MenuItem value="ORTHOPEDIC">Orthopedic</MenuItem>
+                  <MenuItem value="PEDIATRICIAN">Pediatrician</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>

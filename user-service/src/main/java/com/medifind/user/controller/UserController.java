@@ -33,7 +33,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUserProfile(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestBody com.medifind.user.dto.UserProfileUpdateRequest request) {
         
         User user = userRepository.findById(id)

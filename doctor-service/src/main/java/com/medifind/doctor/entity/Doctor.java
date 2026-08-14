@@ -87,6 +87,7 @@ public class Doctor {
     private boolean availableForEmergency;
 
     // Verification and License Storage
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
@@ -95,24 +96,31 @@ public class Doctor {
     private String rejectionReason;
 
     /** Aggregate rating out of 5.0. */
+    @Builder.Default
     @Column(nullable = false)
     private Double rating = 0.0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer totalReviews = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer rating5 = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer rating4 = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer rating3 = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer rating2 = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer rating1 = 0;
 
