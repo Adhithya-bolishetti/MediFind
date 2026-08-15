@@ -10,12 +10,14 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import ReviewModal from '../components/ReviewModal';
 import api from '../services/api';
 import doctorService from '../services/doctorService';
 import appointmentService from '../services/appointmentService';
+import userService from '../services/userService';
 
 const TEAL = '#079A9A';
 const NAVY = 'var(--mf-text)';
@@ -51,6 +53,11 @@ const AppointmentHistory = () => {
   const [completeTarget, setCompleteTarget] = useState(null);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [actionError, setActionError] = useState('');
+
+  const [viewProfileAppt, setViewProfileAppt] = useState(null);
+  const [patientProfile, setPatientProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
   const handleOpenReview = (appt, type) => {
     setSelectedAppointment(appt);
@@ -166,6 +173,43 @@ const AppointmentHistory = () => {
     }
   };
 
+  const viewPatientProfile = async (appt) => {
+    setViewProfileAppt(appt);
+    setProfileLoading(true);
+    setProfileError('');
+    setPatientProfile(null);
+    try {
+      const data = await userService.getProfile(appt.userId);
+      setPatientProfile(data);
+    } catch (err) {
+      setProfileError(err.response?.data?.message || 'Unable to load the patient profile. Please try again.');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const calcAge = (dob) => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    if (Number.isNaN(birth.getTime())) return null;
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age -= 1;
+    return age;
+  };
+
+  const profileRows = (p) => [
+    ['Email', p.email || '—'],
+    ['Phone', p.phone || '—'],
+    ['Gender', p.gender || '—'],
+    ['Date of Birth', p.dateOfBirth ? new Date(p.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'],
+    ['Age', calcAge(p.dateOfBirth) != null ? `${calcAge(p.dateOfBirth)} years` : '—'],
+    ['Address', [p.address, p.city, p.state].filter(Boolean).join(', ') || '—'],
+    ['Pincode', p.pincode || '—'],
+    ['Emergency Contact', p.emergencyContactName ? `${p.emergencyContactName}${p.emergencyContactPhone ? ` (${p.emergencyContactPhone})` : ''}` : '—'],
+  ];
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -268,6 +312,22 @@ const AppointmentHistory = () => {
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: { xs: 'stretch', md: 'flex-end' } }}>
                     {/* Doctor actions */}
+                    {user.role === 'DOCTOR' && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        disabled={actionLoadingId === appt.id}
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => viewPatientProfile(appt)}
+                        sx={{
+                          textTransform: 'none', borderRadius: 2, fontWeight: 600,
+                          color: NAVY, borderColor: 'var(--mf-border)',
+                          '&:hover': { borderColor: TEAL, color: TEAL, bgcolor: 'rgba(7,154,154,0.06)' },
+                        }}
+                      >
+                        View Profile
+                      </Button>
+                    )}
                     {user.role === 'DOCTOR' && appt.status === 'PENDING' && (
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                         <Button
@@ -401,6 +461,67 @@ const AppointmentHistory = () => {
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
           >
             {actionLoadingId !== null ? 'Declining...' : 'Decline Appointment'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Patient profile — lets the doctor review the patient before accepting */}
+      <Dialog open={!!viewProfileAppt} onClose={() => setViewProfileAppt(null)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: NAVY }}>Patient Profile</DialogTitle>
+        <DialogContent dividers>
+          {profileLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress sx={{ color: TEAL }} />
+            </Box>
+          ) : profileError ? (
+            <Alert severity="error" sx={{ borderRadius: 2 }}>{profileError}</Alert>
+          ) : patientProfile ? (
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                {patientProfile.profileImage ? (
+                  <Box
+                    component="img"
+                    src={patientProfile.profileImage}
+                    alt={patientProfile.fullName}
+                    sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mf-border)' }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: 64, height: 64, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      bgcolor: 'rgba(7,154,154,0.12)', color: TEAL, fontSize: '1.5rem', fontWeight: 800,
+                    }}
+                  >
+                    {(patientProfile.fullName || 'P').charAt(0).toUpperCase()}
+                  </Box>
+                )}
+                <Box>
+                  <Typography variant="h6" fontWeight={800} color={NAVY}>
+                    {patientProfile.fullName || `Patient #${viewProfileAppt?.userId}`}
+                  </Typography>
+                  <Chip label={patientProfile.role || 'PATIENT'} size="small" sx={{ mt: 0.5, bgcolor: 'rgba(7,154,154,0.12)', color: TEAL, fontWeight: 700, fontSize: '0.68rem', height: 20 }} />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '12px 24px' }}>
+                {profileRows(patientProfile).map(([label, value]) => (
+                  <Box key={label}>
+                    <Typography variant="caption" sx={{ color: 'var(--mf-muted)', fontWeight: 600, display: 'block' }}>
+                      {label}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: NAVY, fontWeight: 500 }}>
+                      {value}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setViewProfileAppt(null)} sx={{ textTransform: 'none', borderRadius: 2, color: 'var(--mf-muted)' }}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>
