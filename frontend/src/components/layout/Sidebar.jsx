@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
 import notificationService from '../../services/notificationService';
+import BrandLogo from '../BrandLogo';
 
 // Icons
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
@@ -122,12 +123,7 @@ const SidebarContent = ({ onClose }) => {
         }}
         onClick={() => handleNav(user?.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')}
       >
-        <Box
-          component="img"
-          src="/medifind-logo.png"
-          alt="MediFind"
-          sx={{ width: 160, height: 160, objectFit: 'contain', maxWidth: '100%', flexShrink: 0 }}
-        />
+        <BrandLogo />
         {onClose && (
           <IconButton onClick={onClose} sx={{ color: '#9CA3AF' }} size="small">
             <CloseIcon fontSize="small" />

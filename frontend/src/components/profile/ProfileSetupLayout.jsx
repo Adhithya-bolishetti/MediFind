@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Container } from '@mui/material';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
+import BrandLogo from '../BrandLogo';
 
 const TEAL = '#079A9A';
 
@@ -75,7 +76,7 @@ const ProfileSetupLayout = ({ title, subtitle, steps, activeStep, children, info
       {/* Top logo bar */}
       <Container maxWidth="xl">
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Box component="img" src="/medifind-logo.png" alt="MediFind" sx={{ width: 64, height: 64, objectFit: 'contain' }} />
+          <BrandLogo size="sm" />
           <Typography
             variant="caption"
             sx={{

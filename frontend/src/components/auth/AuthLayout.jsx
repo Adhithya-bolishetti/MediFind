@@ -5,26 +5,9 @@ import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import FeatureItem from './FeatureItem';
+import BrandLogo from '../BrandLogo';
 
 const TEAL = '#079A9A';
-
-/**
- * MediFind brand logo (official lockup — location-pin icon, wordmark and
- * tagline) served from the public assets folder.
- */
-export const BrandLogo = ({ size = 'md' }) => {
-  const dim = size === 'lg' ? 170 : 150;
-  return (
-    <Box
-      component="img"
-      src="/medifind-logo.png"
-      alt="MediFind"
-      width={dim}
-      height={dim}
-      sx={{ display: 'block', maxWidth: '100%' }}
-    />
-  );
-};
 
 const AuthLayout = ({ children }) => {
   return (

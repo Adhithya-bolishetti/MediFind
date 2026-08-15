@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { AppBar, Toolbar, Button, Box } from '@mui/material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import BrandLogo from './BrandLogo';
 
 const TEAL = '#079A9A';
 
@@ -40,12 +41,7 @@ const Navbar = () => {
           to="/"
           sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexGrow: 1 }}
         >
-          <Box
-            component="img"
-            src="/medifind-logo.png"
-            alt="MediFind"
-            sx={{ width: 52, height: 52, objectFit: 'contain' }}
-          />
+          <BrandLogo size="xs" />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1}>
