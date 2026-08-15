@@ -289,11 +289,18 @@ const DoctorProfileSetup = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Gender *</Typography>
-                <TextField select fullWidth {...register("gender", { required: true })} error={!!errors.gender} defaultValue="" sx={inputSx}>
-                  <MenuItem value="Male">Male</MenuItem>
-                  <MenuItem value="Female">Female</MenuItem>
-                  <MenuItem value="Other">Other</MenuItem>
-                </TextField>
+                <Controller
+                  name="gender"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field, fieldState }) => (
+                    <TextField select fullWidth value={field.value ?? ''} onChange={field.onChange} error={!!fieldState.error} sx={inputSx}>
+                      <MenuItem value="Male">Male</MenuItem>
+                      <MenuItem value="Female">Female</MenuItem>
+                      <MenuItem value="Other">Other</MenuItem>
+                    </TextField>
+                  )}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Mobile Number *</Typography>
@@ -329,18 +336,25 @@ const DoctorProfileSetup = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Specialization *</Typography>
-                <TextField select fullWidth {...register("specialization", { required: true })} error={!!errors.specialization} sx={inputSx}>
-                  <MenuItem value="GENERAL_PHYSICIAN">General Physician</MenuItem>
-                  <MenuItem value="CARDIOLOGIST">Cardiologist</MenuItem>
-                  <MenuItem value="DERMATOLOGIST">Dermatologist</MenuItem>
-                  <MenuItem value="NEUROLOGIST">Neurologist</MenuItem>
-                  <MenuItem value="ORTHOPEDIC">Orthopedic</MenuItem>
-                  <MenuItem value="PEDIATRICIAN">Pediatrician</MenuItem>
-                  <MenuItem value="GYNECOLOGIST">Gynecologist</MenuItem>
-                  <MenuItem value="PSYCHIATRIST">Psychiatrist</MenuItem>
-                  <MenuItem value="DENTIST">Dentist</MenuItem>
-                  <MenuItem value="ENT_SPECIALIST">ENT Specialist</MenuItem>
-                </TextField>
+                <Controller
+                  name="specialization"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field, fieldState }) => (
+                    <TextField select fullWidth value={field.value ?? ''} onChange={field.onChange} error={!!fieldState.error} sx={inputSx}>
+                      <MenuItem value="GENERAL_PHYSICIAN">General Physician</MenuItem>
+                      <MenuItem value="CARDIOLOGIST">Cardiologist</MenuItem>
+                      <MenuItem value="DERMATOLOGIST">Dermatologist</MenuItem>
+                      <MenuItem value="NEUROLOGIST">Neurologist</MenuItem>
+                      <MenuItem value="ORTHOPEDIC">Orthopedic</MenuItem>
+                      <MenuItem value="PEDIATRICIAN">Pediatrician</MenuItem>
+                      <MenuItem value="GYNECOLOGIST">Gynecologist</MenuItem>
+                      <MenuItem value="PSYCHIATRIST">Psychiatrist</MenuItem>
+                      <MenuItem value="DENTIST">Dentist</MenuItem>
+                      <MenuItem value="ENT_SPECIALIST">ENT Specialist</MenuItem>
+                    </TextField>
+                  )}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Qualification *</Typography>
@@ -510,11 +524,17 @@ const DoctorProfileSetup = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Consultation Mode</Typography>
-                <TextField select fullWidth {...register("consultationMode")} sx={inputSx}>
-                  <MenuItem value="In-person">In-person</MenuItem>
-                  <MenuItem value="Online">Online</MenuItem>
-                  <MenuItem value="Both">Both</MenuItem>
-                </TextField>
+                <Controller
+                  name="consultationMode"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField select fullWidth value={field.value ?? ''} onChange={field.onChange} sx={inputSx}>
+                      <MenuItem value="In-person">In-person</MenuItem>
+                      <MenuItem value="Online">Online</MenuItem>
+                      <MenuItem value="Both">Both</MenuItem>
+                    </TextField>
+                  )}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Languages Spoken</Typography>

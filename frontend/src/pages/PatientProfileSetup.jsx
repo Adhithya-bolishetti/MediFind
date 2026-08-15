@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Box, Button, TextField, MenuItem, Typography, Grid } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
@@ -57,7 +57,7 @@ const PatientProfileSetup = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, control } = useForm({
     defaultValues: {
       fullName: user?.fullName || '',
       email: user?.email || '',
@@ -181,11 +181,18 @@ const PatientProfileSetup = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Gender *</Typography>
-                <TextField select fullWidth {...register("gender", { required: true })} error={!!errors.gender} defaultValue="" sx={inputSx}>
-                  <MenuItem value="Male">Male</MenuItem>
-                  <MenuItem value="Female">Female</MenuItem>
-                  <MenuItem value="Other">Other</MenuItem>
-                </TextField>
+                <Controller
+                  name="gender"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field, fieldState }) => (
+                    <TextField select fullWidth value={field.value ?? ''} onChange={field.onChange} error={!!fieldState.error} sx={inputSx}>
+                      <MenuItem value="Male">Male</MenuItem>
+                      <MenuItem value="Female">Female</MenuItem>
+                      <MenuItem value="Other">Other</MenuItem>
+                    </TextField>
+                  )}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={fieldLabel}>Mobile Number *</Typography>

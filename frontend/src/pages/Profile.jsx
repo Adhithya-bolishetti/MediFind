@@ -3,7 +3,7 @@ import {
   Box, Typography, Paper, TextField, Button, Avatar, Divider,
   Alert, CircularProgress, MenuItem, FormControlLabel, Checkbox,
 } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { AuthContext } from '../context/AuthContext';
 import PersonIcon from '@mui/icons-material/Person';
 import ScheduleIcon from '@mui/icons-material/Schedule';
@@ -45,7 +45,7 @@ const Profile = () => {
   const [message, setMessage] = useState('');
   const [messageSeverity, setMessageSeverity] = useState('success');
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, control, formState: { errors } } = useForm();
 
   // Availability state (doctor only)
   const [workingDays, setWorkingDays] = useState([]);
@@ -273,15 +273,22 @@ const Profile = () => {
 
               {user.role === 'PATIENT' && (
                 <>
-                  <TextField
-                    fullWidth label="Gender" select
-                    {...register('gender')}
-                    slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
-                  >
-                    <MenuItem value="Male">Male</MenuItem>
-                    <MenuItem value="Female">Female</MenuItem>
-                    <MenuItem value="Other">Other</MenuItem>
-                  </TextField>
+                  <Controller
+                    name="gender"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        fullWidth label="Gender" select
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
+                      >
+                        <MenuItem value="Male">Male</MenuItem>
+                        <MenuItem value="Female">Female</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
+                      </TextField>
+                    )}
+                  />
                   <TextField
                     fullWidth type="date" label="Date of Birth"
                     {...register('dateOfBirth')}
@@ -297,16 +304,24 @@ const Profile = () => {
 
               {user.role === 'DOCTOR' && (
                 <>
-                  <TextField
-                    fullWidth label="Specialization" select
-                    {...register('specialization', { required: 'Specialization is required' })}
-                    error={!!errors.specialization} helperText={errors.specialization?.message}
-                    slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
-                  >
-                    {SPECIALIZATIONS.map((s) => (
-                      <MenuItem key={s} value={s}>{titleCase(s.replace(/_/g, ' '))}</MenuItem>
-                    ))}
-                  </TextField>
+                  <Controller
+                    name="specialization"
+                    control={control}
+                    rules={{ required: 'Specialization is required' }}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth label="Specialization" select
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        error={!!fieldState.error} helperText={fieldState.error?.message}
+                        slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
+                      >
+                        {SPECIALIZATIONS.map((s) => (
+                          <MenuItem key={s} value={s}>{titleCase(s.replace(/_/g, ' '))}</MenuItem>
+                        ))}
+                      </TextField>
+                    )}
+                  />
                   <TextField
                     fullWidth label="Qualification" placeholder="e.g. MBBS, MD"
                     {...register('qualification')}
