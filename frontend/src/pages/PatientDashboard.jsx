@@ -67,7 +67,7 @@ const QuickAction = ({ icon, label, color, bgColor, onClick }) => (
     >
       {icon}
     </Box>
-    <Typography variant="caption" fontWeight={600} color={NAVY} textAlign="center" fontSize="0.75rem">
+    <Typography variant="caption" fontWeight={600} color={NAVY} sx={{ textAlign: 'center' }} fontSize="0.75rem">
       {label}
     </Typography>
   </Paper>
@@ -86,19 +86,19 @@ const DoctorCard = ({ doctor, onClick }) => (
       '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.10)', transform: 'translateY(-2px)' },
     }}
   >
-    <Box display="flex" alignItems="center" gap={1.5}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1.5}>
       <Avatar
         src={doctor.profileImage || `https://i.pravatar.cc/150?u=doc${doctor.id}`}
         sx={{ width: 52, height: 52, border: `2px solid ${TEAL}20` }}
       />
-      <Box flex={1} minWidth={0}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="body2" fontWeight={700} color={NAVY} noWrap>
           {doctor.doctorName ? `Dr. ${doctor.doctorName.replace(/^Dr\.?\s+/i, '')}` : 'Doctor'}
         </Typography>
         <Typography variant="caption" color="text.secondary" noWrap>
           {doctor.specialization?.replace(/_/g, ' ') || '—'}
         </Typography>
-        <Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }} gap={0.5} mt={0.3}>
           <StarIcon sx={{ fontSize: 13, color: '#F59E0B' }} />
           <Typography variant="caption" fontWeight={600} color="#F59E0B">
             {doctor.rating > 0 ? doctor.rating.toFixed(1) : 'New'}
@@ -112,7 +112,7 @@ const DoctorCard = ({ doctor, onClick }) => (
       </Box>
     </Box>
     {doctor.city && (
-      <Box display="flex" alignItems="center" gap={0.5} mt={1}>
+      <Box sx={{ display: 'flex', alignItems: 'center' }} gap={0.5} mt={1}>
         <LocationOnIcon sx={{ fontSize: 13, color: '#9CA3AF' }} />
         <Typography variant="caption" color="text.secondary">{doctor.city}</Typography>
       </Box>
@@ -180,7 +180,7 @@ const PatientDashboard = () => {
     <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
 
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }} mb={3}>
         <Box>
           <Typography variant="h5" fontWeight={800} color={NAVY}>
             Welcome back, {firstName}! 👋
@@ -228,7 +228,7 @@ const PatientDashboard = () => {
           overflow: 'hidden',
         }}
       >
-        <Box display="flex" alignItems="center" gap={2}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }} gap={2}>
           <Box
             sx={{
               width: 52, height: 52, bgcolor: TEAL, borderRadius: '16px',
@@ -250,11 +250,11 @@ const PatientDashboard = () => {
 
       <Grid container spacing={3}>
         {/* Left Column */}
-        <Grid item xs={12} lg={7}>
+        <Grid size={{ xs: 12, lg: 7 }}>
 
           {/* Upcoming Appointment */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
               <Typography variant="subtitle1" fontWeight={700} color={NAVY}>
                 Upcoming Appointment
               </Typography>
@@ -285,17 +285,17 @@ const PatientDashboard = () => {
                     bgcolor: `${TEAL}15`, textAlign: 'center',
                   }}
                 >
-                  <Typography variant="h5" fontWeight={800} color={TEAL} lineHeight={1}>
+                  <Typography variant="h5" fontWeight={800} color={TEAL} sx={{ lineHeight: 1 }}>
                     {new Date(upcomingAppt.appointmentDate).getDate()}
                   </Typography>
-                  <Typography variant="caption" fontWeight={600} color={TEAL} textTransform="uppercase">
+                  <Typography variant="caption" fontWeight={600} color={TEAL} sx={{ textTransform: 'uppercase' }}>
                     {new Date(upcomingAppt.appointmentDate).toLocaleString('en', { month: 'short' })}
                   </Typography>
                   <Typography variant="caption" display="block" color={TEAL} fontWeight={600} mt={0.5}>
                     {formatApptTime(upcomingAppt.appointmentTime)}
                   </Typography>
                 </Box>
-                <Box flex={1}>
+                <Box sx={{ flex: 1 }}>
                   <Typography variant="body1" fontWeight={700} color={NAVY}>
                     {upcomingAppt.doctor?.doctorName ? `Dr. ${upcomingAppt.doctor.doctorName.replace(/^Dr\.?\s+/i, '')}` : `Doctor #${upcomingAppt.doctorId}`}
                   </Typography>
@@ -304,7 +304,7 @@ const PatientDashboard = () => {
                       {upcomingAppt.doctor.specialization.replace(/_/g, ' ')}
                     </Typography>
                   )}
-                  <Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }} gap={0.5} mt={0.3}>
                     <LocationOnIcon sx={{ fontSize: 12, color: '#9CA3AF' }} />
                     <Typography variant="caption" color="text.secondary" noWrap>
                       {upcomingAppt.doctor?.city || 'City Care Clinic'}
@@ -323,7 +323,7 @@ const PatientDashboard = () => {
                 </Box>
               </Box>
             ) : (
-              <Box py={2} textAlign="center">
+              <Box py={2} sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">No upcoming appointments.</Typography>
                 <Button
                   variant="contained"
@@ -339,7 +339,7 @@ const PatientDashboard = () => {
 
           {/* Find Doctors Strip */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
               <Typography variant="subtitle1" fontWeight={700} color={NAVY}>Find Doctors</Typography>
               <Button
                 size="small"
@@ -355,13 +355,13 @@ const PatientDashboard = () => {
             ) : (
               <Grid container spacing={2}>
                 {doctors.map(doc => (
-                  <Grid item xs={12} sm={4} key={doc.id}>
+                  <Grid size={{ xs: 12, sm: 4 }} key={doc.id}>
                     <DoctorCard doctor={doc} onClick={() => navigate(`/doctors/${doc.id}`)} />
                   </Grid>
                 ))}
                 {doctors.length === 0 && (
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary" textAlign="center">No doctors found.</Typography>
+                  <Grid size={12}>
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>No doctors found.</Typography>
                   </Grid>
                 )}
               </Grid>
@@ -386,7 +386,7 @@ const PatientDashboard = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2,
             }}
           >
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }} gap={2}>
               <HealthAndSafetyIcon sx={{ color: '#3B82F6', fontSize: 32 }} />
               <Box>
                 <Typography variant="body1" fontWeight={700} color={NAVY}>
@@ -408,14 +408,14 @@ const PatientDashboard = () => {
         </Grid>
 
         {/* Right Column */}
-        <Grid item xs={12} lg={5}>
+        <Grid size={{ xs: 12, lg: 5 }}>
           {/* Quick Actions */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
             <Typography variant="subtitle1" fontWeight={700} color={NAVY} mb={2}>
               Quick Actions
             </Typography>
             <Grid container spacing={1.5}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <QuickAction
                   icon={<SearchIcon />}
                   label="Find Doctors"
@@ -424,7 +424,7 @@ const PatientDashboard = () => {
                   onClick={() => navigate('/doctors')}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <QuickAction
                   icon={<LocalHospitalIcon />}
                   label="Find Hospitals"
@@ -433,7 +433,7 @@ const PatientDashboard = () => {
                   onClick={() => navigate('/hospitals')}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <QuickAction
                   icon={<EventNoteIcon />}
                   label="Booked Appointment"
@@ -442,7 +442,7 @@ const PatientDashboard = () => {
                   onClick={() => navigate('/appointments')}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <QuickAction
                   icon={<PersonOutlinedIcon />}
                   label="View Profile"
@@ -456,7 +456,7 @@ const PatientDashboard = () => {
 
           {/* Find Hospitals Strip */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2' }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
               <Typography variant="subtitle1" fontWeight={700} color={NAVY}>Find Hospitals</Typography>
               <Button
                 size="small"
@@ -489,7 +489,7 @@ const PatientDashboard = () => {
                     >
                       <LocalHospitalIcon sx={{ color: '#9CA3AF' }} />
                     </Box>
-                    <Box flex={1} minWidth={0}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography variant="body2" fontWeight={700} color={NAVY} noWrap>
                         {h.hospitalName || h.name}
                       </Typography>
@@ -509,7 +509,7 @@ const PatientDashboard = () => {
                   </Box>
                 ))}
                 {hospitals.length === 0 && (
-                  <Typography variant="body2" color="text.secondary" textAlign="center" py={1}>
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
                     No hospitals found.
                   </Typography>
                 )}

@@ -5,8 +5,10 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import doctorService from '../services/doctorService';
+import appointmentService from '../services/appointmentService';
 
 // Icons
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
@@ -26,6 +28,8 @@ const StatusChip = ({ status }) => {
     PENDING: { bg: '#FEF9C3', color: '#A16207' },
     COMPLETED: { bg: '#DBEAFE', color: '#1D4ED8' },
     CANCELLED: { bg: '#FEE2E2', color: '#DC2626' },
+    DECLINED: { bg: '#FEE2E2', color: '#DC2626' },
+    REJECTED: { bg: '#FEE2E2', color: '#DC2626' },
   };
   const c = colorMap[status] || { bg: '#F3F4F6', color: '#6B7280' };
   return (
@@ -53,7 +57,7 @@ const formatTime = (timeStr) => {
   return { time: `${String(hour12).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, meridiem: suffix };
 };
 
-const AppointmentRow = ({ appt, locationName }) => {
+const AppointmentRow = ({ appt, locationName, onAccept, onDecline, busy }) => {
   const dateObj = new Date(appt.appointmentDate);
   const display = formatTime(appt.appointmentTime);
   const patientName = appt.user?.fullName || `Patient #${appt.userId}`;
@@ -80,7 +84,7 @@ const AppointmentRow = ({ appt, locationName }) => {
           flexShrink: 0,
         }}
       >
-        <Typography variant="body1" fontWeight={800} color={TEAL} lineHeight={1.1}>
+        <Typography variant="body1" fontWeight={800} color={TEAL} sx={{ lineHeight: 1.1 }}>
           {display.time || dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).split(' ')[0]}
         </Typography>
         {display.meridiem && (
@@ -91,7 +95,7 @@ const AppointmentRow = ({ appt, locationName }) => {
       </Box>
 
       {/* Details */}
-      <Box flex={1} minWidth={0}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="body2" fontWeight={700} color={NAVY} noWrap>
           {patientName}
         </Typography>
@@ -99,7 +103,7 @@ const AppointmentRow = ({ appt, locationName }) => {
           {appt.reason || 'Consultation'}
         </Typography>
         {locationName && (
-          <Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }} gap={0.5} mt={0.3}>
             <LocationOnIcon sx={{ fontSize: 12, color: '#9CA3AF' }} />
             <Typography variant="caption" color="text.secondary" noWrap>{locationName}</Typography>
           </Box>
@@ -107,6 +111,33 @@ const AppointmentRow = ({ appt, locationName }) => {
       </Box>
 
       <StatusChip status={appt.status} />
+
+      {appt.status === 'PENDING' && onAccept && onDecline && (
+        <Box display="flex" gap={1} flexShrink={0}>
+          <Button
+            variant="contained"
+            size="small"
+            disabled={busy}
+            onClick={() => onAccept(appt)}
+            sx={{
+              textTransform: 'none', borderRadius: 2, fontWeight: 700,
+              bgcolor: TEAL, '&:hover': { bgcolor: '#068A8A' },
+            }}
+          >
+            Accept
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            disabled={busy}
+            onClick={() => onDecline(appt)}
+            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
+          >
+            Decline
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };
@@ -151,6 +182,9 @@ const DoctorDashboard = () => {
   const [allAppts, setAllAppts] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [doctorEntityId, setDoctorEntityId] = useState(null);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -161,6 +195,7 @@ const DoctorDashboard = () => {
         try {
           const profile = await doctorService.getMyProfile();
           setDoctorProfile(profile);
+          setDoctorEntityId(profile?.id);
           if (profile?.id) doctorId = profile.id;
         } catch { }
 
@@ -202,11 +237,39 @@ const DoctorDashboard = () => {
   const displayName = doctorName.replace(/^Dr\.?\s+/i, '');
   const locationName = doctorProfile?.clinicName || doctorProfile?.clinicAddress || 'OPD Room 1';
 
+  const handleAccept = async (appt) => {
+    setActionLoadingId(appt.id);
+    try {
+      await appointmentService.accept(appt.id, doctorEntityId || appt.doctorId);
+      setAllAppts(prev => prev.map(a => (a.id === appt.id ? { ...a, status: 'CONFIRMED' } : a)));
+      setTodayAppts(prev => prev.map(a => (a.id === appt.id ? { ...a, status: 'CONFIRMED' } : a)));
+      showToast('Appointment accepted successfully!');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to accept appointment.', 'error');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleDecline = async (appt) => {
+    setActionLoadingId(appt.id);
+    try {
+      await appointmentService.decline(appt.id, doctorEntityId || appt.doctorId);
+      setAllAppts(prev => prev.map(a => (a.id === appt.id ? { ...a, status: 'DECLINED' } : a)));
+      setTodayAppts(prev => prev.map(a => (a.id === appt.id ? { ...a, status: 'DECLINED' } : a)));
+      showToast('Appointment declined.');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to decline appointment.', 'error');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
 
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }} mb={3}>
         <Box>
           <Typography variant="h5" fontWeight={800} color={NAVY}>
             Welcome, Dr. {displayName}
@@ -241,7 +304,7 @@ const DoctorDashboard = () => {
 
       {/* Today's Appointments */}
       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
           <Typography variant="subtitle1" fontWeight={700} color={NAVY}>
             Today's Appointments
           </Typography>
@@ -261,15 +324,22 @@ const DoctorDashboard = () => {
         </Box>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" py={3}><CircularProgress size={32} sx={{ color: TEAL }} /></Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }} py={3}><CircularProgress size={32} sx={{ color: TEAL }} /></Box>
         ) : todayAppts.length === 0 ? (
-          <Box py={3} textAlign="center">
+          <Box py={3} sx={{ textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">No appointments scheduled for today.</Typography>
           </Box>
         ) : (
           <Box>
             {todayAppts.map(appt => (
-              <AppointmentRow key={appt.id} appt={appt} locationName={locationName} />
+              <AppointmentRow
+                key={appt.id}
+                appt={appt}
+                locationName={locationName}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+                busy={actionLoadingId === appt.id}
+              />
             ))}
           </Box>
         )}
@@ -277,7 +347,7 @@ const DoctorDashboard = () => {
 
       {/* Upcoming + Stats */}
       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={3}>
           <Typography variant="subtitle1" fontWeight={700} color={NAVY}>
             Upcoming (Next 7 Days)
           </Typography>
@@ -292,7 +362,7 @@ const DoctorDashboard = () => {
         </Box>
 
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <StatCard
               icon={<EventAvailableIcon />}
               label="Total Appointments"
@@ -301,7 +371,7 @@ const DoctorDashboard = () => {
               iconColor="#3B82F6"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <StatCard
               icon={<CheckCircleIcon />}
               label="Confirmed"
@@ -310,7 +380,7 @@ const DoctorDashboard = () => {
               iconColor="#16A34A"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <StatCard
               icon={<AccessTimeIcon />}
               label="Pending"

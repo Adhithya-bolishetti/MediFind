@@ -34,6 +34,6 @@ public class DoctorProfileRequest {
     private String consultationStartTime;
     private String consultationEndTime;
     private Integer appointmentDuration;
-    private boolean availableForOnlineConsultation;
-    private boolean availableForEmergency;
+    private Boolean availableForOnlineConsultation;
+    private Boolean availableForEmergency;
 }

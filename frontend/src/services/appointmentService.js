@@ -14,6 +14,16 @@ const appointmentService = {
   cancel: async (id) => {
     const response = await api.put(`/appointments/${id}/cancel`);
     return response.data;
+  },
+
+  accept: async (id, doctorId) => {
+    const response = await api.put(`/appointments/${id}/confirm?doctorId=${doctorId}`);
+    return response.data;
+  },
+
+  decline: async (id, doctorId) => {
+    const response = await api.put(`/appointments/${id}/decline?doctorId=${doctorId}`);
+    return response.data;
   }
 };
 

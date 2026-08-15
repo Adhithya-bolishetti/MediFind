@@ -5,23 +5,26 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import SearchIcon from '@mui/icons-material/Search';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
+const TEAL = '#079A9A';
+const DARK = '#101B36';
+
 const features = [
   {
     title: 'Find Top Doctors',
     description: 'Search for specialists by name, specialty, or symptoms.',
-    icon: <SearchIcon fontSize="large" color="primary" />,
+    icon: <SearchIcon fontSize="large" sx={{ color: TEAL }} />,
     path: '/doctors'
   },
   {
     title: 'Locate Hospitals',
     description: 'Find nearby hospitals and check their emergency services.',
-    icon: <LocalHospitalIcon fontSize="large" color="primary" />,
+    icon: <LocalHospitalIcon fontSize="large" sx={{ color: TEAL }} />,
     path: '/hospitals'
   },
   {
     title: 'Book Appointments',
     description: 'Schedule consultations easily and manage your history.',
-    icon: <CalendarMonthIcon fontSize="large" color="primary" />,
+    icon: <CalendarMonthIcon fontSize="large" sx={{ color: TEAL }} />,
     path: '/login'
   }
 ];
@@ -34,7 +37,7 @@ const Home = () => {
       {/* Hero Section */}
       <Box 
         sx={{
-          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+          background: 'linear-gradient(135deg, #E0F5F0 0%, #BFE9E0 100%)',
           pt: 15,
           pb: 12,
           borderRadius: '0 0 40px 40px',
@@ -45,8 +48,8 @@ const Home = () => {
         }}
       >
         {/* Decorative background shapes */}
-        <Box sx={{ position: 'absolute', top: -50, right: -50, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.4)' }} />
-        <Box sx={{ position: 'absolute', bottom: -100, left: -50, width: 400, height: 400, borderRadius: '50%', background: 'rgba(25, 118, 210, 0.05)' }} />
+        <Box sx={{ position: 'absolute', top: -50, right: -50, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.5)' }} />
+        <Box sx={{ position: 'absolute', bottom: -100, left: -50, width: 400, height: 400, borderRadius: '50%', background: 'rgba(7, 154, 154, 0.06)' }} />
 
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <motion.div
@@ -54,7 +57,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <Typography variant="h2" component="h1" fontWeight={800} gutterBottom sx={{ color: '#1a237e', letterSpacing: '-1px' }}>
+            <Typography variant="h2" component="h1" fontWeight={800} gutterBottom sx={{ color: DARK, letterSpacing: '-1px' }}>
               Your Health, <span className="gradient-text">Our Priority</span>
             </Typography>
             <Typography variant="h5" color="text.secondary" paragraph sx={{ mb: 4, maxWidth: '600px', mx: 'auto', lineHeight: 1.6 }}>
@@ -71,8 +74,9 @@ const Home = () => {
                   py: 1.5,
                   fontSize: '1.1rem',
                   textTransform: 'none',
-                  boxShadow: '0 8px 20px rgba(25, 118, 210, 0.3)',
-                  '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 25px rgba(25, 118, 210, 0.4)' },
+                  bgcolor: TEAL,
+                  boxShadow: '0 8px 20px rgba(7, 154, 154, 0.3)',
+                  '&:hover': { transform: 'translateY(-2px)', bgcolor: '#068A8A', boxShadow: '0 12px 25px rgba(7, 154, 154, 0.4)' },
                   transition: 'all 0.3s'
                 }}
               >
@@ -89,8 +93,9 @@ const Home = () => {
                   fontSize: '1.1rem',
                   textTransform: 'none',
                   borderWidth: '2px',
-                  borderColor: '#1976d2',
-                  '&:hover': { borderWidth: '2px', backgroundColor: 'rgba(25, 118, 210, 0.05)', transform: 'translateY(-2px)' },
+                  borderColor: TEAL,
+                  color: TEAL,
+                  '&:hover': { borderWidth: '2px', backgroundColor: 'rgba(7, 154, 154, 0.06)', transform: 'translateY(-2px)' },
                   transition: 'all 0.3s'
                 }}
               >
@@ -103,7 +108,7 @@ const Home = () => {
 
       {/* Features Section */}
       <Container maxWidth="lg">
-        <Typography variant="h3" textAlign="center" fontWeight={700} sx={{ mb: 6, color: '#1a237e' }}>
+        <Typography variant="h3" textAlign="center" fontWeight={800} sx={{ mb: 6, color: DARK, letterSpacing: '-0.5px' }}>
           Platform Features
         </Typography>
         <Grid container spacing={4}>
@@ -136,7 +141,7 @@ const Home = () => {
                     width: 70, 
                     height: 70, 
                     borderRadius: '50%', 
-                    backgroundColor: '#e3f2fd', 
+                    backgroundColor: '#E6F4F4', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',

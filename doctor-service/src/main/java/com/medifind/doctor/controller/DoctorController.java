@@ -24,13 +24,14 @@ public class DoctorController {
 
     @GetMapping("/search")
     public ResponseEntity<List<DoctorResponse>> searchDoctors(
+            @RequestParam(required = false) String query,
             @RequestParam(required = false) String specialty,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) Long hospitalId,
             @RequestParam(required = false) Boolean available,
             @RequestParam(required = false) Double minimumRating,
             @RequestParam(required = false) Integer experience) {
-        return ResponseEntity.ok(doctorService.searchDoctors(specialty, city, hospitalId, available, minimumRating, experience));
+        return ResponseEntity.ok(doctorService.searchDoctors(query, specialty, city, hospitalId, available, minimumRating, experience));
     }
 
     // Day 6: Doctor Onboarding APIs

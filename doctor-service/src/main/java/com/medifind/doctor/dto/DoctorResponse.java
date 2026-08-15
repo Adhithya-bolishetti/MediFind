@@ -31,6 +31,12 @@ public class DoctorResponse {
 
     private String city;
     private String state;
+
+    /** Clinic/hospital name as stored on the doctor profile — used for display when no hospital is linked. */
+    private String clinicName;
+    private String clinicAddress;
+    private Double latitude;
+    private Double longitude;
     private String phoneNumber;
     private String email;
     private String profileImage;

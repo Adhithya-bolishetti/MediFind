@@ -31,7 +31,7 @@ const DoctorProfileSetup = () => {
       dateOfBirth: '',
       mobileNumber: '',
       preferredLanguage: '',
-      specialization: '',
+      specialization: 'GENERAL_PHYSICIAN',
       medicalLicenseNumber: '',
       experience: '',
       qualification: '',
@@ -39,7 +39,7 @@ const DoctorProfileSetup = () => {
       consultationFee: '',
       about: '',
       languages: [],
-      consultationMode: '',
+      consultationMode: 'In-person',
       workingDays: '',
       consultationStartTime: '',
       consultationEndTime: '',
@@ -254,7 +254,7 @@ const DoctorProfileSetup = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>Specialization *</Typography>
-                <TextField select fullWidth {...register("specialization", { required: true })} error={!!errors.specialization} defaultValue="GENERAL_PHYSICIAN">
+                <TextField select fullWidth {...register("specialization", { required: true })} error={!!errors.specialization}>
                   <MenuItem value="GENERAL_PHYSICIAN">General Physician</MenuItem>
                   <MenuItem value="CARDIOLOGIST">Cardiologist</MenuItem>
                   <MenuItem value="DERMATOLOGIST">Dermatologist</MenuItem>
@@ -316,7 +316,7 @@ const DoctorProfileSetup = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>Consultation Mode</Typography>
-                <TextField select fullWidth {...register("consultationMode")} defaultValue="In-person">
+                <TextField select fullWidth {...register("consultationMode")}>
                   <MenuItem value="In-person">In-person</MenuItem>
                   <MenuItem value="Online">Online</MenuItem>
                   <MenuItem value="Both">Both</MenuItem>

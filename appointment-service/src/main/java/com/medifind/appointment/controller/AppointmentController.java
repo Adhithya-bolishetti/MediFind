@@ -52,9 +52,21 @@ public class AppointmentController {
     @PutMapping("/{id}/confirm")
     public ResponseEntity<AppointmentResponse> confirmAppointment(
             @PathVariable Long id,
-            @RequestAttribute(value = "X-User-Id", required = false) Long doctorId) { // simplified: assuming user ID is doctor ID
+            @RequestParam(required = false) Long doctorId,
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if (doctorId == null) doctorId = userId; // fall back to auth user id
         if (doctorId == null) doctorId = 1L;
         return ResponseEntity.ok(appointmentService.confirmAppointment(id, doctorId));
+    }
+
+    @PutMapping("/{id}/decline")
+    public ResponseEntity<AppointmentResponse> declineAppointment(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long doctorId,
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if (doctorId == null) doctorId = userId; // fall back to auth user id
+        if (doctorId == null) doctorId = 1L;
+        return ResponseEntity.ok(appointmentService.declineAppointment(id, doctorId));
     }
 
     @PutMapping("/{id}/complete")

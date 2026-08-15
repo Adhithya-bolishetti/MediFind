@@ -12,6 +12,7 @@ public interface AppointmentService {
     List<AppointmentResponse> getDoctorAppointments(Long doctorId);
     AppointmentResponse cancelAppointment(Long id, Long userId);
     AppointmentResponse confirmAppointment(Long id, Long doctorId);
+    AppointmentResponse declineAppointment(Long id, Long doctorId);
     AppointmentResponse completeAppointment(Long id, Long doctorId);
     void deleteAppointment(Long id);
     boolean hasCompletedAppointment(Long doctorId, Long userId);

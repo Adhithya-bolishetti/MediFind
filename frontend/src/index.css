@@ -31,7 +31,7 @@ a {
 }
 
 .gradient-text {
-  background: linear-gradient(45deg, #1976d2, #9c27b0);
+  background: linear-gradient(45deg, #079A9A, #045F5F);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

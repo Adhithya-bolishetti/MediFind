@@ -21,7 +21,7 @@ const ReviewModal = ({ open, onClose, appointment, type, onSuccess }) => {
       const payload = {
         appointmentId: appointment.id,
         rating,
-        reviewText,
+        comment: reviewText,
         recommendation: rating >= 4
       };
 
@@ -59,7 +59,7 @@ const ReviewModal = ({ open, onClose, appointment, type, onSuccess }) => {
       <DialogContent>
         {error && <Typography color="error" variant="body2" mb={2}>{error}</Typography>}
         
-        <Box display="flex" flexDirection="column" alignItems="center" my={3}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} my={3}>
           <Typography component="legend">How was your visit?</Typography>
           <Rating
             name="rating"

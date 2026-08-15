@@ -2,16 +2,19 @@ package com.medifind.doctor.service;
 
 import com.medifind.doctor.client.AppointmentClient;
 import com.medifind.doctor.client.HospitalClient;
+import com.medifind.doctor.client.UserClient;
 import com.medifind.doctor.dto.*;
 import com.medifind.doctor.entity.Doctor;
 import com.medifind.doctor.entity.Review;
 import com.medifind.doctor.repository.DoctorRepository;
 import com.medifind.doctor.repository.ReviewRepository;
+import com.medifind.doctor.util.AvailabilityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ public class DoctorServiceImpl implements DoctorService {
     private final ReviewRepository reviewRepository;
     private final AppointmentClient appointmentClient;
     private final HospitalClient hospitalClient;
+    private final UserClient userClient;
 
     @Override
     public DoctorResponse createDoctor(DoctorRequest request) { return null; }
@@ -50,8 +54,9 @@ public class DoctorServiceImpl implements DoctorService {
     public void deleteDoctor(Long id) { }
 
     @Override
-    public List<DoctorResponse> searchDoctors(String specialization, String city, Long hospitalId, Boolean available, Double minimumRating, Integer experience) {
+    public List<DoctorResponse> searchDoctors(String query, String specialization, String city, Long hospitalId, Boolean available, Double minimumRating, Integer experience) {
         return doctorRepository.findAll().stream()
+                .filter(d -> query == null || query.trim().isEmpty() || matchesQuery(d, query))
                 .filter(d -> specialization == null || (d.getSpecialization() != null && d.getSpecialization().name().toLowerCase().contains(specialization.toLowerCase())))
                 .filter(d -> city == null || (d.getCity() != null && d.getCity().toLowerCase().contains(city.toLowerCase())))
                 .filter(d -> hospitalId == null || (d.getHospitalId() != null && d.getHospitalId().equals(hospitalId)))
@@ -60,6 +65,35 @@ public class DoctorServiceImpl implements DoctorService {
                 .filter(d -> experience == null || d.getExperience() >= experience)
                 .map(this::mapToDoctorResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Case-insensitive free-text match across the searchable doctor fields.
+     */
+    private boolean matchesQuery(Doctor d, String query) {
+        String q = query.trim().toLowerCase(java.util.Locale.ENGLISH);
+        if (q.isEmpty()) {
+            return true;
+        }
+        String specialization = d.getSpecialization() != null ? d.getSpecialization().name() : null;
+        java.util.List<String> haystacks = new ArrayList<>();
+        haystacks.add(d.getDoctorName());
+        haystacks.add(d.getSubSpecialization());
+        haystacks.add(d.getQualification());
+        haystacks.add(d.getCity());
+        haystacks.add(d.getState());
+        haystacks.add(d.getClinicName());
+        haystacks.add(d.getClinicAddress());
+        haystacks.add(specialization);
+        if (specialization != null) {
+            haystacks.add(specialization.replace("_", " "));
+        }
+        for (String field : haystacks) {
+            if (field != null && field.toLowerCase(java.util.Locale.ENGLISH).contains(q)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -78,18 +112,45 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public AvailableSlotResponse getAvailableSlots(Long doctorId, String date) {
         Doctor doctor = getDoctor(doctorId);
-        if (!doctor.isAvailable() || doctor.getConsultationStartTime() == null) {
+        LocalDate requestedDate;
+        try {
+            requestedDate = LocalDate.parse(date);
+        } catch (Exception e) {
             return AvailableSlotResponse.builder().doctorId(doctorId).date(date).slots(List.of()).build();
         }
 
-        LocalTime startTime = LocalTime.parse(doctor.getConsultationStartTime());
-        LocalTime endTime = LocalTime.parse(doctor.getConsultationEndTime());
-        int duration = doctor.getAppointmentDuration() != null ? doctor.getAppointmentDuration() : 30;
+        if (!doctor.isAvailable()) {
+            return AvailableSlotResponse.builder().doctorId(doctorId).date(date).slots(List.of()).build();
+        }
+
+        // Respect configured working days — no slots on off days. Handles full
+        // names, abbreviations and legacy ranges like "Mon-Sat".
+        if (!AvailabilityUtils.isWorkingDay(doctor.getWorkingDays(), requestedDate.getDayOfWeek())) {
+            return AvailableSlotResponse.builder().doctorId(doctorId).date(date).slots(List.of()).build();
+        }
+
+        // Times may be 24h or 12h (e.g. "05:00 PM" must mean 5 PM, not 5 AM).
+        LocalTime[] hours = AvailabilityUtils.resolveConsultationHours(
+                doctor.getConsultationStartTime(), doctor.getConsultationEndTime());
+        LocalTime startTime = hours[0];
+        LocalTime endTime = hours[1];
+        if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
+            return AvailableSlotResponse.builder().doctorId(doctorId).date(date).slots(List.of()).build();
+        }
+        int duration = doctor.getAppointmentDuration() != null && doctor.getAppointmentDuration() > 0
+                ? doctor.getAppointmentDuration() : 30;
 
         List<String> allSlots = new ArrayList<>();
-        while (startTime.plusMinutes(duration).isBefore(endTime) || startTime.plusMinutes(duration).equals(endTime)) {
-            allSlots.add(startTime.format(DateTimeFormatter.ofPattern("HH:mm")));
-            startTime = startTime.plusMinutes(duration);
+        LocalTime slot = startTime;
+        while (slot.plusMinutes(duration).isBefore(endTime) || slot.plusMinutes(duration).equals(endTime)) {
+            allSlots.add(slot.format(DateTimeFormatter.ofPattern("HH:mm")));
+            slot = slot.plusMinutes(duration);
+        }
+
+        // Never offer time slots that are already in the past for today.
+        if (requestedDate.equals(LocalDate.now())) {
+            LocalTime now = LocalTime.now();
+            allSlots.removeIf(s -> LocalTime.parse(s).isBefore(now));
         }
 
         List<String> bookedSlots = new ArrayList<>();
@@ -116,26 +177,12 @@ public class DoctorServiceImpl implements DoctorService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A review already exists for this appointment");
         }
 
+        // Validate the appointment via the appointment service. Network failures
+        // must surface as a friendly error, but validation failures (404/403/400)
+        // are thrown AFTER the try-catch so they are not converted to 503.
+        java.util.Map<String, Object> appointment;
         try {
-            java.util.Map<String, Object> appointment = appointmentClient.getAppointmentById(request.getAppointmentId());
-            if (appointment == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found");
-            }
-            
-            // Validate appointment belongs to this patient and doctor
-            Number appUserId = (Number) appointment.get("userId");
-            Number appDoctorId = (Number) appointment.get("doctorId");
-            String status = (String) appointment.get("status");
-            
-            if (appUserId == null || appUserId.longValue() != userId) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Appointment does not belong to you");
-            }
-            if (appDoctorId == null || appDoctorId.longValue() != doctorId) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment does not match this doctor");
-            }
-            if (!"COMPLETED".equals(status)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Review not allowed. You must have a completed appointment.");
-            }
+            appointment = appointmentClient.getAppointmentById(request.getAppointmentId());
         } catch (feign.FeignException e) {
             if (e.status() == 404) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found");
@@ -143,6 +190,24 @@ public class DoctorServiceImpl implements DoctorService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify appointment details");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify appointment details");
+        }
+        if (appointment == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found");
+        }
+
+        // Validate appointment belongs to this patient and doctor
+        Number appUserId = (Number) appointment.get("userId");
+        Number appDoctorId = (Number) appointment.get("doctorId");
+        String status = (String) appointment.get("status");
+
+        if (appUserId == null || appUserId.longValue() != userId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Appointment does not belong to you");
+        }
+        if (appDoctorId == null || appDoctorId.longValue() != doctorId) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment does not match this doctor");
+        }
+        if (!"COMPLETED".equals(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Review not allowed. You must have a completed appointment.");
         }
 
         Review review = Review.builder()
@@ -278,10 +343,19 @@ public class DoctorServiceImpl implements DoctorService {
     }
     
     private ReviewResponse mapToReviewResponse(Review review) {
+        String patientName = null;
+        try {
+            UserResponse user = userClient.getUserById(review.getUserId());
+            if (user != null) patientName = user.getFullName();
+        } catch (Exception e) {
+            // Patient lookup is best-effort; fall back to showing the id on the frontend.
+        }
+
         return ReviewResponse.builder()
                 .id(review.getId())
                 .doctorId(review.getDoctorId())
                 .userId(review.getUserId())
+                .patientName(patientName)
                 .appointmentId(review.getAppointmentId())
                 .rating(review.getRating())
                 .comment(review.getComment())
@@ -293,16 +367,31 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     private DoctorResponse mapToDoctorResponse(Doctor doctor) {
+        HospitalResponse hospitalInfo = null;
+        if (doctor.getHospitalId() != null) {
+            try {
+                hospitalInfo = hospitalClient.getHospitalById(doctor.getHospitalId());
+            } catch (Exception e) {
+                // Best effort — fall back to the doctor's own clinic fields.
+            }
+        }
+
         return DoctorResponse.builder()
                 .id(doctor.getId())
                 .doctorName(doctor.getDoctorName())
                 .userId(doctor.getUserId())
                 .hospitalId(doctor.getHospitalId())
+                .hospitalInfo(hospitalInfo)
                 .specialization(doctor.getSpecialization() != null ? doctor.getSpecialization().name() : null)
                 .qualification(doctor.getQualification())
                 .experience(doctor.getExperience())
                 .consultationFee(doctor.getConsultationFee())
                 .city(doctor.getCity())
+                .state(doctor.getState())
+                .clinicName(doctor.getClinicName())
+                .clinicAddress(doctor.getClinicAddress())
+                .latitude(doctor.getLatitude())
+                .longitude(doctor.getLongitude())
                 .available(doctor.isAvailable())
                 .rating(doctor.getRating())
                 .totalReviews(doctor.getTotalReviews())
@@ -346,8 +435,8 @@ public class DoctorServiceImpl implements DoctorService {
                 .consultationStartTime(request.getConsultationStartTime())
                 .consultationEndTime(request.getConsultationEndTime())
                 .appointmentDuration(request.getAppointmentDuration())
-                .availableForOnlineConsultation(request.isAvailableForOnlineConsultation())
-                .availableForEmergency(request.isAvailableForEmergency())
+                .availableForOnlineConsultation(Boolean.TRUE.equals(request.getAvailableForOnlineConsultation()))
+                .availableForEmergency(Boolean.TRUE.equals(request.getAvailableForEmergency()))
                 .verificationStatus(com.medifind.doctor.entity.VerificationStatus.APPROVED)
                 .available(true)
                 .build();
@@ -396,8 +485,14 @@ public class DoctorServiceImpl implements DoctorService {
         if (request.getConsultationEndTime() != null) doctor.setConsultationEndTime(request.getConsultationEndTime());
         if (request.getAppointmentDuration() != null) doctor.setAppointmentDuration(request.getAppointmentDuration());
         
-        doctor.setAvailableForOnlineConsultation(request.isAvailableForOnlineConsultation());
-        doctor.setAvailableForEmergency(request.isAvailableForEmergency());
+        // Only update when explicitly provided — otherwise a partial update would
+        // silently reset these flags to false.
+        if (request.getAvailableForOnlineConsultation() != null) {
+            doctor.setAvailableForOnlineConsultation(request.getAvailableForOnlineConsultation());
+        }
+        if (request.getAvailableForEmergency() != null) {
+            doctor.setAvailableForEmergency(request.getAvailableForEmergency());
+        }
 
         doctor = doctorRepository.save(doctor);
         return mapToDoctorProfileResponse(doctor);

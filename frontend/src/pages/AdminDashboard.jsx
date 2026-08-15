@@ -52,7 +52,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <CircularProgress />
       </Box>
     );
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
   if (user?.role !== 'ADMIN') {
     return (
       <Container>
-        <Typography variant="h4" color="error" mt={10} textAlign="center">
+        <Typography variant="h4" color="error" sx={{ mt: 10, textAlign: 'center' }}>
           Access Denied. Admin privileges required.
         </Typography>
       </Container>

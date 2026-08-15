@@ -8,6 +8,7 @@ import com.medifind.appointment.entity.Appointment;
 import com.medifind.appointment.entity.AppointmentStatus;
 import com.medifind.appointment.repository.AppointmentRepository;
 import com.medifind.appointment.service.AppointmentService;
+import com.medifind.appointment.util.AvailabilityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,54 +35,94 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment date cannot be in the past");
         }
 
-        // Validate doctor availability
+        // Never allow booking a time that has already passed today.
+        if (request.getAppointmentDate().equals(LocalDate.now())
+                && request.getAppointmentTime().isBefore(LocalTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment time has already passed for today");
+        }
+
+        // Validate doctor availability (working hours + working days)
         DoctorAvailabilityResponse availability = doctorClient.getDoctorAvailability(request.getDoctorId());
         if (availability == null || !availability.isAvailable()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Doctor is not available");
         }
-        
-        // Basic check for time boundaries
-        if (availability.getConsultationStartTime() != null && availability.getConsultationEndTime() != null) {
-            LocalTime start = LocalTime.parse(availability.getConsultationStartTime());
-            LocalTime end = LocalTime.parse(availability.getConsultationEndTime());
-            if (request.getAppointmentTime().isBefore(start) || request.getAppointmentTime().isAfter(end)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment time outside doctor's consultation hours");
-            }
-        }
 
-        // Check if doctor is already booked for this date and time
-        boolean exists = appointmentRepository.existsByDoctorIdAndAppointmentDateAndAppointmentTime(
-                request.getDoctorId(), request.getAppointmentDate(), request.getAppointmentTime()
-        );
-        if (exists) {
-            // Need to check status of existing? Let's assume any existing non-cancelled means booked.
-            // A more complex implementation would filter out cancelled ones, but we'll stick to a simple check here,
-            // or query by status as well. We'll improve this if needed. Let's do a strict check:
-            List<Appointment> existing = appointmentRepository.findByDoctorIdAndAppointmentDate(request.getDoctorId(), request.getAppointmentDate());
+        validateWorkingDay(availability, request.getAppointmentDate());
+        validateSlotAlignment(availability, request.getAppointmentTime());
+
+        // Serialize the check-and-insert to prevent double booking within this service instance.
+        synchronized (this) {
+            List<Appointment> existing = appointmentRepository
+                    .findByDoctorIdAndAppointmentDate(request.getDoctorId(), request.getAppointmentDate());
             boolean isBooked = existing.stream()
                 .anyMatch(a -> a.getAppointmentTime().equals(request.getAppointmentTime()) &&
                                a.getStatus() != AppointmentStatus.CANCELLED &&
+                               a.getStatus() != AppointmentStatus.DECLINED &&
                                a.getStatus() != AppointmentStatus.REJECTED);
             if (isBooked) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Doctor is already booked for this time");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Appointment slot is no longer available");
             }
+
+            Appointment appointment = Appointment.builder()
+                    .userId(userId)
+                    .doctorId(request.getDoctorId())
+                    .appointmentDate(request.getAppointmentDate())
+                    .appointmentTime(request.getAppointmentTime())
+                    .reason(request.getReason())
+                    .status(AppointmentStatus.PENDING)
+                    .build();
+
+            appointment = appointmentRepository.save(appointment);
+
+            sendNotification(userId, "APPOINTMENT_BOOKED", "Appointment Booked",
+                    "Your appointment has been booked successfully for " + request.getAppointmentDate() + " at " + request.getAppointmentTime());
+
+            return mapToResponse(appointment);
         }
+    }
 
-        Appointment appointment = Appointment.builder()
-                .userId(userId)
-                .doctorId(request.getDoctorId())
-                .appointmentDate(request.getAppointmentDate())
-                .appointmentTime(request.getAppointmentTime())
-                .reason(request.getReason())
-                .status(AppointmentStatus.PENDING)
-                .build();
+    /**
+     * Rejects booking when the doctor has configured working days and the
+     * requested date does not fall on one of them. Handles full names,
+     * abbreviations and legacy ranges like "Mon-Sat".
+     */
+    private void validateWorkingDay(DoctorAvailabilityResponse availability, LocalDate date) {
+        if (!AvailabilityUtils.isWorkingDay(availability.getWorkingDays(), date.getDayOfWeek())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Doctor is not available on " + date.getDayOfWeek().name().charAt(0)
+                            + date.getDayOfWeek().name().substring(1).toLowerCase(java.util.Locale.ENGLISH) + "s");
+        }
+    }
 
-        appointment = appointmentRepository.save(appointment);
+    /**
+     * Rejects appointment times that do not fall exactly on one of the doctor's
+     * generated slots (start time stepped by the appointment duration). Times
+     * may be 24h or 12h formats.
+     */
+    private void validateSlotAlignment(DoctorAvailabilityResponse availability, LocalTime requestedTime) {
+        LocalTime[] hours = AvailabilityUtils.resolveConsultationHours(
+                availability.getConsultationStartTime(), availability.getConsultationEndTime());
+        LocalTime start = hours[0];
+        LocalTime end = hours[1];
+        if (start == null || end == null || !start.isBefore(end)) {
+            return; // Doctor hasn't configured valid hours — keep legacy behavior
+        }
+        int duration = availability.getAppointmentDuration() != null && availability.getAppointmentDuration() > 0
+                ? availability.getAppointmentDuration() : 30;
 
-        sendNotification(userId, "APPOINTMENT_BOOKED", "Appointment Booked",
-                "Your appointment has been booked successfully for " + request.getAppointmentDate() + " at " + request.getAppointmentTime());
-
-        return mapToResponse(appointment);
+        boolean aligned = false;
+        LocalTime slot = start;
+        while (slot.plusMinutes(duration).isBefore(end) || slot.plusMinutes(duration).equals(end)) {
+            if (slot.equals(requestedTime)) {
+                aligned = true;
+                break;
+            }
+            slot = slot.plusMinutes(duration);
+        }
+        if (!aligned) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Appointment time must be within the doctor's available slots");
+        }
     }
 
     @Override
@@ -132,8 +173,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
 
-        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cancelled appointments cannot be confirmed");
+        verifyDoctorOwnership(appointment, doctorId);
+
+        if (appointment.getStatus() != AppointmentStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Only pending appointments can be accepted");
         }
 
         appointment.setStatus(AppointmentStatus.CONFIRMED);
@@ -143,6 +187,33 @@ public class AppointmentServiceImpl implements AppointmentService {
                 "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been confirmed.");
 
         return mapToResponse(appointment);
+    }
+
+    @Override
+    public AppointmentResponse declineAppointment(Long id, Long doctorId) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+
+        verifyDoctorOwnership(appointment, doctorId);
+
+        if (appointment.getStatus() != AppointmentStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Only pending appointments can be declined");
+        }
+
+        appointment.setStatus(AppointmentStatus.DECLINED);
+        appointment = appointmentRepository.save(appointment);
+
+        sendNotification(appointment.getUserId(), "APPOINTMENT_DECLINED", "Appointment Declined",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " was declined by the doctor.");
+
+        return mapToResponse(appointment);
+    }
+
+    private void verifyDoctorOwnership(Appointment appointment, Long doctorId) {
+        if (doctorId == null || !appointment.getDoctorId().equals(doctorId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This appointment does not belong to you");
+        }
     }
 
     @Override
@@ -175,7 +246,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<Appointment> appointments = appointmentRepository.findByDoctorIdAndAppointmentDate(doctorId, localDate);
         
         return appointments.stream()
-                .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED && a.getStatus() != AppointmentStatus.REJECTED)
+                .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED
+                        && a.getStatus() != AppointmentStatus.DECLINED
+                        && a.getStatus() != AppointmentStatus.REJECTED)
                 .map(a -> a.getAppointmentTime().format(DateTimeFormatter.ofPattern("HH:mm")))
                 .collect(Collectors.toList());
     }

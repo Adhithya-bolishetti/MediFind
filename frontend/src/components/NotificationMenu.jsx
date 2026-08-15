@@ -53,7 +53,7 @@ const NotificationMenu = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <CircularProgress />
       </Box>
     );
@@ -72,7 +72,7 @@ const NotificationMenu = () => {
 
         <Paper elevation={2} sx={{ borderRadius: 4, overflow: 'hidden' }}>
           {notifications.length === 0 ? (
-            <Box p={5} textAlign="center">
+            <Box p={5} sx={{ textAlign: 'center' }}>
               <NotificationsIcon sx={{ fontSize: 60, color: '#e0e0e0', mb: 2 }} />
               <Typography variant="h6" color="text.secondary">You have no notifications.</Typography>
             </Box>

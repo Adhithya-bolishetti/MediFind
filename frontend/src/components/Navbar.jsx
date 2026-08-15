@@ -6,9 +6,10 @@ import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 
 const TEAL = '#079A9A';
 
-// Public-only routes where the top navbar is shown.
-// Authenticated dashboard pages use the Sidebar instead.
-const PUBLIC_PATHS = ['/', '/login', '/register'];
+// The top navbar is only shown on the marketing page (/home) for anonymous
+// visitors. Auth pages (/ , /login, /register) use the full-screen AuthLayout,
+// and authenticated pages use the Sidebar instead — never the top navbar.
+const PUBLIC_PATHS = ['/home'];
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -61,7 +62,7 @@ const Navbar = () => {
           </Typography>
         </Box>
 
-        <Box display="flex" alignItems="center" gap={1}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1}>
           <Button color="inherit" component={RouterLink} to="/doctors" sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}>
             Find Doctors
           </Button>

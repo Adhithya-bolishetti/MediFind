@@ -38,6 +38,7 @@ public interface DoctorService {
     /**
      * Dynamic search across doctor records using optional filter parameters.
      *
+     * @param query          free-text match across name, specialization, qualification, city, state, clinic/hospital
      * @param specialization filter by specialization (partial match, case-insensitive)
      * @param city           filter by city (partial match, case-insensitive)
      * @param hospitalId     filter by exact hospital ID
@@ -46,7 +47,7 @@ public interface DoctorService {
      * @param experience     filter doctors with experience >= this value (years)
      * @return list of matching doctor response DTOs
      */
-    List<DoctorResponse> searchDoctors(String specialization, String city, Long hospitalId,
+    List<DoctorResponse> searchDoctors(String query, String specialization, String city, Long hospitalId,
                                        Boolean available, Double minimumRating, Integer experience);
 
     // Day 3

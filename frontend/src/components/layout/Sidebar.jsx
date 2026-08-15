@@ -176,11 +176,13 @@ const SidebarContent = ({ onClose }) => {
               </ListItemIcon>
               <ListItemText
                 primary={item.label}
-                primaryTypographyProps={{
-                  fontWeight: active ? 700 : 500,
-                  fontSize: '0.875rem',
-                  color: active ? TEAL : NAVY,
-                  noWrap: true,
+                slotProps={{
+                  primary: {
+                    fontWeight: active ? 700 : 500,
+                    fontSize: '0.875rem',
+                    color: active ? TEAL : NAVY,
+                    noWrap: true,
+                  },
                 }}
               />
             </ListItem>
@@ -207,10 +209,12 @@ const SidebarContent = ({ onClose }) => {
           </ListItemIcon>
           <ListItemText
             primary="Logout"
-            primaryTypographyProps={{
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              color: '#EF4444',
+            slotProps={{
+              primary: {
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                color: '#EF4444',
+              },
             }}
           />
         </ListItem>

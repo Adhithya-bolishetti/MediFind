@@ -108,13 +108,13 @@ const HospitalSearch = () => {
         </Paper>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" py={10}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }} py={10}>
             <CircularProgress sx={{ color: TEAL }} size={60} />
           </Box>
         ) : (
           <Grid container spacing={4}>
             {hospitals.map((hospital, index) => (
-              <Grid item xs={12} md={6} key={hospital.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={hospital.id}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -130,8 +130,8 @@ const HospitalSearch = () => {
                       '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 12px 32px rgba(0,0,0,0.08)', borderColor: `${TEAL}40` },
                     }}
                   >
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                      <Box display="flex" alignItems="center" gap={1.5}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }} mb={2}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1.5}>
                         <Box
                           sx={{
                             width: 44,
@@ -155,19 +155,19 @@ const HospitalSearch = () => {
                       )}
                     </Box>
 
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5} color="text.secondary">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1} mb={0.5} color="text.secondary">
                       <LocationOnIcon fontSize="small" />
                       <Typography variant="body2">
                         {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
                       </Typography>
                     </Box>
                     {hospital.phoneNumber && (
-                      <Box display="flex" alignItems="center" gap={1} mb={1} color="text.secondary">
+                      <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1} mb={1} color="text.secondary">
                         <LocalPhoneIcon fontSize="small" />
                         <Typography variant="body2">{hospital.phoneNumber}</Typography>
                       </Box>
                     )}
-                    <Box display="flex" alignItems="center" gap={0.5} mb={3}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }} gap={0.5} mb={3}>
                       <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} />
                       <Typography variant="body2" fontWeight={700} color="#F59E0B">
                         {hospital.rating > 0 ? hospital.rating : 'New'}
@@ -199,8 +199,8 @@ const HospitalSearch = () => {
               </Grid>
             ))}
             {hospitals.length === 0 && !loading && (
-              <Grid item xs={12}>
-                <Box textAlign="center" py={10}>
+              <Grid size={12}>
+                <Box sx={{ textAlign: 'center' }} py={10}>
                   <SearchIcon sx={{ fontSize: 64, color: '#D1D5DB', mb: 2 }} />
                   <Typography variant="h6" color="text.secondary">No hospitals found.</Typography>
                   <Button

@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Box, CircularProgress } from '@mui/material';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -10,6 +11,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 
 // Public pages (also accessible when authenticated)
 import FindDoctors from './pages/FindDoctors';
@@ -49,6 +51,25 @@ const ConditionalSidebar = ({ children }) => {
 };
 
 /**
+ * Landing — the Signup page is the application's landing page.
+ * Authenticated users are sent to their dashboard instead.
+ */
+const Landing = () => {
+  const { user, token, loading } = useContext(AuthContext);
+
+  if (loading || (token && !user)) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+        <CircularProgress sx={{ color: '#079A9A' }} />
+      </Box>
+    );
+  }
+
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Register />;
+};
+
+/**
  * AppRoutes — the inner router tree, placed inside AuthProvider so it can
  * read AuthContext (required by ConditionalSidebar and Navbar).
  */
@@ -59,9 +80,12 @@ const AppRoutes = () => (
 
     <Routes>
       {/* ─────────────── Public Routes ─────────────── */}
-      <Route path="/" element={<Home />} />
+      {/* The Signup page is the landing page. Logged-in users go to /dashboard. */}
+      <Route path="/" element={<Landing />} />
+      <Route path="/register" element={<Landing />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* Semi-public pages — sidebar appears when logged in */}
       <Route path="/doctors" element={<ConditionalSidebar><FindDoctors /></ConditionalSidebar>} />

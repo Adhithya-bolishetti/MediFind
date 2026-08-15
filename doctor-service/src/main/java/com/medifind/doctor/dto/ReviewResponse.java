@@ -11,6 +11,7 @@ public class ReviewResponse {
     private Long id;
     private Long doctorId;
     private Long userId;
+    private String patientName;
     private Long appointmentId;
     private Integer rating;
     private String comment;
