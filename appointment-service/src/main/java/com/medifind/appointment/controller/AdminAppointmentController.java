@@ -36,4 +36,24 @@ public class AdminAppointmentController {
     public ResponseEntity<AppointmentResponse> cancelAppointment(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.cancelAppointmentAsAdmin(id));
     }
+
+    /**
+     * Delete every appointment belonging to a user (used when an admin
+     * permanently deletes a patient account).
+     */
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteByUser(@PathVariable Long userId) {
+        appointmentService.deleteAppointmentsByUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Delete every appointment for a doctor (used when an admin permanently
+     * deletes a doctor profile).
+     */
+    @DeleteMapping("/doctor/{doctorId}")
+    public ResponseEntity<Void> deleteByDoctor(@PathVariable Long doctorId) {
+        appointmentService.deleteAppointmentsByDoctor(doctorId);
+        return ResponseEntity.noContent().build();
+    }
 }

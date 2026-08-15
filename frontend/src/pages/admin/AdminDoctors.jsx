@@ -11,10 +11,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import BlockIcon from '@mui/icons-material/Block';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StarIcon from '@mui/icons-material/Star';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import doctorService from '../../services/doctorService';
+import appointmentService from '../../services/appointmentService';
+import notificationService from '../../services/notificationService';
 import { useToast } from '../../context/ToastContext';
-import { TEAL, NAVY, MUTED, BORDER, StatusChip, PageHeader, formatDate, formatDateTime } from './shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, StatusChip, PageHeader, formatDate, formatDateTime } from './shared';
 
 const ROWS = 8;
 const SPECIALIZATIONS = ['ALL', 'GENERAL_PHYSICIAN', 'CARDIOLOGIST', 'DERMATOLOGIST', 'NEUROLOGIST', 'ORTHOPEDIC', 'PEDIATRICIAN', 'GYNECOLOGIST', 'PSYCHIATRIST', 'OPHTHALMOLOGIST', 'ENT_SPECIALIST', 'DENTIST'];
@@ -34,6 +37,8 @@ const AdminDoctors = () => {
   const [rejectDoctor, setRejectDoctor] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [acting, setActing] = useState(false);
+  const [deleteDoctor, setDeleteDoctor] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchDoctors = async () => {
     setLoading(true);
@@ -123,8 +128,26 @@ const AdminDoctors = () => {
     }
   };
 
+  const confirmDelete = async () => {
+    setDeleting(true);
+    try {
+      await Promise.allSettled([
+        doctorService.deleteDoctor(deleteDoctor.id),
+        appointmentService.deleteByDoctor(deleteDoctor.id),
+        notificationService.deleteByUser(deleteDoctor.userId),
+      ]);
+      showToast('Doctor deleted successfully.');
+      setDeleteDoctor(null);
+      fetchDoctors();
+    } catch (err) {
+      showToast('Unable to delete doctor. Please try again.', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Doctor Management"
         subtitle="Review, approve and manage doctor profiles."
@@ -180,7 +203,7 @@ const AdminDoctors = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#FAFBFC' }}>
+                  <TableRow sx={{ bgcolor: SURFACE }}>
                     {['Doctor', 'Specialization', 'Hospital', 'Location', 'Rating', 'Status', 'Actions'].map((h) => (
                       <TableCell key={h} sx={{ fontWeight: 800, color: NAVY, fontSize: '0.8rem' }}>{h}</TableCell>
                     ))}
@@ -228,6 +251,7 @@ const AdminDoctors = () => {
                         {d.verificationStatus === 'REJECTED' && (
                           <IconButton size="small" onClick={() => approve(d)} disabled={acting} title="Re-approve" sx={{ color: '#0F766E' }}><CheckCircleIcon fontSize="small" /></IconButton>
                         )}
+                        <IconButton size="small" onClick={() => setDeleteDoctor(d)} title="Delete" sx={{ color: '#B91C1C' }}><DeleteIcon fontSize="small" /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -293,6 +317,25 @@ const AdminDoctors = () => {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteDoctor} onClose={() => setDeleteDoctor(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: NAVY }}>Delete Doctor</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" mb={1}>
+            Are you sure you want to permanently delete <strong>Dr. {(deleteDoctor?.doctorName || '').replace(/^Dr\.?\s+/i, '')}</strong>?
+          </Typography>
+          <Typography variant="body2" color="#B91C1C" fontWeight={600}>
+            This action cannot be undone. All related appointments, reviews and notifications will be removed.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDoctor(null)} sx={{ textTransform: 'none', color: MUTED }}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleting} sx={{ textTransform: 'none', borderRadius: 2 }}>
+            {deleting ? 'Deleting...' : 'Delete Doctor'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Reject dialog */}

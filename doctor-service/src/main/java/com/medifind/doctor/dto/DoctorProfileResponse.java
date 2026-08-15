@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Builder
 public class DoctorProfileResponse {
     private Long id;
+    private Long userId;
     private String doctorName;
     private String email;
     private String phoneNumber;

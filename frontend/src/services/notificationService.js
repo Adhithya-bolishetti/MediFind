@@ -45,6 +45,11 @@ const notificationService = {
   broadcast: async (data) => {
     const response = await api.post('/admin/notifications/broadcast', data);
     return response.data;
+  },
+
+  deleteByUser: async (userId) => {
+    const response = await api.delete(`/admin/notifications/user/${userId}`);
+    return response.data;
   }
 };
 

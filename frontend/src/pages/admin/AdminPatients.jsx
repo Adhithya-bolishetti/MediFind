@@ -9,10 +9,13 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import userService from '../../services/userService';
+import appointmentService from '../../services/appointmentService';
+import notificationService from '../../services/notificationService';
 import { useToast } from '../../context/ToastContext';
-import { TEAL, NAVY, MUTED, BORDER, StatusChip, PageHeader, formatDate, formatDateTime } from './shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, StatusChip, PageHeader, formatDate, formatDateTime } from './shared';
 
 const ROWS = 8;
 
@@ -29,6 +32,8 @@ const AdminPatients = () => {
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ fullName: '', phone: '', city: '', state: '' });
   const [saving, setSaving] = useState(false);
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -90,8 +95,27 @@ const AdminPatients = () => {
     }
   };
 
+  const confirmDelete = async () => {
+    setDeleting(true);
+    try {
+      // Remove the account + related records owned by other services.
+      await Promise.allSettled([
+        userService.deleteUser(deleteUser.id),
+        appointmentService.deleteByUser(deleteUser.id),
+        notificationService.deleteByUser(deleteUser.id),
+      ]);
+      showToast('Patient deleted successfully.');
+      setDeleteUser(null);
+      fetchPatients();
+    } catch (err) {
+      showToast('Unable to delete patient. Please try again.', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Patient Management"
         subtitle="View and manage all registered patients."
@@ -154,7 +178,7 @@ const AdminPatients = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#FAFBFC' }}>
+                  <TableRow sx={{ bgcolor: SURFACE }}>
                     {['Patient', 'Email', 'Mobile', 'Status', 'Registered', 'Actions'].map((h) => (
                       <TableCell key={h} sx={{ fontWeight: 800, color: NAVY, fontSize: '0.8rem' }}>{h}</TableCell>
                     ))}
@@ -183,6 +207,7 @@ const AdminPatients = () => {
                         ) : (
                           <IconButton size="small" onClick={() => toggleStatus(p)} title="Activate" sx={{ color: '#0F766E' }}><CheckCircleIcon fontSize="small" /></IconButton>
                         )}
+                        <IconButton size="small" onClick={() => setDeleteUser(p)} title="Delete" sx={{ color: '#B91C1C' }}><DeleteIcon fontSize="small" /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -235,6 +260,25 @@ const AdminPatients = () => {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteUser} onClose={() => setDeleteUser(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: NAVY }}>Delete Patient</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" mb={1}>
+            Are you sure you want to permanently delete <strong>{deleteUser?.fullName}</strong>?
+          </Typography>
+          <Typography variant="body2" color="#B91C1C" fontWeight={600}>
+            This action cannot be undone. All related appointments, reviews and notifications will be removed.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteUser(null)} sx={{ textTransform: 'none', color: MUTED }}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleting} sx={{ textTransform: 'none', borderRadius: 2 }}>
+            {deleting ? 'Deleting...' : 'Delete Patient'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Edit dialog */}

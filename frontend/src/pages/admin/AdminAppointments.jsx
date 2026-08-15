@@ -10,7 +10,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import SearchIcon from '@mui/icons-material/Search';
 import appointmentService from '../../services/appointmentService';
 import { useToast } from '../../context/ToastContext';
-import { TEAL, NAVY, MUTED, BORDER, StatusChip, PageHeader, formatDate, formatDateTime } from './shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, StatusChip, PageHeader, formatDate, formatDateTime } from './shared';
 
 const ROWS = 8;
 const STATUSES = ['ALL', 'PENDING', 'CONFIRMED', 'DECLINED', 'CANCELLED', 'COMPLETED'];
@@ -79,7 +79,7 @@ const AdminAppointments = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Appointment Management"
         subtitle="View and manage all appointments across the platform."
@@ -122,7 +122,7 @@ const AdminAppointments = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#FAFBFC' }}>
+                  <TableRow sx={{ bgcolor: SURFACE }}>
                     {['Patient', 'Doctor', 'Date', 'Time', 'Consultation', 'Reason', 'Status', 'Actions'].map((h) => (
                       <TableCell key={h} sx={{ fontWeight: 800, color: NAVY, fontSize: '0.8rem' }}>{h}</TableCell>
                     ))}

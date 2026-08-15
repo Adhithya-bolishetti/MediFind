@@ -71,6 +71,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
+    public void deleteNotificationsByUser(Long userId) {
+        notificationRepository.deleteAll(notificationRepository.findByUserIdOrderByCreatedAtDesc(userId));
+    }
+
+    @Override
+    @Transactional
     public void deleteNotification(Long id, Long userId) {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));

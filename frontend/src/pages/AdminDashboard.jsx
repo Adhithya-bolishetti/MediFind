@@ -3,7 +3,12 @@ import {
   Box, Typography, Paper, Grid, CircularProgress, Button, Avatar, Divider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { IconButton } from '@mui/material';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import { useThemeMode } from '../context/ThemeContext';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import StarIcon from '@mui/icons-material/Star';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -16,7 +21,7 @@ import userService from '../services/userService';
 import doctorService from '../services/doctorService';
 import hospitalService from '../services/hospitalService';
 import appointmentService from '../services/appointmentService';
-import { TEAL, NAVY, MUTED, BORDER, StatusChip, formatDate, isToday } from './admin/shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, HOVER, StatusChip, formatDate, isToday } from './admin/shared';
 
 const StatCard = ({ icon, label, value, delta, deltaLabel, color, onClick }) => (
   <Paper
@@ -73,6 +78,7 @@ const QuickAction = ({ icon, label, onClick, color }) => (
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
+  const { isDark, toggle } = useThemeMode();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ patients: [], doctors: [], hospitals: [], appointments: [], reviews: [] });
@@ -109,6 +115,12 @@ const AdminDashboard = () => {
   const stats = useMemo(() => {
     const pendingDoctors = data.doctors.filter(d => d.verificationStatus === 'PENDING');
     const pendingAppointments = data.appointments.filter(a => a.status === 'PENDING');
+    const allUsers = [...data.patients, ...data.doctors];
+    const suspendedUsers = allUsers.filter(u => (u.status || '').toUpperCase() === 'SUSPENDED').length;
+    const rated = data.doctors.filter(d => (d.rating || 0) > 0);
+    const avgRating = rated.length
+      ? Math.round((rated.reduce((s, d) => s + (d.rating || 0), 0) / rated.length) * 10) / 10
+      : 0;
     return {
       patients: data.patients.length,
       patientsToday: data.patients.filter(p => isToday(p.createdAt)).length,
@@ -118,6 +130,9 @@ const AdminDashboard = () => {
       appointments: data.appointments.length,
       pendingDoctors: pendingDoctors.length,
       pendingAppointments: pendingAppointments.length,
+      activeUsers: allUsers.length - suspendedUsers,
+      suspendedUsers,
+      avgRating,
     };
   }, [data]);
 
@@ -155,15 +170,21 @@ const AdminDashboard = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight={800} color={NAVY}>
-          Welcome, Admin 👋
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3 }}>
-          Here&apos;s what&apos;s happening with MediFind today.
-        </Typography>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h5" fontWeight={800} color={NAVY}>
+            Welcome, Admin 👋
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3 }}>
+            Here&apos;s what&apos;s happening with MediFind today.
+          </Typography>
+        </Box>
+        <IconButton onClick={toggle} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          sx={{ color: NAVY, bgcolor: SURFACE, border: `1px solid ${BORDER}`, '&:hover': { bgcolor: HOVER } }}>
+          {isDark ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+        </IconButton>
       </Box>
 
       {error && (
@@ -191,6 +212,15 @@ const AdminDashboard = () => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           <StatCard icon={<PendingActionsIcon />} label="Pending Appointments" value={stats.pendingAppointments} color="#BE185D" onClick={() => navigate('/admin/appointments')} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+          <StatCard icon={<PeopleAltIcon />} label="Active Users" value={stats.activeUsers} color="#059669" onClick={() => navigate('/admin/patients')} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+          <StatCard icon={<PeopleAltIcon />} label="Suspended Users" value={stats.suspendedUsers} color="#DC2626" onClick={() => navigate('/admin/patients')} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+          <StatCard icon={<StarIcon />} label="Average Doctor Rating" value={stats.avgRating > 0 ? `★ ${stats.avgRating}` : '—'} color="#D97706" onClick={() => navigate('/admin/doctors')} />
         </Grid>
       </Grid>
 
@@ -226,8 +256,7 @@ const AdminDashboard = () => {
             {pendingDoctors.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No pending doctor approvals. 🎉</Typography>
             ) : (
-              pendingDoctors.map((d) => (
-                <Box key={d.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: '1px solid #F3F4F6' }}>
+              pendingDoctors.map((d) => (                  <Box key={d.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: `1px solid ${BORDER}` }}>
                   <Avatar src={d.profileImage} sx={{ width: 40, height: 40, bgcolor: TEAL }}>
                     {(d.doctorName || 'D').charAt(0).toUpperCase()}
                   </Avatar>
@@ -254,7 +283,7 @@ const AdminDashboard = () => {
               <Typography variant="body2" color="text.secondary">No appointments yet.</Typography>
             ) : (
               recentAppointments.map((a) => (
-                <Box key={a.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: '1px solid #F3F4F6' }}>
+                <Box key={a.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: `1px solid ${BORDER}` }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="subtitle2" fontWeight={700} color={NAVY} noWrap>
                       {a.doctor?.doctorName || `Doctor #${a.doctorId}`} — {a.user?.fullName || `Patient #${a.userId}`}
@@ -276,8 +305,7 @@ const AdminDashboard = () => {
             {recentDoctors.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No doctors registered yet.</Typography>
             ) : (
-              recentDoctors.map((d) => (
-                <Box key={d.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: '1px solid #F3F4F6' }}>
+              recentDoctors.map((d) => (                  <Box key={d.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: `1px solid ${BORDER}` }}>
                   <Avatar src={d.profileImage} sx={{ width: 40, height: 40, bgcolor: '#0891B2' }}>
                     {(d.doctorName || 'D').charAt(0).toUpperCase()}
                   </Avatar>
@@ -299,7 +327,7 @@ const AdminDashboard = () => {
               <Typography variant="body2" color="text.secondary">No reviews yet.</Typography>
             ) : (
               recentReviews.map((r) => (
-                <Box key={r.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: '1px solid #F3F4F6' }}>
+                <Box key={r.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: `1px solid ${BORDER}` }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="subtitle2" fontWeight={700} color={NAVY} noWrap>
                       {r.patientName || `Patient #${r.userId}`} → {r.doctorName || `Doctor #${r.doctorId}`}

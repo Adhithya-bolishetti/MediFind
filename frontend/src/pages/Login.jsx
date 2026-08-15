@@ -30,6 +30,11 @@ const getFriendlyError = (err) => {
     return 'Cannot connect to the server. Please check your connection and try again.';
   }
   const status = err?.response?.status;
+  const backendMessage = err?.response?.data?.message;
+  // Surface the backend's suspension message so the user understands why they are blocked.
+  if (backendMessage && /suspend/i.test(backendMessage)) {
+    return backendMessage;
+  }
   if (status === 401) return 'Invalid mobile number or password. Please try again.';
   return 'Unable to log in. Please try again.';
 };

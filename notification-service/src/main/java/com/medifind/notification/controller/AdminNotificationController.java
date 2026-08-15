@@ -55,6 +55,16 @@ public class AdminNotificationController {
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
+    /**
+     * Delete every notification belonging to a user (used when an admin
+     * permanently deletes a patient or doctor account).
+     */
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteByUser(@PathVariable Long userId) {
+        notificationService.deleteNotificationsByUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/broadcast")
     public ResponseEntity<List<NotificationResponse>> broadcast(@RequestBody SendRequest request) {
         String recipient = request.getRecipient() == null ? "ALL" : request.getRecipient().toUpperCase(Locale.ENGLISH);

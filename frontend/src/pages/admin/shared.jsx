@@ -1,11 +1,17 @@
 import React from 'react';
 import { Box, Typography, Chip } from '@mui/material';
 
+// Brand accent is constant across light/dark.
 export const TEAL = '#079A9A';
-export const NAVY = '#101B36';
-export const MUTED = '#5C6780';
-export const BORDER = '#E8EDF2';
-export const BG = '#F7F9FC';
+// The remaining tokens are CSS variables driven by the ThemeProvider — they
+// resolve to light values in light mode and dark values in dark mode.
+export const NAVY = 'var(--mf-text)';
+export const MUTED = 'var(--mf-muted)';
+export const BORDER = 'var(--mf-border)';
+export const BG = 'var(--mf-bg)';
+export const CARD = 'var(--mf-card)';
+export const SURFACE = 'var(--mf-surface)';
+export const HOVER = 'var(--mf-hover)';
 
 const STATUS_STYLES = {
   PENDING: { bg: '#FFF7E6', color: '#B45309' },

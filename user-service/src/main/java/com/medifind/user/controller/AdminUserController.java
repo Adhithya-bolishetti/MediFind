@@ -6,7 +6,9 @@ import com.medifind.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 public class AdminUserController {
 
     private final UserRepository userRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     /**
      * List users, optionally filtered by role, free-text search and status.
@@ -82,6 +85,25 @@ public class AdminUserController {
 
         userRepository.save(user);
         return ResponseEntity.ok(mapToResponse(user));
+    }
+
+    /**
+     * Permanently delete a user and their related records (doctor reviews and
+     * hospital reviews live in the same medifind_db). Appointment and
+     * notification records are owned by other microservices; the admin UI
+     * calls their delete-by-user endpoints in the same operation.
+     */
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        User user = getUser(id);
+
+        // Clean up review records referencing this user (same database).
+        jdbcTemplate.update("DELETE FROM reviews WHERE user_id = ?", id);
+        jdbcTemplate.update("DELETE FROM hospital_reviews WHERE patient_id = ?", id);
+
+        userRepository.delete(user);
+        return ResponseEntity.noContent().build();
     }
 
     /**

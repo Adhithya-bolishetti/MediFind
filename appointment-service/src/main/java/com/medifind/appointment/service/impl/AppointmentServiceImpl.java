@@ -261,6 +261,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    public void deleteAppointmentsByUser(Long userId) {
+        appointmentRepository.deleteAll(appointmentRepository.findByUserId(userId));
+    }
+
+    @Override
+    public void deleteAppointmentsByDoctor(Long doctorId) {
+        appointmentRepository.deleteAll(appointmentRepository.findByDoctorId(doctorId));
+    }
+
+    @Override
     public boolean hasCompletedAppointment(Long doctorId, Long userId) {
         return appointmentRepository.existsByDoctorIdAndUserIdAndStatus(doctorId, userId, AppointmentStatus.COMPLETED);
     }

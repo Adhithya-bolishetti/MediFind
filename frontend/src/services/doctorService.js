@@ -107,6 +107,16 @@ const doctorService = {
   updateReviewStatus: async (reviewId, status) => {
     const response = await api.put(`/admin/doctors/reviews/${reviewId}/status`, { status });
     return response.data;
+  },
+
+  deleteDoctor: async (id) => {
+    const response = await api.delete(`/admin/doctors/${id}`);
+    return response.data;
+  },
+
+  deleteReview: async (reviewId) => {
+    const response = await api.delete(`/admin/doctors/reviews/${reviewId}`);
+    return response.data;
   }
 };
 

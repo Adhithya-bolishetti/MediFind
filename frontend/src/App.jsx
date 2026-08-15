@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Box, CircularProgress } from '@mui/material';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -227,13 +228,15 @@ const AppRoutes = () => (
 
 function App() {
   return (
-    <Router>
-      <ToastProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </ToastProvider>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <ToastProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </ToastProvider>
+      </Router>
+    </ThemeProvider>
   );
 }
 

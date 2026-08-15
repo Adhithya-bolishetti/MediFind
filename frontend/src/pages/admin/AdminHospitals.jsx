@@ -15,7 +15,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import hospitalService from '../../services/hospitalService';
 import doctorService from '../../services/doctorService';
 import { useToast } from '../../context/ToastContext';
-import { TEAL, NAVY, MUTED, BORDER, StatusChip, PageHeader, formatDate } from './shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, StatusChip, PageHeader, formatDate } from './shared';
 
 const ROWS = 8;
 const EMPTY_FORM = { hospitalName: '', address: '', city: '', state: '', phoneNumber: '', email: '', latitude: '', longitude: '', emergencyAvailable: false };
@@ -157,7 +157,7 @@ const AdminHospitals = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Hospital Management"
         subtitle="Add, edit and manage hospitals."
@@ -207,7 +207,7 @@ const AdminHospitals = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#FAFBFC' }}>
+                  <TableRow sx={{ bgcolor: SURFACE }}>
                     {['Hospital', 'Location', 'Phone', 'Rating', 'Doctors', 'Status', 'Actions'].map((h) => (
                       <TableCell key={h} sx={{ fontWeight: 800, color: NAVY, fontSize: '0.8rem' }}>{h}</TableCell>
                     ))}

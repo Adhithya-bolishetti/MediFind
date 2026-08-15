@@ -8,7 +8,7 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import notificationService from '../../services/notificationService';
 import userService from '../../services/userService';
 import { useToast } from '../../context/ToastContext';
-import { TEAL, NAVY, MUTED, BORDER, PageHeader } from './shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, PageHeader } from './shared';
 
 const AdminNotifications = () => {
   const { showToast } = useToast();
@@ -73,7 +73,7 @@ const AdminNotifications = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Notifications"
         subtitle="Send announcements to patients and doctors."

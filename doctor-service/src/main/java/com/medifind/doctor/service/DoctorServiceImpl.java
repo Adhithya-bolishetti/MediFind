@@ -370,6 +370,11 @@ public class DoctorServiceImpl implements DoctorService {
     }
     
     @Override
+    public void recalculateDoctorRating(Long doctorId) {
+        updateDoctorRating(getDoctor(doctorId));
+    }
+
+    @Override
     public ReviewResponse mapToReviewResponsePublic(Review review) {
         return mapToReviewResponse(review);
     }
@@ -561,6 +566,7 @@ public class DoctorServiceImpl implements DoctorService {
     private DoctorProfileResponse mapToDoctorProfileResponse(Doctor doctor) {
         return DoctorProfileResponse.builder()
                 .id(doctor.getId())
+                .userId(doctor.getUserId())
                 .doctorName(doctor.getDoctorName())
                 .email(doctor.getEmail())
                 .phoneNumber(doctor.getPhoneNumber())

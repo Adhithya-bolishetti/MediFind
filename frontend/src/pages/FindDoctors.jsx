@@ -299,6 +299,14 @@ const FindDoctors = () => {
         if (b._distanceKm == null) return -1;
         return a._distanceKm - b._distanceKm;
       });
+    } else if (sortBy === 'ratingDesc') {
+      list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sortBy === 'ratingAsc') {
+      list = [...list].sort((a, b) => (a.rating || 0) - (b.rating || 0));
+    } else if (sortBy === 'locationAsc') {
+      list = [...list].sort((a, b) =>
+        ((a.city || '') + (a.state || '')).localeCompare(((b.city || '') + (b.state || '')), undefined, { sensitivity: 'base' })
+      );
     } else if (sortBy === 'recommended') {
       list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
@@ -400,7 +408,10 @@ const FindDoctors = () => {
                     sx={{ borderRadius: 2 }}
                   >
                     <MenuItem value="recommended">Recommended</MenuItem>
+                    <MenuItem value="ratingDesc">Rating: High → Low</MenuItem>
+                    <MenuItem value="ratingAsc">Rating: Low → High</MenuItem>
                     <MenuItem value="nearest">Location: Nearest First</MenuItem>
+                    <MenuItem value="locationAsc">Location: A → Z</MenuItem>
                     <MenuItem value="nameAsc">Doctor Name: A → Z</MenuItem>
                     <MenuItem value="nameDesc">Doctor Name: Z → A</MenuItem>
                   </Select>

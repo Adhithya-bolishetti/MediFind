@@ -17,6 +17,8 @@ public interface AppointmentService {
     AppointmentResponse declineAppointment(Long id, Long doctorId);
     AppointmentResponse completeAppointment(Long id, Long doctorId);
     void deleteAppointment(Long id);
+    void deleteAppointmentsByUser(Long userId);
+    void deleteAppointmentsByDoctor(Long doctorId);
     boolean hasCompletedAppointment(Long doctorId, Long userId);
     List<String> getBookedSlots(Long doctorId, String date);
 }

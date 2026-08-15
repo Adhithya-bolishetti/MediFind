@@ -8,10 +8,11 @@ import {
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import RestoreIcon from '@mui/icons-material/Restore';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import doctorService from '../../services/doctorService';
 import { useToast } from '../../context/ToastContext';
-import { TEAL, NAVY, MUTED, BORDER, StatusChip, PageHeader, formatDateTime } from './shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, StatusChip, PageHeader, formatDateTime } from './shared';
 
 const ROWS = 8;
 const STATUSES = ['ALL', 'APPROVED', 'PENDING', 'REJECTED', 'HIDDEN', 'FLAGGED'];
@@ -27,6 +28,8 @@ const AdminReviews = () => {
   const [page, setPage] = useState(0);
   const [viewReview, setViewReview] = useState(null);
   const [acting, setActing] = useState(false);
+  const [deleteReview, setDeleteReview] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -73,8 +76,22 @@ const AdminReviews = () => {
     }
   };
 
+  const confirmDelete = async () => {
+    setDeleting(true);
+    try {
+      await doctorService.deleteReview(deleteReview.id);
+      showToast('Review deleted successfully.');
+      setDeleteReview(null);
+      fetchReviews();
+    } catch (err) {
+      showToast('Unable to delete review. Please try again.', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Reviews & Ratings"
         subtitle="Moderate doctor reviews and ratings."
@@ -126,7 +143,7 @@ const AdminReviews = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#FAFBFC' }}>
+                  <TableRow sx={{ bgcolor: SURFACE }}>
                     {['Patient', 'Doctor', 'Rating', 'Review', 'Date', 'Status', 'Actions'].map((h) => (
                       <TableCell key={h} sx={{ fontWeight: 800, color: NAVY, fontSize: '0.8rem' }}>{h}</TableCell>
                     ))}
@@ -152,6 +169,7 @@ const AdminReviews = () => {
                         ) : (
                           <IconButton size="small" onClick={() => setStatus(r, 'APPROVED', 'Review restored.')} disabled={acting} title="Restore review" sx={{ color: '#0F766E' }}><RestoreIcon fontSize="small" /></IconButton>
                         )}
+                        <IconButton size="small" onClick={() => setDeleteReview(r)} title="Delete review" sx={{ color: '#B91C1C' }}><DeleteIcon fontSize="small" /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -163,6 +181,26 @@ const AdminReviews = () => {
         )}
       </Paper>
 
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteReview} onClose={() => setDeleteReview(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: NAVY }}>Delete Review</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" mb={1}>
+            Are you sure you want to permanently delete this review by <strong>{deleteReview?.patientName || `Patient #${deleteReview?.userId}`}</strong> for{' '}
+            <strong>{deleteReview?.doctorName || `Doctor #${deleteReview?.doctorId}`}</strong>?
+          </Typography>
+          <Typography variant="body2" color="#B91C1C" fontWeight={600}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteReview(null)} sx={{ textTransform: 'none', color: MUTED }}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleting} sx={{ textTransform: 'none', borderRadius: 2 }}>
+            {deleting ? 'Deleting...' : 'Delete Review'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* View dialog */}
       <Dialog open={!!viewReview} onClose={() => setViewReview(null)} maxWidth="sm" fullWidth>
         {viewReview && (
@@ -173,7 +211,7 @@ const AdminReviews = () => {
                 <Rating value={viewReview.rating} readOnly />
                 <StatusChip status={viewReview.status} />
               </Box>
-              <Typography variant="body2" color={MUTED} sx={{ mb: 2, bgcolor: '#FAFBFC', p: 2, borderRadius: 2 }}>
+              <Typography variant="body2" color={MUTED} sx={{ mb: 2, bgcolor: SURFACE, p: 2, borderRadius: 2 }}>
                 {viewReview.comment || 'No comment provided.'}
               </Typography>
               <Divider sx={{ mb: 2 }} />

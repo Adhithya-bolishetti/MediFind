@@ -60,6 +60,12 @@ public interface DoctorService {
     void deleteReview(Long doctorId, Long reviewId, Long userId, boolean isAdmin);
     com.medifind.doctor.dto.ReviewResponse updateReviewStatus(Long reviewId, com.medifind.doctor.entity.ReviewStatus status);
     com.medifind.doctor.dto.ReviewResponse mapToReviewResponsePublic(com.medifind.doctor.entity.Review review);
+
+    /**
+     * Recalculate and persist the average rating for a doctor after a review
+     * is deleted or its visibility changes (admin moderation).
+     */
+    void recalculateDoctorRating(Long doctorId);
     
     List<com.medifind.doctor.dto.DoctorRecommendationResponse> getRecommendations(String specialization, String city, Double minimumRating, Integer minimumExperience, Boolean available);
 

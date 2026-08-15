@@ -1,15 +1,20 @@
 import { useContext } from 'react';
-import { Box, Paper, Typography, Avatar, Divider, Chip } from '@mui/material';
+import { Box, Paper, Typography, Avatar, Divider, Chip, Switch, FormControlLabel } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { AuthContext } from '../../context/AuthContext';
-import { TEAL, NAVY, MUTED, BORDER, PageHeader, formatDateTime } from './shared';
+import { useThemeMode } from '../../context/ThemeContext';
+import { TEAL, NAVY, MUTED, BORDER, BG, PageHeader, formatDateTime } from './shared';
 
 const AdminSettings = () => {
   const { user } = useContext(AuthContext);
+  const { mode, toggle } = useThemeMode();
+  const isDark = mode === 'dark';
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: BG }}>
       <PageHeader
         title="Settings"
         subtitle="Account and platform settings."
@@ -41,6 +46,33 @@ const AdminSettings = () => {
             <Typography variant="body2" color={MUTED}>{value || '—'}</Typography>
           </Box>
         ))}
+      </Paper>
+
+      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: `1px solid ${BORDER}`, maxWidth: 680, mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+          <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: `${TEAL}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {isDark ? <DarkModeOutlinedIcon sx={{ color: TEAL }} /> : <LightModeOutlinedIcon sx={{ color: TEAL }} />}
+          </Box>
+          <Typography variant="h6" fontWeight={800} color={NAVY}>Appearance</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+          <Box>
+            <Typography variant="body2" fontWeight={700} color={NAVY}>Dark Mode</Typography>
+            <Typography variant="body2" color={MUTED}>Switch between light and dark theme. Your choice is remembered on this device.</Typography>
+          </Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isDark}
+                onChange={toggle}
+                sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: TEAL } }}
+              />
+            }
+            label={isDark ? 'Dark' : 'Light'}
+            labelPlacement="end"
+            sx={{ m: 0 }}
+          />
+        </Box>
       </Paper>
 
       <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: `1px solid ${BORDER}`, maxWidth: 680 }}>

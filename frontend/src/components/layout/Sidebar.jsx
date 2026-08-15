@@ -25,9 +25,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 const SIDEBAR_WIDTH = 260;
 const TEAL = '#079A9A';
-const NAVY = '#101B36';
-const LIGHT_TEAL_BG = '#EAF7F7';
-const BORDER_COLOR = '#E8EDF2';
+const NAVY = 'var(--mf-text)';
+const LIGHT_TEAL_BG = 'rgba(7, 154, 154, 0.12)';
+const BORDER_COLOR = 'var(--mf-border)';
 
 const patientNavItems = [
   { label: 'Profile', icon: <PersonOutlinedIcon />, path: '/profile' },
@@ -101,7 +101,7 @@ const SidebarContent = ({ onClose }) => {
       sx={{
         width: SIDEBAR_WIDTH,
         height: '100vh',
-        bgcolor: '#FFFFFF',
+        bgcolor: 'var(--mf-card)',
         borderRight: `1px solid ${BORDER_COLOR}`,
         display: 'flex',
         flexDirection: 'column',
@@ -174,7 +174,7 @@ const SidebarContent = ({ onClose }) => {
                 bgcolor: active ? LIGHT_TEAL_BG : 'transparent',
                 transition: 'all 0.15s ease',
                 '&:hover': {
-                  bgcolor: active ? LIGHT_TEAL_BG : '#F5F7FA',
+                  bgcolor: active ? LIGHT_TEAL_BG : 'var(--mf-hover)',
                 },
               }}
             >
@@ -256,7 +256,7 @@ const Sidebar = () => {
             top: 12,
             left: 12,
             zIndex: 1300,
-            bgcolor: '#fff',
+            bgcolor: 'var(--mf-card)',
             borderRadius: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
           }}

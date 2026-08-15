@@ -72,6 +72,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        // Suspended accounts must be rejected even though their credentials are
+        // valid (User.isEnabled() returns false, which surfaces as DisabledException
+        // during authentication). Check status explicitly so the user sees a clear
+        // message instead of a generic "invalid credentials" error.
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        if (user != null && "SUSPENDED".equalsIgnoreCase(user.getStatus())) {
+            throw new BadCredentialsException("Your account has been suspended by the administrator. Please contact MediFind support.");
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -81,13 +90,6 @@ public class AuthServiceImpl implements AuthService {
             );
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("Invalid email or password");
-        }
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        if (user.getStatus() != null && "SUSPENDED".equalsIgnoreCase(user.getStatus())) {
-            throw new BadCredentialsException("Your account has been suspended. Contact support for assistance.");
         }
 
         String jwtToken = jwtService.generateToken(user);

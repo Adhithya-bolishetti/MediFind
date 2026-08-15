@@ -40,6 +40,16 @@ const appointmentService = {
   cancelAdmin: async (id) => {
     const response = await api.put(`/admin/appointments/${id}/cancel`);
     return response.data;
+  },
+
+  deleteByUser: async (userId) => {
+    const response = await api.delete(`/admin/appointments/user/${userId}`);
+    return response.data;
+  },
+
+  deleteByDoctor: async (doctorId) => {
+    const response = await api.delete(`/admin/appointments/doctor/${doctorId}`);
+    return response.data;
   }
 };
 
