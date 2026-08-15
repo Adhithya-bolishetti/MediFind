@@ -1,4 +1,4 @@
-package com.medifind.appointment.exception;
+package com.medifind.doctor.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -8,28 +8,27 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Centralised exception handler for the Hospital Service.
- * Maps domain exceptions to meaningful HTTP responses.
+ * Centralised exception handler for the Doctor Service.
+ * Preserves the intended HTTP status for {@link ResponseStatusException}
+ * (e.g. 404 when a doctor profile does not exist yet) instead of letting
+ * Spring Security translate it into a generic 403.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(HospitalNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleHospitalNotFound(
-            HospitalNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
-    }
-
-    @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateEmail(
-            DuplicateEmailException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(
+            ResponseStatusException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return buildResponse(status,
+                ex.getReason() != null ? ex.getReason() : status.getReasonPhrase(), request.getRequestURI());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -49,14 +48,6 @@ public class GlobalExceptionHandler {
         });
         return buildResponse(HttpStatus.BAD_REQUEST,
                 "Validation failed: " + errors, request.getRequestURI());
-    }
-
-    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatus(
-            org.springframework.web.server.ResponseStatusException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
-        return buildResponse(status,
-                ex.getReason() != null ? ex.getReason() : status.getReasonPhrase(), request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

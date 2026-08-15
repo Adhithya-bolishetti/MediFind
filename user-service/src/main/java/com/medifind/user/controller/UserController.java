@@ -26,6 +26,16 @@ public class UserController {
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .phone(user.getPhone())
+                .gender(user.getGender())
+                .dateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null)
+                .address(user.getAddress())
+                .city(user.getCity())
+                .state(user.getState())
+                .pincode(user.getPincode())
+                .profileImage(user.getProfileImage())
+                .emergencyContactName(user.getEmergencyContactName())
+                .emergencyContactPhone(user.getEmergencyContactPhone())
                 .build();
                 
         return ResponseEntity.ok(response);
@@ -58,6 +68,16 @@ public class UserController {
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .phone(user.getPhone())
+                .gender(user.getGender())
+                .dateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null)
+                .address(user.getAddress())
+                .city(user.getCity())
+                .state(user.getState())
+                .pincode(user.getPincode())
+                .profileImage(user.getProfileImage())
+                .emergencyContactName(user.getEmergencyContactName())
+                .emergencyContactPhone(user.getEmergencyContactPhone())
                 .build();
                 
         return ResponseEntity.ok(response);

@@ -17,6 +17,7 @@
         <module>doctor-service</module>
         <module>hospital-service</module>
         <module>appointment-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>
@@ -51,6 +52,15 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- Compile with parameter-name metadata so @PathVariable without an
+                 explicit name resolves correctly at runtime in every microservice. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
             </plugin>
         </plugins>
     </build>

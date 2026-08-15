@@ -11,6 +11,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import { AuthContext } from '../context/AuthContext';
 import ReviewModal from '../components/ReviewModal';
 import api from '../services/api';
+import doctorService from '../services/doctorService';
 
 const TEAL = '#079A9A';
 const NAVY = '#101B36';
@@ -44,9 +45,18 @@ const AppointmentHistory = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        // Use the configured api client (has auth token interceptor)
+        let targetId = user.id;
+        // Doctors are identified by their doctor-profile id in the appointment
+        // service, not the auth user id.
+        if (user.role === 'DOCTOR') {
+          try {
+            const profile = await doctorService.getMyProfile();
+            if (profile?.id) targetId = profile.id;
+          } catch { /* fall back to auth user id */ }
+        }
+
         const endpoint = user.role === 'DOCTOR'
-          ? `/appointments/doctor/${user.id}`
+          ? `/appointments/doctor/${targetId}`
           : `/appointments/user/${user.id}`;
 
         const res = await api.get(endpoint);
@@ -186,8 +196,8 @@ const AppointmentHistory = () => {
                           <PersonIcon fontSize="small" />
                           <Typography variant="body2">
                             {user.role === 'DOCTOR'
-                              ? `Patient ID: ${appt.userId}`
-                              : `Doctor ID: ${appt.doctorId}`}
+                              ? (appt.user?.fullName || `Patient #${appt.userId}`)
+                              : (appt.doctor?.doctorName ? `Dr. ${appt.doctor.doctorName.replace(/^Dr\.?\s+/i, '')}` : `Doctor #${appt.doctorId}`)}
                           </Typography>
                         </Box>
                       </Box>

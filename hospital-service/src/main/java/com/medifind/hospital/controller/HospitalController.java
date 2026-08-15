@@ -50,7 +50,7 @@ public class HospitalController {
      */
     @Operation(summary = "Get all hospitals")
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<HospitalResponse>> getAllHospitals() {
         return ResponseEntity.ok(hospitalService.getAllHospitals());
     }
@@ -60,7 +60,7 @@ public class HospitalController {
      */
     @Operation(summary = "Get hospital by ID")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<HospitalResponse> getHospitalById(@PathVariable Long id) {
         return ResponseEntity.ok(hospitalService.getHospitalById(id));
     }

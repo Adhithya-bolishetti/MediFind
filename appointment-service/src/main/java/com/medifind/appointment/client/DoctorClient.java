@@ -1,12 +1,13 @@
 package com.medifind.appointment.client;
 
+import com.medifind.appointment.config.FeignClientConfig;
 import com.medifind.appointment.dto.DoctorAvailabilityResponse;
 import com.medifind.appointment.dto.DoctorResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "doctor-service")
+@FeignClient(name = "doctor-service", configuration = FeignClientConfig.class)
 public interface DoctorClient {
     @GetMapping("/api/doctors/{id}")
     DoctorResponse getDoctorById(@PathVariable("id") Long id);

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Box, Typography, Grid, Paper, Button,
+  Box, Typography, Grid, Paper, Button, Chip,
   CircularProgress, IconButton
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -37,10 +37,26 @@ const StatusChip = ({ status }) => {
   );
 };
 
-const AppointmentRow = ({ appt }) => {
-  const timeStr = appt.appointmentTime || '';
+// Convert "10:30:00" (LocalTime serialization) into "10:30 AM" display format.
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const t = String(timeStr);
+  if (t.includes(' ')) {
+    // Already formatted like "10:30 AM"
+    const [hhmm, meridiem] = t.split(' ');
+    return { time: hhmm, meridiem: meridiem?.toUpperCase() };
+  }
+  const [hh, mm] = t.split(':').map(Number);
+  if (Number.isNaN(hh)) return { time: t, meridiem: '' };
+  const suffix = hh >= 12 ? 'PM' : 'AM';
+  const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+  return { time: `${String(hour12).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, meridiem: suffix };
+};
+
+const AppointmentRow = ({ appt, locationName }) => {
   const dateObj = new Date(appt.appointmentDate);
-  const timeDisplay = timeStr || dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const display = formatTime(appt.appointmentTime);
+  const patientName = appt.user?.fullName || `Patient #${appt.userId}`;
 
   return (
     <Box
@@ -65,11 +81,11 @@ const AppointmentRow = ({ appt }) => {
         }}
       >
         <Typography variant="body1" fontWeight={800} color={TEAL} lineHeight={1.1}>
-          {timeDisplay.split(' ')[0]}
+          {display.time || dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).split(' ')[0]}
         </Typography>
-        {timeDisplay.includes(' ') && (
+        {display.meridiem && (
           <Typography variant="caption" fontWeight={700} color={TEAL}>
-            {timeDisplay.split(' ')[1]}
+            {display.meridiem}
           </Typography>
         )}
       </Box>
@@ -77,15 +93,17 @@ const AppointmentRow = ({ appt }) => {
       {/* Details */}
       <Box flex={1} minWidth={0}>
         <Typography variant="body2" fontWeight={700} color={NAVY} noWrap>
-          Patient ID: {appt.userId}
+          {patientName}
         </Typography>
         <Typography variant="caption" color="text.secondary" noWrap>
           {appt.reason || 'Consultation'}
         </Typography>
-        <Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
-          <LocationOnIcon sx={{ fontSize: 12, color: '#9CA3AF' }} />
-          <Typography variant="caption" color="text.secondary">OPD Room 1</Typography>
-        </Box>
+        {locationName && (
+          <Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
+            <LocationOnIcon sx={{ fontSize: 12, color: '#9CA3AF' }} />
+            <Typography variant="caption" color="text.secondary" noWrap>{locationName}</Typography>
+          </Box>
+        )}
       </Box>
 
       <StatusChip status={appt.status} />
@@ -137,15 +155,18 @@ const DoctorDashboard = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        // Fetch doctor profile for name
+        // Fetch the doctor profile. The doctor entity id (not the auth user id)
+        // is what the appointment service uses to look up the schedule.
+        let doctorId = user.id;
         try {
           const profile = await doctorService.getMyProfile();
           setDoctorProfile(profile);
+          if (profile?.id) doctorId = profile.id;
         } catch { }
 
         // Fetch appointments
         try {
-          const res = await api.get(`/appointments/doctor/${user.id}`);
+          const res = await api.get(`/appointments/doctor/${doctorId}`);
           const appts = res.data || [];
           setAllAppts(appts);
 
@@ -178,6 +199,8 @@ const DoctorDashboard = () => {
   const pending = allAppts.filter(a => a.status === 'PENDING').length;
 
   const doctorName = doctorProfile?.doctorName || user?.fullName || 'Doctor';
+  const displayName = doctorName.replace(/^Dr\.?\s+/i, '');
+  const locationName = doctorProfile?.clinicName || doctorProfile?.clinicAddress || 'OPD Room 1';
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
@@ -186,7 +209,7 @@ const DoctorDashboard = () => {
       <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
         <Box>
           <Typography variant="h5" fontWeight={800} color={NAVY}>
-            Welcome, Dr. {doctorName}
+            Welcome, Dr. {displayName}
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.3}>
             Here's your overview for today.
@@ -246,7 +269,7 @@ const DoctorDashboard = () => {
         ) : (
           <Box>
             {todayAppts.map(appt => (
-              <AppointmentRow key={appt.id} appt={appt} />
+              <AppointmentRow key={appt.id} appt={appt} locationName={locationName} />
             ))}
           </Box>
         )}

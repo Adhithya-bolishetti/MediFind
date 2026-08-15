@@ -15,16 +15,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Hide the top navbar on all authenticated dashboard pages
-  // (they have the sidebar). Show it on public paths and
-  // on doctor/patient details pages that don't require auth.
-  const isPublicOrDetailPage =
-    PUBLIC_PATHS.includes(location.pathname) ||
-    location.pathname.startsWith('/doctors/') ||
-    location.pathname.startsWith('/hospitals') ||
-    (!user && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/profile'));
-
-  if (!isPublicOrDetailPage) return null;
+  // The top navbar is only for anonymous visitors on public pages.
+  // Authenticated users always get the left sidebar instead — never both.
+  if (user || !PUBLIC_PATHS.includes(location.pathname)) return null;
 
   const handleLogout = () => {
     logout();

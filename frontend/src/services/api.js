@@ -19,13 +19,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle errors (like 401/403)
+// Response interceptor to handle errors.
+// Only 401 (invalid/expired token) should log the user out. 403 means the
+// request is authenticated but forbidden — e.g. a new doctor checking their
+// profile status before onboarding — and must NOT wipe the session.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      // 401 Unauthorized or 403 Forbidden
-      if (error.response.status === 401 || error.response.status === 403) {
+      if (error.response.status === 401) {
         // Clear auth data and potentially redirect
         localStorage.removeItem('token');
         // Let the application handle redirect via context/state rather than forcing reload

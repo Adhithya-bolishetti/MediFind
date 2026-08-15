@@ -5,7 +5,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import StarIcon from '@mui/icons-material/Star';
-import axios from 'axios';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import hospitalService from '../services/hospitalService';
+
+const TEAL = '#079A9A';
+const NAVY = '#101B36';
 
 const HospitalSearch = () => {
   const [hospitals, setHospitals] = useState([]);
@@ -20,8 +24,8 @@ const HospitalSearch = () => {
   const fetchHospitals = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/hospitals');
-      setHospitals(res.data);
+      const data = await hospitalService.getAll();
+      setHospitals(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch hospitals", err);
     } finally {
@@ -35,26 +39,41 @@ const HospitalSearch = () => {
       fetchHospitals();
       return;
     }
-    // Client-side filtering for simplicity since we don't have a specific name search endpoint
-    const filtered = hospitals.filter(h => h.name.toLowerCase().includes(search.toLowerCase()) || h.city.toLowerCase().includes(search.toLowerCase()));
+    // Client-side filtering by name/city
+    const q = search.toLowerCase();
+    const filtered = hospitals.filter(h =>
+      (h.hospitalName || '').toLowerCase().includes(q) ||
+      (h.city || '').toLowerCase().includes(q) ||
+      (h.address || '').toLowerCase().includes(q)
+    );
     setHospitals(filtered);
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 } }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" fontWeight={800} gutterBottom sx={{ color: '#c62828' }}>
-          Find a <span style={{ background: 'linear-gradient(45deg, #d32f2f, #f44336)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Hospital</span>
-        </Typography>
-        <Typography variant="h6" color="text.secondary" paragraph sx={{ mb: 4 }}>
-          Locate medical centers near you, check bed availability, and emergency services.
-        </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+      <Container maxWidth="lg" disableGutters>
+        <Box mb={3}>
+          <Typography variant="h5" fontWeight={800} color={NAVY}>
+            Find Hospitals
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.3}>
+            Locate medical centers near you and check their facilities and services.
+          </Typography>
+        </Box>
 
-        <Paper 
-          component="form" 
+        <Paper
+          component="form"
           onSubmit={handleSearch}
-          elevation={2} 
-          sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 3, mb: 6 }}
+          elevation={0}
+          sx={{
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            borderRadius: 3,
+            mb: 4,
+            border: '1px solid #E8EDF2',
+          }}
         >
           <TextField
             fullWidth
@@ -62,15 +81,27 @@ const HospitalSearch = () => {
             variant="outlined"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: 2 },
+              '& fieldset': { borderColor: '#D9DEE8' },
+              '&:hover fieldset': { borderColor: TEAL },
+              '&.Mui-focused fieldset': { borderColor: TEAL },
+            }}
           />
-          <Button 
+          <Button
             type="submit"
-            variant="contained" 
-            color="error"
+            variant="contained"
             size="large"
             startIcon={<SearchIcon />}
-            sx={{ py: 1.5, px: 4, borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+            sx={{
+              py: 1.5,
+              px: 4,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              bgcolor: TEAL,
+              '&:hover': { bgcolor: '#068A8A' },
+            }}
           >
             Search
           </Button>
@@ -78,7 +109,7 @@ const HospitalSearch = () => {
 
         {loading ? (
           <Box display="flex" justifyContent="center" py={10}>
-            <CircularProgress color="error" size={60} />
+            <CircularProgress sx={{ color: TEAL }} size={60} />
           </Box>
         ) : (
           <Grid container spacing={4}>
@@ -89,53 +120,98 @@ const HospitalSearch = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
-                  <Paper 
+                  <Paper
                     elevation={0}
-                    sx={{ 
-                      p: 4, 
-                      borderRadius: 4, 
-                      border: '1px solid #e0e0e0',
+                    sx={{
+                      p: 4,
+                      borderRadius: 4,
+                      border: '1px solid #E8EDF2',
                       transition: 'all 0.3s',
-                      '&:hover': { transform: 'scale(1.02)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', borderColor: 'transparent' }
+                      '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 12px 32px rgba(0,0,0,0.08)', borderColor: `${TEAL}40` },
                     }}
                   >
                     <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                      <Typography variant="h5" fontWeight={700} color="#1a237e">
-                        {hospital.name}
-                      </Typography>
-                      {hospital.hasEmergencyRoom && (
+                      <Box display="flex" alignItems="center" gap={1.5}>
+                        <Box
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: '12px',
+                            bgcolor: `${TEAL}15`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <LocalHospitalIcon sx={{ color: TEAL }} />
+                        </Box>
+                        <Typography variant="h6" fontWeight={700} color={NAVY}>
+                          {hospital.hospitalName || hospital.name}
+                        </Typography>
+                      </Box>
+                      {hospital.emergencyAvailable && (
                         <Chip label="24/7 ER" color="error" size="small" sx={{ fontWeight: 700 }} />
                       )}
                     </Box>
 
-                    <Box display="flex" alignItems="center" gap={1} mb={1} color="text.secondary">
+                    <Box display="flex" alignItems="center" gap={1} mb={0.5} color="text.secondary">
                       <LocationOnIcon fontSize="small" />
-                      <Typography variant="body1">{hospital.address}, {hospital.city}, {hospital.state}</Typography>
+                      <Typography variant="body2">
+                        {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
+                      </Typography>
                     </Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={3} color="text.secondary">
-                      <LocalPhoneIcon fontSize="small" />
-                      <Typography variant="body1">{hospital.contactPhone}</Typography>
+                    {hospital.phoneNumber && (
+                      <Box display="flex" alignItems="center" gap={1} mb={1} color="text.secondary">
+                        <LocalPhoneIcon fontSize="small" />
+                        <Typography variant="body2">{hospital.phoneNumber}</Typography>
+                      </Box>
+                    )}
+                    <Box display="flex" alignItems="center" gap={0.5} mb={3}>
+                      <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} />
+                      <Typography variant="body2" fontWeight={700} color="#F59E0B">
+                        {hospital.rating > 0 ? hospital.rating : 'New'}
+                      </Typography>
+                      {hospital.totalReviews > 0 && (
+                        <Typography variant="body2" color="text.secondary">
+                          ({hospital.totalReviews} reviews)
+                        </Typography>
+                      )}
                     </Box>
 
-                    <Box display="flex" gap={2}>
-                      <Button 
-                        variant="outlined"
-                        color="error"
-                        fullWidth
-                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                        onClick={() => setSelectedHospital(hospital)}
-                      >
-                        View Details
-                      </Button>
-                    </Box>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      sx={{
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        borderColor: '#E8EDF2',
+                        color: NAVY,
+                        '&:hover': { borderColor: TEAL, color: TEAL },
+                      }}
+                      onClick={() => setSelectedHospital(hospital)}
+                    >
+                      View Details
+                    </Button>
                   </Paper>
                 </motion.div>
               </Grid>
             ))}
             {hospitals.length === 0 && !loading && (
-              <Box width="100%" textAlign="center" py={10}>
-                <Typography variant="h5" color="text.secondary">No hospitals found.</Typography>
-              </Box>
+              <Grid item xs={12}>
+                <Box textAlign="center" py={10}>
+                  <SearchIcon sx={{ fontSize: 64, color: '#D1D5DB', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary">No hospitals found.</Typography>
+                  <Button
+                    variant="text"
+                    sx={{ mt: 1, color: TEAL, textTransform: 'none' }}
+                    onClick={() => { setSearch(''); fetchHospitals(); }}
+                  >
+                    Clear filters
+                  </Button>
+                </Box>
+              </Grid>
             )}
           </Grid>
         )}
@@ -146,14 +222,14 @@ const HospitalSearch = () => {
         {selectedHospital && (
           <>
             <DialogTitle>
-              <Typography variant="h4" fontWeight={700} color="#1a237e">
-                {selectedHospital.name || selectedHospital.hospitalName}
+              <Typography variant="h4" fontWeight={700} color={NAVY}>
+                {selectedHospital.hospitalName || selectedHospital.name}
               </Typography>
               <Box display="flex" alignItems="center" gap={1} mt={1}>
-                <Typography variant="h6" fontWeight={700} color="primary">
-                  {selectedHospital.rating || 'New'}
+                <Typography variant="h6" fontWeight={700} color={TEAL}>
+                  {selectedHospital.rating > 0 ? selectedHospital.rating : 'New'}
                 </Typography>
-                <StarIcon sx={{ color: '#ffb300', fontSize: 20 }} />
+                <StarIcon sx={{ color: '#F59E0B', fontSize: 20 }} />
                 <Typography variant="body2" color="text.secondary">
                   ({selectedHospital.totalReviews || 0} reviews)
                 </Typography>
@@ -163,22 +239,20 @@ const HospitalSearch = () => {
               <Box my={2}>
                 <Typography variant="h6" fontWeight={600} gutterBottom>Location</Typography>
                 <Typography variant="body1" color="text.secondary" paragraph>
-                  {selectedHospital.address}<br />
-                  {selectedHospital.city}, {selectedHospital.state} {selectedHospital.zipCode}
+                  {[selectedHospital.address, selectedHospital.city, selectedHospital.state].filter(Boolean).join(', ')}
                 </Typography>
 
                 <Typography variant="h6" fontWeight={600} gutterBottom>Contact</Typography>
                 <Typography variant="body1" color="text.secondary" paragraph>
-                  Phone: {selectedHospital.contactPhone}<br />
-                  Email: {selectedHospital.contactEmail}
+                  Phone: {selectedHospital.phoneNumber || '—'}<br />
+                  Email: {selectedHospital.email || '—'}
                 </Typography>
 
                 <Typography variant="h6" fontWeight={600} gutterBottom>Facilities</Typography>
                 <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
-                  <Chip label={`Total Beds: ${selectedHospital.totalBeds}`} variant="outlined" />
-                  <Chip label={`Available Beds: ${selectedHospital.availableBeds}`} color={selectedHospital.availableBeds > 10 ? "success" : "warning"} />
-                  {selectedHospital.hasEmergencyRoom && <Chip label="Emergency Room" color="error" />}
-                  {selectedHospital.hasIcu && <Chip label="ICU Available" color="primary" />}
+                  {selectedHospital.emergencyAvailable && <Chip label="Emergency Room" color="error" />}
+                  <Chip label={`Lat: ${selectedHospital.latitude ?? '—'}`} variant="outlined" />
+                  <Chip label={`Lng: ${selectedHospital.longitude ?? '—'}`} variant="outlined" />
                 </Box>
               </Box>
             </DialogContent>

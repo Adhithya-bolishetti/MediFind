@@ -72,7 +72,7 @@ const PatientProfileSetup = () => {
         const updatedUser = await userService.updateProfile(user.id, payload);
         
         await refreshUser();
-        showToast('Successfully profile created');
+        showToast('Profile created successfully');
         navigate('/dashboard');
       } catch (err) {
         console.error(err);

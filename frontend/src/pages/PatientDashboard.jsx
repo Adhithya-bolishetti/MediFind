@@ -24,6 +24,18 @@ import notificationService from '../services/notificationService';
 const TEAL = '#079A9A';
 const NAVY = '#101B36';
 
+// "10:30:00" (LocalTime) -> "10:30 AM"
+const formatApptTime = (timeStr) => {
+  if (!timeStr) return '';
+  const t = String(timeStr);
+  if (t.includes(' ')) return t;
+  const [hh, mm] = t.split(':').map(Number);
+  if (Number.isNaN(hh)) return t;
+  const suffix = hh >= 12 ? 'PM' : 'AM';
+  const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+  return `${String(hour12).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${suffix}`;
+};
+
 const QuickAction = ({ icon, label, color, bgColor, onClick }) => (
   <Paper
     onClick={onClick}
@@ -81,7 +93,7 @@ const DoctorCard = ({ doctor, onClick }) => (
       />
       <Box flex={1} minWidth={0}>
         <Typography variant="body2" fontWeight={700} color={NAVY} noWrap>
-          {doctor.doctorName ? `Dr. ${doctor.doctorName}` : 'Doctor'}
+          {doctor.doctorName ? `Dr. ${doctor.doctorName.replace(/^Dr\.?\s+/i, '')}` : 'Doctor'}
         </Typography>
         <Typography variant="caption" color="text.secondary" noWrap>
           {doctor.specialization?.replace(/_/g, ' ') || '—'}
@@ -280,13 +292,24 @@ const PatientDashboard = () => {
                     {new Date(upcomingAppt.appointmentDate).toLocaleString('en', { month: 'short' })}
                   </Typography>
                   <Typography variant="caption" display="block" color={TEAL} fontWeight={600} mt={0.5}>
-                    {upcomingAppt.appointmentTime}
+                    {formatApptTime(upcomingAppt.appointmentTime)}
                   </Typography>
                 </Box>
                 <Box flex={1}>
                   <Typography variant="body1" fontWeight={700} color={NAVY}>
-                    Doctor ID: {upcomingAppt.doctorId}
+                    {upcomingAppt.doctor?.doctorName ? `Dr. ${upcomingAppt.doctor.doctorName.replace(/^Dr\.?\s+/i, '')}` : `Doctor #${upcomingAppt.doctorId}`}
                   </Typography>
+                  {upcomingAppt.doctor?.specialization && (
+                    <Typography variant="caption" color="text.secondary" display="block" noWrap>
+                      {upcomingAppt.doctor.specialization.replace(/_/g, ' ')}
+                    </Typography>
+                  )}
+                  <Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
+                    <LocationOnIcon sx={{ fontSize: 12, color: '#9CA3AF' }} />
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {upcomingAppt.doctor?.city || 'City Care Clinic'}
+                    </Typography>
+                  </Box>
                   <Chip
                     label={upcomingAppt.status}
                     size="small"

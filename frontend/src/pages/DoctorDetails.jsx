@@ -137,32 +137,42 @@ const DoctorDetails = () => {
           <Grid item xs={12} md={4}>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
               <Paper elevation={2} sx={{ p: 4, borderRadius: 4, textAlign: 'center' }}>
-                <Avatar 
-                  src={`https://i.pravatar.cc/150?u=${doctor.id}`} 
+                <Avatar
+                  src={doctor.profileImage || `https://i.pravatar.cc/150?u=${doctor.id}`}
                   sx={{ width: 160, height: 160, mx: 'auto', mb: 3, border: '4px solid #e3f2fd' }}
                 />
                 <Typography variant="h4" fontWeight={800} gutterBottom>
-                  Dr. {doctor.firstName} {doctor.lastName}
+                  Dr. {(doctor.doctorName || 'Doctor').replace(/^Dr\.?\s+/i, '')}
                 </Typography>
                 <Typography variant="h6" color="primary" gutterBottom fontWeight={600}>
-                  {doctor.specialty}
+                  {(doctor.specialization || doctor.specialty || '').replace(/_/g, ' ')}
                 </Typography>
                 <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={2}>
                   <StarIcon sx={{ color: '#ffb300' }} />
-                  <Typography variant="h6" fontWeight={700}>{doctor.rating || 'New'}</Typography>
-                  <Typography variant="body2" color="text.secondary">({reviews.length} reviews)</Typography>
+                  <Typography variant="h6" fontWeight={700}>{doctor.rating > 0 ? doctor.rating : 'New'}</Typography>
+                  <Typography variant="body2" color="text.secondary">({doctor.totalReviews || reviews.length} reviews)</Typography>
                 </Box>
                 <Typography variant="body1" color="text.secondary" paragraph>
-                  {doctor.experienceYears} Years Experience
+                  {doctor.experience != null ? `${doctor.experience} Years Experience` : ''}
                 </Typography>
+                {doctor.city && (
+                  <Typography variant="body1" color="text.secondary" paragraph>
+                    📍 {doctor.city}{doctor.state ? `, ${doctor.state}` : ''}
+                  </Typography>
+                )}
+                {doctor.consultationFee > 0 && (
+                  <Typography variant="body1" color="text.secondary" paragraph>
+                    ₹{doctor.consultationFee} consultation fee
+                  </Typography>
+                )}
                 <Divider sx={{ my: 3 }} />
                 <Box display="flex" alignItems="center" gap={2} mb={2}>
                   <SchoolIcon color="action" />
-                  <Typography variant="body1">{doctor.qualifications}</Typography>
+                  <Typography variant="body1">{doctor.qualification || 'Qualification not provided'}</Typography>
                 </Box>
                 <Box display="flex" alignItems="center" gap={2}>
                   <WorkspacePremiumIcon color="action" />
-                  <Typography variant="body1">Medical License: {doctor.licenseNumber}</Typography>
+                  <Typography variant="body1">Medical License: {doctor.medicalLicenseNumber || '—'}</Typography>
                 </Box>
               </Paper>
             </motion.div>
@@ -175,7 +185,7 @@ const DoctorDetails = () => {
                   Book an Appointment
                 </Typography>
                 <Typography variant="body1" color="text.secondary" mb={4}>
-                  Select a date and time to schedule your consultation with Dr. {doctor.lastName}.
+                  Select a date and time to schedule your consultation with Dr. {(doctor.doctorName || 'the doctor').replace(/^Dr\.?\s+/i, '')}.
                 </Typography>
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}

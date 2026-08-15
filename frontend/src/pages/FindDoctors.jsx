@@ -58,7 +58,7 @@ const DoctorCard = ({ doctor, onClick }) => {
         />
         <Box flex={1} minWidth={0}>
           <Typography variant="body1" fontWeight={700} color={NAVY}>
-            Dr. {name}
+            Dr. {name.replace(/^Dr\.?\s+/i, '')}
           </Typography>
           <Chip
             label={spec.replace(/_/g, ' ')}

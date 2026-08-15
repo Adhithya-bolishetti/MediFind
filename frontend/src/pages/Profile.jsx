@@ -28,21 +28,32 @@ const Profile = () => {
             // If not found, might be a new doctor who hasn't onboarded, default to empty
             data = { doctorName: '', email: user.email, specialization: '' };
           }
-          // Mapping fields for the form
-          reset({
-            firstName: data.doctorName ? data.doctorName.split(' ')[0] : '',
-            lastName: data.doctorName ? data.doctorName.split(' ').slice(1).join(' ') : '',
+          const nameParts = (data.doctorName || '').split(' ');
+          const mapped = {
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' '),
             phoneNumber: data.phoneNumber || '',
             specialization: data.specialization || '',
             experience: data.experience || '',
             about: data.about || '',
             consultationFee: data.consultationFee || ''
-          });
+          };
+          // Mapping fields for the form
+          reset(mapped);
+          setProfile({ ...data, ...mapped });
         } else {
           data = await userService.getProfile(user.id);
-          reset(data);
+          const nameParts = (data.fullName || user.fullName || '').split(' ');
+          const mapped = {
+            ...data,
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' '),
+            phoneNumber: data.phone || data.phoneNumber || '',
+            email: data.email || user.email,
+          };
+          reset(mapped);
+          setProfile(mapped);
         }
-        setProfile(data);
       } catch (err) {
         console.error("Failed to fetch profile", err);
       } finally {
@@ -67,7 +78,17 @@ const Profile = () => {
         };
         await doctorService.updateProfile(payload);
       } else {
-        await userService.updateProfile(user.id, data);
+        const payload = {
+          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+          phone: data.phoneNumber || data.phone,
+          gender: data.gender,
+          dateOfBirth: data.dateOfBirth,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          pincode: data.pincode,
+        };
+        await userService.updateProfile(user.id, payload);
       }
       setMessage('Profile updated successfully!');
       setProfile({ ...profile, ...data });
@@ -99,7 +120,7 @@ const Profile = () => {
                 <PersonIcon sx={{ fontSize: 80 }} />
               </Avatar>
               <Typography variant="h4" fontWeight={800} color="#1a237e">
-                {user.role === 'DOCTOR' ? 'Dr. ' : ''}{profile.firstName} {profile.lastName}
+                {user.role === 'DOCTOR' ? 'Dr. ' : ''}{(profile.firstName || '')} {(profile.lastName || '')}
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 {profile.email}
@@ -171,13 +192,15 @@ const Profile = () => {
                 {user.role === 'DOCTOR' && (
                   <>
                     <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label="Specialization" select {...register("specialization")} defaultValue="CARDIOLOGY" InputLabelProps={{ shrink: true }}>
-                        <MenuItem value="CARDIOLOGY">Cardiology</MenuItem>
-                        <MenuItem value="NEUROLOGY">Neurology</MenuItem>
-                        <MenuItem value="DERMATOLOGY">Dermatology</MenuItem>
-                        <MenuItem value="ORTHOPEDICS">Orthopedics</MenuItem>
-                        <MenuItem value="PEDIATRICS">Pediatrics</MenuItem>
-                        <MenuItem value="GENERAL_MEDICINE">General Medicine</MenuItem>
+                      <TextField fullWidth label="Specialization" select {...register("specialization")} InputLabelProps={{ shrink: true }}>
+                        <MenuItem value="GENERAL_PHYSICIAN">General Physician</MenuItem>
+                        <MenuItem value="CARDIOLOGIST">Cardiologist</MenuItem>
+                        <MenuItem value="DERMATOLOGIST">Dermatologist</MenuItem>
+                        <MenuItem value="NEUROLOGIST">Neurologist</MenuItem>
+                        <MenuItem value="ORTHOPEDIC">Orthopedic</MenuItem>
+                        <MenuItem value="PEDIATRICIAN">Pediatrician</MenuItem>
+                        <MenuItem value="GYNECOLOGIST">Gynecologist</MenuItem>
+                        <MenuItem value="PSYCHIATRIST">Psychiatrist</MenuItem>
                       </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6}>

@@ -137,7 +137,7 @@ const DoctorProfileSetup = () => {
         await doctorService.submitProfile();
         
         await refreshUser();
-        showToast('Successfully profile created');
+        showToast('Profile created successfully');
         navigate('/dashboard');
       } catch (err) {
         console.error("Doctor profile creation/update error:", err.response?.data || err);
