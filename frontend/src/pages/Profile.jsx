@@ -1,12 +1,15 @@
 import { useState, useEffect, useContext } from 'react';
 import {
   Box, Typography, Paper, TextField, Button, Avatar, Divider,
-  Alert, CircularProgress, MenuItem, FormControlLabel, Checkbox,
+  Alert, CircularProgress, MenuItem, FormControlLabel, Checkbox, IconButton,
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { AuthContext } from '../context/AuthContext';
 import PersonIcon from '@mui/icons-material/Person';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
+import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import userService from '../services/userService';
 import doctorService from '../services/doctorService';
 
@@ -53,9 +56,44 @@ const Profile = () => {
   const [endTime, setEndTime] = useState('17:00');
   const [duration, setDuration] = useState(30);
 
+  // License certificate state (doctor only) — mirrored from the saved profile
+  // and persisted on Save Changes.
+  const [licenseCert, setLicenseCert] = useState('');
+  const [licenseCertName, setLicenseCertName] = useState('');
+
+  const handleLicenseFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const okType = ['application/pdf', 'image/jpeg', 'image/png'].includes(file.type);
+    if (!okType) {
+      setMessage('License certificate must be a PDF, JPG or PNG file.');
+      setMessageSeverity('error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('License certificate must be smaller than 5MB.');
+      setMessageSeverity('error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLicenseCert(reader.result);
+      setLicenseCertName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const fetchDoctorProfile = async () => {
     const data = await doctorService.getMyProfile();
     setProfile(data);
+
+    if (data.licenseCertificate) {
+      setLicenseCert(data.licenseCertificate);
+      setLicenseCertName('license-certificate.pdf');
+    } else {
+      setLicenseCert('');
+      setLicenseCertName('');
+    }
 
     const mapped = {
       firstName: (data.doctorName || '').split(' ')[0] || '',
@@ -138,6 +176,8 @@ const Profile = () => {
           state: data.state,
           pincode: data.pincode,
           about: data.about,
+          // Persist the current license certificate state (empty string clears it).
+          licenseCertificate: licenseCert || '',
         };
         await doctorService.updateProfile(payload);
         setMessage('Profile updated successfully!');
@@ -365,6 +405,83 @@ const Profile = () => {
                       {...register('about')}
                       slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
                     />
+                  </Box>
+
+                  {/* License / Registration Certificate */}
+                  <Box sx={{ gridColumn: { xs: 'auto', sm: '1 / -1' }, mt: 0.5 }}>
+                    <Typography variant="subtitle2" fontWeight={700} color={DARK} mb={1}>
+                      Medical License / Registration Certificate
+                    </Typography>
+                    {licenseCert ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          p: 2.5,
+                          borderRadius: 3,
+                          border: `1px solid ${BORDER}`,
+                          bgcolor: 'var(--mf-surface)',
+                          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                        }}
+                      >
+                        <InsertDriveFileRoundedIcon sx={{ fontSize: 36, color: TEAL, flexShrink: 0 }} />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: DARK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {licenseCertName || 'license-certificate.pdf'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Uploaded — you can replace or remove it.
+                          </Typography>
+                        </Box>
+                        <Button
+                          component="a" href={licenseCert} target="_blank" rel="noopener noreferrer"
+                          size="small" variant="outlined"
+                          sx={{ textTransform: 'none', borderRadius: 2, flexShrink: 0 }}
+                        >
+                          View
+                        </Button>
+                        <Box component="label" sx={{ cursor: 'pointer', flexShrink: 0 }}>
+                          <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleLicenseFile} />
+                          <Button component="span" size="small" variant="outlined" sx={{ textTransform: 'none', borderRadius: 2 }}>
+                            Replace
+                          </Button>
+                        </Box>
+                        <IconButton
+                          aria-label="Remove certificate"
+                          onClick={() => { setLicenseCert(''); setLicenseCertName(''); }}
+                          sx={{ color: '#EF4444', flexShrink: 0 }}
+                        >
+                          <DeleteOutlineRoundedIcon />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      <Box
+                        component="label"
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          p: 4,
+                          border: '2px dashed var(--mf-border)',
+                          borderRadius: 3,
+                          cursor: 'pointer',
+                          bgcolor: 'var(--mf-surface)',
+                          transition: 'all 0.2s',
+                          '&:hover': { borderColor: TEAL, bgcolor: 'rgba(7,154,154,0.06)' },
+                        }}
+                      >
+                        <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleLicenseFile} />
+                        <UploadFileRoundedIcon sx={{ fontSize: 40, color: TEAL, mb: 1 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: DARK }}>
+                          Upload License Certificate
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'var(--mf-muted)', mt: 0.4 }}>
+                          PDF, JPG, PNG (Max. 5MB)
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 </>
               )}

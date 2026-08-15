@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, Typography, Container } from '@mui/material';
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 
@@ -76,25 +75,7 @@ const ProfileSetupLayout = ({ title, subtitle, steps, activeStep, children, info
       {/* Top logo bar */}
       <Container maxWidth="xl">
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '12px',
-                bgcolor: TEAL,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(7, 154, 154, 0.3)',
-              }}
-            >
-              <AddBoxOutlinedIcon sx={{ color: '#fff', fontSize: 22 }} />
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'var(--mf-text)', letterSpacing: '-0.5px' }}>
-              Medi<span style={{ fontWeight: 500, color: TEAL }}>Find</span>
-            </Typography>
-          </Box>
+          <Box component="img" src="/medifind-logo.png" alt="MediFind" sx={{ width: 64, height: 64, objectFit: 'contain' }} />
           <Typography
             variant="caption"
             sx={{

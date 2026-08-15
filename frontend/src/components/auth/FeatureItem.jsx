@@ -20,10 +20,27 @@ const FeatureItem = ({ icon, title, description, iconBgColor, iconColor }) => {
         {icon}
       </Box>
       <Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#101B36', mb: 0.5, lineHeight: 1.2 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 600,
+            // Theme-aware: resolves to #101B36 in light mode and #E2E8F0 in dark
+            // mode so the title stays readable on the dark gradient panel.
+            color: 'var(--mf-text)',
+            mb: 0.5,
+            lineHeight: 1.2,
+          }}
+        >
           {title}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#5C6780', lineHeight: 1.4 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            // Theme-aware: #5C6780 in light mode, #94A3B8 in dark mode.
+            color: 'var(--mf-muted)',
+            lineHeight: 1.4,
+          }}
+        >
           {description}
         </Typography>
       </Box>

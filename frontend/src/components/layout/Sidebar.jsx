@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import {
-  Box, Typography, List, ListItem, ListItemIcon, ListItemText,
-  Avatar, Badge, Divider, Drawer, IconButton, useMediaQuery, useTheme
+  Box, List, ListItem, ListItemIcon, ListItemText,
+  Badge, Divider, Drawer, IconButton, useMediaQuery, useTheme
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -17,7 +17,6 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -95,10 +94,6 @@ const SidebarContent = ({ onClose }) => {
 
   const isActive = (path) => location.pathname === path;
 
-  // Display name
-  const displayName = user?.fullName || user?.email?.split('@')[0] || 'User';
-  const initials = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
   return (
     <Box
       sx={{
@@ -116,11 +111,11 @@ const SidebarContent = ({ onClose }) => {
       {/* Logo */}
       <Box
         sx={{
-          px: 3,
-          py: 3,
+          px: 2.5,
+          py: 2,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          justifyContent: 'space-between',
           cursor: 'pointer',
           borderBottom: `1px solid ${BORDER_COLOR}`,
           mb: 1,
@@ -128,33 +123,13 @@ const SidebarContent = ({ onClose }) => {
         onClick={() => handleNav(user?.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')}
       >
         <Box
-          sx={{
-            width: 36,
-            height: 36,
-            bgcolor: TEAL,
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <AddBoxOutlinedIcon sx={{ color: '#fff', fontSize: 22 }} />
-        </Box>
-        <Typography
-          variant="h6"
-          fontWeight={800}
-          sx={{
-            background: `linear-gradient(135deg, ${TEAL}, #045F5F)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.3px',
-          }}
-        >
-          Medi<span style={{ fontWeight: 400 }}>Find</span>
-        </Typography>
+          component="img"
+          src="/medifind-logo.png"
+          alt="MediFind"
+          sx={{ width: 160, height: 160, objectFit: 'contain', maxWidth: '100%', flexShrink: 0 }}
+        />
         {onClose && (
-          <IconButton onClick={onClose} sx={{ ml: 'auto', color: '#9CA3AF' }} size="small">
+          <IconButton onClick={onClose} sx={{ color: '#9CA3AF' }} size="small">
             <CloseIcon fontSize="small" />
           </IconButton>
         )}

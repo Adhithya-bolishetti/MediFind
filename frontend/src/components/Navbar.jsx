@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { AppBar, Toolbar, Button, Box } from '@mui/material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 
 const TEAL = '#079A9A';
 
@@ -39,27 +38,14 @@ const Navbar = () => {
         <Box
           component={RouterLink}
           to="/"
-          sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', flexGrow: 1 }}
+          sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexGrow: 1 }}
         >
           <Box
-            sx={{
-              width: 32, height: 32, bgcolor: TEAL, borderRadius: '8px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <AddBoxOutlinedIcon sx={{ color: '#fff', fontSize: 18 }} />
-          </Box>
-          <Typography
-            variant="h6"
-            fontWeight={800}
-            sx={{
-              background: `linear-gradient(135deg, ${TEAL}, #045F5F)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Medi<span style={{ fontWeight: 400 }}>Find</span>
-          </Typography>
+            component="img"
+            src="/medifind-logo.png"
+            alt="MediFind"
+            sx={{ width: 52, height: 52, objectFit: 'contain' }}
+          />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1}>
