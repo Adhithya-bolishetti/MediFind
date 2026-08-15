@@ -30,8 +30,8 @@ const Navbar = () => {
       position="static"
       elevation={0}
       sx={{
-        bgcolor: '#fff',
-        borderBottom: '1px solid #E8EDF2',
+        bgcolor: 'var(--mf-card)',
+        borderBottom: '1px solid var(--mf-border)',
       }}
     >
       <Toolbar>
@@ -63,10 +63,10 @@ const Navbar = () => {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1}>
-          <Button color="inherit" component={RouterLink} to="/doctors" sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}>
+          <Button color="inherit" component={RouterLink} to="/doctors" sx={{ textTransform: 'none', color: 'var(--mf-text)', fontWeight: 500 }}>
             Find Doctors
           </Button>
-          <Button color="inherit" component={RouterLink} to="/hospitals" sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}>
+          <Button color="inherit" component={RouterLink} to="/hospitals" sx={{ textTransform: 'none', color: 'var(--mf-text)', fontWeight: 500 }}>
             Hospitals
           </Button>
 
@@ -80,7 +80,7 @@ const Navbar = () => {
               <Button
                 component={RouterLink}
                 to="/dashboard"
-                sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}
+                sx={{ textTransform: 'none', color: 'var(--mf-text)', fontWeight: 500 }}
               >
                 Dashboard
               </Button>
@@ -97,7 +97,7 @@ const Navbar = () => {
               <Button
                 component={RouterLink}
                 to="/login"
-                sx={{ textTransform: 'none', color: '#374151', fontWeight: 500 }}
+                sx={{ textTransform: 'none', color: 'var(--mf-text)', fontWeight: 500 }}
               >
                 Login
               </Button>

@@ -17,7 +17,7 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import doctorService from '../services/doctorService';
 
 const TEAL = '#079A9A';
-const NAVY = '#101B36';
+const NAVY = 'var(--mf-text)';
 
 const specializations = [
   'All', 'GENERAL_PHYSICIAN', 'CARDIOLOGIST', 'DERMATOLOGIST',
@@ -58,7 +58,7 @@ const DoctorCard = ({ doctor, onClick }) => {
       sx={{
         p: 3,
         borderRadius: 4,
-        border: '1px solid #E8EDF2',
+        border: '1px solid var(--mf-border)',
         transition: 'all 0.2s ease',
         cursor: 'pointer',
         height: '100%',
@@ -158,7 +158,7 @@ const DoctorCard = ({ doctor, onClick }) => {
           sx={{
             textTransform: 'none',
             borderRadius: 2,
-            borderColor: '#E8EDF2',
+            borderColor: 'var(--mf-border)',
             color: NAVY,
             fontWeight: 600,
             '&:hover': { borderColor: TEAL, color: TEAL },
@@ -320,7 +320,7 @@ const FindDoctors = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h5" fontWeight={800} color={NAVY}>
@@ -332,13 +332,13 @@ const FindDoctors = () => {
       </Box>
 
       {/* Search Card */}
-      <Paper elevation={0} sx={{ mb: 3, borderRadius: 4, border: '1px solid #E8EDF2', overflow: 'hidden' }}>
+      <Paper elevation={0} sx={{ mb: 3, borderRadius: 4, border: '1px solid var(--mf-border)', overflow: 'hidden' }}>
         <Tabs
           value={tab}
           onChange={(e, v) => setTab(v)}
           variant="fullWidth"
           sx={{
-            borderBottom: '1px solid #E8EDF2',
+            borderBottom: '1px solid var(--mf-border)',
             '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 },
             '& .Mui-selected': { color: TEAL },
             '& .MuiTabs-indicator': { bgcolor: TEAL },
@@ -492,7 +492,7 @@ const FindDoctors = () => {
             {filtered.length === 0 && (
               <Grid size={12}>
                 <Box sx={{ textAlign: 'center', py: 8 }}>
-                  <SearchIcon sx={{ fontSize: 64, color: '#D1D5DB', mb: 2 }} />
+                  <SearchIcon sx={{ fontSize: 64, color: 'var(--mf-border)', mb: 2 }} />
                   <Typography variant="h6" color="text.secondary">
                     No doctors found matching your criteria.
                   </Typography>

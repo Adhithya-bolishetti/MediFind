@@ -16,7 +16,21 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + username));
+        // The username may be an email address OR a mobile number (mobile-only
+        // registrations have no email). Fall back to the legacy mobile-derived
+        // email convention for accounts created before mobile login existed.
+        String value = username == null ? "" : username.trim().toLowerCase();
+
+        var user = userRepository.findByEmail(value).orElse(null);
+        if (user == null) {
+            user = userRepository.findByMobileNumber(value).orElse(null);
+        }
+        if (user == null && !value.contains("@")) {
+            user = userRepository.findByEmail(value + "@medifind.com").orElse(null);
+        }
+        if (user == null) {
+            throw new UserNotFoundException("User not found with identifier: " + username);
+        }
+        return user;
     }
 }

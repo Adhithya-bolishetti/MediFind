@@ -131,16 +131,21 @@ const AdminDoctors = () => {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      await Promise.allSettled([
+      // The doctor-profile delete is the one that matters — if it fails, the
+      // doctor stays, so surface that instead of a false success. The other
+      // two (appointments, notifications) are best-effort cleanup.
+      const [doctorRes] = await Promise.allSettled([
         doctorService.deleteDoctor(deleteDoctor.id),
         appointmentService.deleteByDoctor(deleteDoctor.id),
         notificationService.deleteByUser(deleteDoctor.userId),
       ]);
+      if (doctorRes.status === 'rejected') {
+        showToast('Unable to delete doctor. Please try again.', 'error');
+        return;
+      }
       showToast('Doctor deleted successfully.');
       setDeleteDoctor(null);
       fetchDoctors();
-    } catch (err) {
-      showToast('Unable to delete doctor. Please try again.', 'error');
     } finally {
       setDeleting(false);
     }

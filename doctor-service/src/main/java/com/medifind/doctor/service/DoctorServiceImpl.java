@@ -483,6 +483,7 @@ public class DoctorServiceImpl implements DoctorService {
                 .appointmentDuration(request.getAppointmentDuration())
                 .availableForOnlineConsultation(Boolean.TRUE.equals(request.getAvailableForOnlineConsultation()))
                 .availableForEmergency(Boolean.TRUE.equals(request.getAvailableForEmergency()))
+                .licenseCertificate(request.getLicenseCertificate())
                 // New doctor profiles start PENDING until reviewed & approved by an admin.
                 .verificationStatus(com.medifind.doctor.entity.VerificationStatus.PENDING)
                 .available(false)
@@ -506,6 +507,8 @@ public class DoctorServiceImpl implements DoctorService {
 
         // Update fields
         if (request.getDoctorName() != null) doctor.setDoctorName(request.getDoctorName());
+        // Allow the doctor to add/update their (optional) email address.
+        if (request.getEmail() != null) doctor.setEmail(request.getEmail());
         if (request.getPhoneNumber() != null) doctor.setPhoneNumber(request.getPhoneNumber());
         if (request.getGender() != null) doctor.setGender(request.getGender());
         if (request.getDateOfBirth() != null) doctor.setDateOfBirth(request.getDateOfBirth());
@@ -539,6 +542,9 @@ public class DoctorServiceImpl implements DoctorService {
         }
         if (request.getAvailableForEmergency() != null) {
             doctor.setAvailableForEmergency(request.getAvailableForEmergency());
+        }
+        if (request.getLicenseCertificate() != null) {
+            doctor.setLicenseCertificate(request.getLicenseCertificate());
         }
 
         doctor = doctorRepository.save(doctor);
@@ -598,6 +604,7 @@ public class DoctorServiceImpl implements DoctorService {
                 .availableForEmergency(doctor.isAvailableForEmergency())
                 .verificationStatus(doctor.getVerificationStatus())
                 .licenseCertificatePath(doctor.getLicenseCertificatePath())
+                .licenseCertificate(doctor.getLicenseCertificate())
                 .rejectionReason(doctor.getRejectionReason())
                 .createdAt(doctor.getCreatedAt())
                 .updatedAt(doctor.getUpdatedAt())

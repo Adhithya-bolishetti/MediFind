@@ -7,12 +7,12 @@ import { AuthContext } from '../context/AuthContext';
 const AccessDenied = () => {
   const navigate = useNavigate();
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', bgcolor: '#F7F9FC' }}>
-      <Paper elevation={0} sx={{ p: 6, borderRadius: 4, border: '1px solid #E8EDF2', textAlign: 'center', maxWidth: 420 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', bgcolor: 'var(--mf-bg)' }}>
+      <Paper elevation={0} sx={{ p: 6, borderRadius: 4, border: '1px solid var(--mf-border)', textAlign: 'center', maxWidth: 420 }}>
         <Box sx={{ width: 72, height: 72, mx: 'auto', mb: 2, borderRadius: '50%', bgcolor: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <LockOutlinedIcon sx={{ fontSize: 34, color: '#EF4444' }} />
         </Box>
-        <Typography variant="h5" fontWeight={800} color="#101B36" gutterBottom>
+        <Typography variant="h5" fontWeight={800} color="var(--mf-text)" gutterBottom>
           Access Denied
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children, requireProfileComplete, requireProfileIncomp
 
   if (loading || (token && !user)) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
         <CircularProgress sx={{ color: '#079A9A' }} />
       </Box>
     );

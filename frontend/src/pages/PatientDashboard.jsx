@@ -22,7 +22,7 @@ import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import notificationService from '../services/notificationService';
 
 const TEAL = '#079A9A';
-const NAVY = '#101B36';
+const NAVY = 'var(--mf-text)';
 
 // "10:30:00" (LocalTime) -> "10:30 AM"
 const formatApptTime = (timeStr) => {
@@ -43,7 +43,7 @@ const QuickAction = ({ icon, label, color, bgColor, onClick }) => (
     sx={{
       p: 2,
       borderRadius: 3,
-      border: '1px solid #E8EDF2',
+      border: '1px solid var(--mf-border)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -80,7 +80,7 @@ const DoctorCard = ({ doctor, onClick }) => (
     sx={{
       p: 2,
       borderRadius: 3,
-      border: '1px solid #E8EDF2',
+      border: '1px solid var(--mf-border)',
       cursor: 'pointer',
       transition: 'all 0.2s',
       '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.10)', transform: 'translateY(-2px)' },
@@ -177,7 +177,7 @@ const PatientDashboard = () => {
   }, [user]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
 
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }} mb={3}>
@@ -191,7 +191,7 @@ const PatientDashboard = () => {
         </Box>
         <IconButton
           onClick={() => navigate('/notifications')}
-          sx={{ bgcolor: '#fff', border: '1px solid #E8EDF2', borderRadius: 2 }}
+          sx={{ bgcolor: 'var(--mf-card)', border: '1px solid var(--mf-border)', borderRadius: 2 }}
         >
           <Box position="relative">
             <NotificationsNoneIcon sx={{ color: NAVY }} />
@@ -253,7 +253,7 @@ const PatientDashboard = () => {
         <Grid size={{ xs: 12, lg: 7 }}>
 
           {/* Upcoming Appointment */}
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid var(--mf-border)', mb: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
               <Typography variant="subtitle1" fontWeight={700} color={NAVY}>
                 Upcoming Appointment
@@ -274,7 +274,7 @@ const PatientDashboard = () => {
               <Box
                 sx={{
                   p: 2, borderRadius: 3,
-                  border: '1px solid #E8EDF2',
+                  border: '1px solid var(--mf-border)',
                   display: 'flex', alignItems: 'center', gap: 2,
                 }}
               >
@@ -338,7 +338,7 @@ const PatientDashboard = () => {
           </Paper>
 
           {/* Find Doctors Strip */}
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid var(--mf-border)', mb: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
               <Typography variant="subtitle1" fontWeight={700} color={NAVY}>Find Doctors</Typography>
               <Button
@@ -370,7 +370,7 @@ const PatientDashboard = () => {
               fullWidth
               variant="outlined"
               onClick={() => navigate('/doctors')}
-              sx={{ mt: 2, borderRadius: 2, textTransform: 'none', borderColor: '#E8EDF2', color: NAVY, '&:hover': { borderColor: TEAL, color: TEAL } }}
+              sx={{ mt: 2, borderRadius: 2, textTransform: 'none', borderColor: 'var(--mf-border)', color: NAVY, '&:hover': { borderColor: TEAL, color: TEAL } }}
             >
               Search More Doctors
             </Button>
@@ -410,7 +410,7 @@ const PatientDashboard = () => {
         {/* Right Column */}
         <Grid size={{ xs: 12, lg: 5 }}>
           {/* Quick Actions */}
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid var(--mf-border)', mb: 3 }}>
             <Typography variant="subtitle1" fontWeight={700} color={NAVY} mb={2}>
               Quick Actions
             </Typography>
@@ -455,7 +455,7 @@ const PatientDashboard = () => {
           </Paper>
 
           {/* Find Hospitals Strip */}
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2' }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid var(--mf-border)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
               <Typography variant="subtitle1" fontWeight={700} color={NAVY}>Find Hospitals</Typography>
               <Button
@@ -477,13 +477,13 @@ const PatientDashboard = () => {
                     sx={{
                       display: 'flex', gap: 2, alignItems: 'center',
                       py: 1.5,
-                      borderBottom: i < hospitals.length - 1 ? '1px solid #F3F4F6' : 'none',
+                      borderBottom: i < hospitals.length - 1 ? '1px solid var(--mf-border)' : 'none',
                     }}
                   >
                     <Box
                       sx={{
                         width: 48, height: 48, flexShrink: 0, borderRadius: 2,
-                        bgcolor: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        bgcolor: 'var(--mf-border)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         overflow: 'hidden',
                       }}
                     >
@@ -519,7 +519,7 @@ const PatientDashboard = () => {
               fullWidth
               variant="outlined"
               onClick={() => navigate('/hospitals')}
-              sx={{ mt: 2, borderRadius: 2, textTransform: 'none', borderColor: '#E8EDF2', color: NAVY, '&:hover': { borderColor: TEAL, color: TEAL } }}
+              sx={{ mt: 2, borderRadius: 2, textTransform: 'none', borderColor: 'var(--mf-border)', color: NAVY, '&:hover': { borderColor: TEAL, color: TEAL } }}
             >
               Search More Hospitals
             </Button>

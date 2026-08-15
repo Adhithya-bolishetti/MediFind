@@ -72,7 +72,9 @@ public class AppointmentController {
     @PutMapping("/{id}/complete")
     public ResponseEntity<AppointmentResponse> completeAppointment(
             @PathVariable Long id,
-            @RequestAttribute(value = "X-User-Id", required = false) Long doctorId) {
+            @RequestParam(required = false) Long doctorId,
+            @RequestAttribute(value = "X-User-Id", required = false) Long userId) {
+        if (doctorId == null) doctorId = userId; // fall back to auth user id
         if (doctorId == null) doctorId = 1L;
         return ResponseEntity.ok(appointmentService.completeAppointment(id, doctorId));
     }

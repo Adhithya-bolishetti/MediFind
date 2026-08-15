@@ -11,14 +11,14 @@ import userService from '../services/userService';
 import doctorService from '../services/doctorService';
 
 const TEAL = '#079A9A';
-const DARK = '#101B36';
-const MUTED = '#5C6780';
-const BORDER = '#D9DEE8';
+const DARK = 'var(--mf-text)';
+const MUTED = 'var(--mf-muted)';
+const BORDER = 'var(--mf-border)';
 
 const inputSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: 2.5,
-    bgcolor: '#fff',
+    bgcolor: 'var(--mf-card)',
     '& fieldset': { borderColor: BORDER },
     '&:hover fieldset': { borderColor: TEAL },
     '&.Mui-focused fieldset': { borderColor: TEAL, borderWidth: '1.5px' },
@@ -127,6 +127,7 @@ const Profile = () => {
         const payload = {
           doctorName: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
           phoneNumber: data.phoneNumber,
+          email: data.email || null,
           specialization: data.specialization,
           qualification: data.qualification,
           experience: data.experience ? parseInt(data.experience, 10) : 0,
@@ -145,6 +146,7 @@ const Profile = () => {
       } else {
         const payload = {
           fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+          email: data.email || null,
           phone: data.phoneNumber,
           gender: data.gender,
           dateOfBirth: data.dateOfBirth || null,
@@ -212,7 +214,7 @@ const Profile = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
       <Typography variant="h5" fontWeight={800} color={DARK} mb={3}>
         My Profile
       </Typography>
@@ -225,7 +227,7 @@ const Profile = () => {
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, alignItems: 'flex-start' }}>
         {/* Profile form */}
-        <Paper elevation={0} sx={{ flex: 1, minWidth: 0, p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid #E8EDF2' }}>
+        <Paper elevation={0} sx={{ flex: 1, minWidth: 0, p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid var(--mf-border)' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} mb={3}>
             <Avatar
               src={profile.profileImage || undefined}
@@ -261,6 +263,11 @@ const Profile = () => {
               <TextField
                 fullWidth label="Phone Number"
                 {...register('phoneNumber')}
+                slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
+              />
+              <TextField
+                fullWidth type="email" label="Email (Optional)"
+                {...register('email')}
                 slotProps={{ inputLabel: { shrink: true } }} sx={inputSx}
               />
 
@@ -366,7 +373,7 @@ const Profile = () => {
 
         {/* Availability management (doctor only) */}
         {user.role === 'DOCTOR' && (
-          <Paper elevation={0} sx={{ width: { xs: '100%', md: 360 }, flexShrink: 0, p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid #E8EDF2' }}>
+          <Paper elevation={0} sx={{ width: { xs: '100%', md: 360 }, flexShrink: 0, p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid var(--mf-border)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1.5} mb={0.5}>
               <ScheduleIcon sx={{ color: TEAL }} />
               <Typography variant="h6" fontWeight={800} color={DARK}>

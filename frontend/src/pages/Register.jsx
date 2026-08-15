@@ -16,16 +16,13 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import MedicalServicesRoundedIcon from '@mui/icons-material/MedicalServicesRounded';
 
 const TEAL = '#079A9A';
-const DARK = '#101B36';
-const MUTED = '#5C6780';
-const BORDER = '#D9DEE8';
 
 // Shared input styling — consistent height, borders, focus states.
 const inputSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: 2.5,
-    bgcolor: '#fff',
-    '& fieldset': { borderColor: BORDER },
+    bgcolor: 'var(--mf-input)',
+    '& fieldset': { borderColor: 'var(--mf-border)' },
     '&:hover fieldset': { borderColor: TEAL },
     '&.Mui-focused fieldset': { borderColor: TEAL, borderWidth: '1.5px' },
     '&.Mui-error fieldset': { borderColor: '#d32f2f' },
@@ -100,11 +97,14 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const fakeEmail = `${countryCode.replace('+', '')}${data.mobileNumber}@medifind.com`;
+      // Mobile-first registration — never generate a fake email. The mobile
+      // number (with country code) becomes the account identifier, and the
+      // user can add a real email later during profile creation.
+      const mobileNumber = `${countryCode.replace('+', '')}${data.mobileNumber}`;
 
       const payload = {
         fullName: data.fullName,
-        email: fakeEmail,
+        mobileNumber,
         password: data.password,
         confirmPassword: data.confirmPassword,
         role: data.role,
@@ -114,7 +114,7 @@ const Register = () => {
 
       // Immediately log the user in so auth state survives navigation
       const loginRes = await authService.login({
-        email: fakeEmail,
+        email: mobileNumber,
         password: data.password,
       });
 
@@ -145,13 +145,13 @@ const Register = () => {
           width: '100%',
           maxWidth: 520,
           boxShadow: '0 12px 48px rgba(16, 27, 54, 0.10)',
-          border: '1px solid #EDF1F5',
+          border: '1px solid var(--mf-border)',
         }}
       >
-        <Typography variant="h4" fontWeight={800} gutterBottom color={DARK} sx={{ letterSpacing: '-0.5px', textAlign: 'center' }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom sx={{ color: 'var(--mf-text)', letterSpacing: '-0.5px', textAlign: 'center' }}>
           Create Your Account
         </Typography>
-        <Typography variant="body1" color={MUTED} mb={3} sx={{ textAlign: 'center' }}>
+        <Typography variant="body1" sx={{ color: 'var(--mf-muted)', mb: 3, textAlign: 'center' }}>
           Join MediFind and find the right care
         </Typography>
 
@@ -164,7 +164,7 @@ const Register = () => {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* ─────────── Role Selection ─────────── */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
               I am a
             </Typography>
             <Controller
@@ -192,8 +192,8 @@ const Register = () => {
                         }}
                         sx={{
                           border: '1.5px solid',
-                          borderColor: active ? TEAL : BORDER,
-                          bgcolor: active ? 'rgba(7,154,154,0.06)' : '#fff',
+                          borderColor: active ? TEAL : 'var(--mf-border)',
+                          bgcolor: active ? 'rgba(7,154,154,0.08)' : 'var(--mf-input)',
                           borderRadius: 3,
                           p: 2,
                           cursor: 'pointer',
@@ -214,18 +214,18 @@ const Register = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            bgcolor: active ? TEAL : '#EDF1F5',
-                            color: active ? '#fff' : '#5C6780',
+                            bgcolor: active ? TEAL : 'var(--mf-hover)',
+                            color: active ? '#fff' : 'var(--mf-muted)',
                             transition: 'all 0.2s ease',
                           }}
                         >
                           {opt.icon}
                         </Box>
                         <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: DARK, lineHeight: 1.2 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'var(--mf-text)', lineHeight: 1.2 }}>
                             {opt.title}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: MUTED, lineHeight: 1.3, display: 'block', mt: 0.25 }}>
+                          <Typography variant="caption" sx={{ color: 'var(--mf-muted)', lineHeight: 1.3, display: 'block', mt: 0.25 }}>
                             {opt.desc}
                           </Typography>
                         </Box>
@@ -239,7 +239,7 @@ const Register = () => {
 
           {/* ─────────── Full Name ─────────── */}
           <Box sx={{ mb: 2.5 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
               Full Name <Box component="span" sx={{ color: '#ef4444' }}>*</Box>
             </Typography>
             <TextField
@@ -264,7 +264,7 @@ const Register = () => {
 
           {/* ─────────── Mobile Number ─────────── */}
           <Box sx={{ mb: 2.5 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
               Mobile Number <Box component="span" sx={{ color: '#ef4444' }}>*</Box>
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -273,9 +273,9 @@ const Register = () => {
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
                   sx={{
-                    bgcolor: '#fff',
+                    bgcolor: 'var(--mf-input)',
                     borderRadius: 2.5,
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: BORDER },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--mf-border)' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: TEAL },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: TEAL },
                   }}
@@ -303,7 +303,7 @@ const Register = () => {
 
           {/* ─────────── Password ─────────── */}
           <Box sx={{ mb: 2.5 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
               Password <Box component="span" sx={{ color: '#ef4444' }}>*</Box>
             </Typography>
             <TextField
@@ -347,7 +347,7 @@ const Register = () => {
                         height: 4,
                         flex: 1,
                         borderRadius: 2,
-                        bgcolor: i <= meta.fill ? meta.color : '#E5E9F0',
+                        bgcolor: i <= meta.fill ? meta.color : 'var(--mf-border)',
                         transition: 'background-color 0.2s ease',
                       }}
                     />
@@ -362,7 +362,7 @@ const Register = () => {
 
           {/* ─────────── Confirm Password ─────────── */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
               Confirm Password <Box component="span" sx={{ color: '#ef4444' }}>*</Box>
             </Typography>
             <TextField
@@ -426,7 +426,7 @@ const Register = () => {
           </Button>
         </form>
 
-        <Typography textAlign="center" sx={{ color: MUTED, fontSize: '0.9rem' }}>
+        <Typography textAlign="center" sx={{ color: 'var(--mf-muted)', fontSize: '0.9rem' }}>
           Already have an account?{' '}
           <Link to="/login" style={{ color: TEAL, textDecoration: 'none', fontWeight: 700 }}>
             Log In

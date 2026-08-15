@@ -4,7 +4,8 @@ import { Box, Typography } from '@mui/material';
 const ProfileInfoPanel = ({ title, description, items }) => {
   return (
     <Box sx={{ 
-      backgroundColor: '#F0F9F9', 
+      backgroundColor: 'rgba(7,154,154,0.07)',
+      border: '1px solid rgba(7,154,154,0.18)',
       borderRadius: 4, 
       p: 4, 
       height: '100%' 
@@ -12,7 +13,7 @@ const ProfileInfoPanel = ({ title, description, items }) => {
       <Typography variant="h6" sx={{ fontWeight: 700, color: '#079A9A', mb: 1 }}>
         {title}
       </Typography>
-      <Typography variant="body2" sx={{ color: '#5C6780', mb: 4, lineHeight: 1.5 }}>
+      <Typography variant="body2" sx={{ color: 'var(--mf-muted)', mb: 4, lineHeight: 1.5 }}>
         {description}
       </Typography>
 
@@ -23,10 +24,10 @@ const ProfileInfoPanel = ({ title, description, items }) => {
               {item.icon}
             </Box>
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#101B36', mb: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'var(--mf-text)', mb: 0.5 }}>
                 {item.title}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#5C6780', lineHeight: 1.4 }}>
+              <Typography variant="body2" sx={{ color: 'var(--mf-muted)', lineHeight: 1.4 }}>
                 {item.description}
               </Typography>
             </Box>

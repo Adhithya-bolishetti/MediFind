@@ -36,4 +36,5 @@ public class DoctorProfileRequest {
     private Integer appointmentDuration;
     private Boolean availableForOnlineConsultation;
     private Boolean availableForEmergency;
+    private String licenseCertificate;
 }

@@ -17,9 +17,18 @@ public class RegisterRequest {
     @NotBlank(message = "Full name is required")
     private String fullName;
 
-    @NotBlank(message = "Email is required")
+    /**
+     * Optional — users may register with only a mobile number. No fake email
+     * is ever generated; the email can be provided later during profile setup.
+     */
     @Email(message = "Email is not valid")
     private String email;
+
+    /**
+     * Required identifier for users who register without an email.
+     * Stored on the account and used to log in.
+     */
+    private String mobileNumber;
 
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password should be at least 6 characters long")

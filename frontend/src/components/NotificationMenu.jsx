@@ -62,7 +62,7 @@ const NotificationMenu = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Box mb={3}>
-        <Typography variant="h5" fontWeight={800} color="#101B36">
+        <Typography variant="h5" fontWeight={800} color="var(--mf-text)">
           Notifications
         </Typography>
         <Typography variant="body2" color="text.secondary" mt={0.3}>
@@ -73,7 +73,7 @@ const NotificationMenu = () => {
         <Paper elevation={2} sx={{ borderRadius: 4, overflow: 'hidden' }}>
           {notifications.length === 0 ? (
             <Box p={5} sx={{ textAlign: 'center' }}>
-              <NotificationsIcon sx={{ fontSize: 60, color: '#e0e0e0', mb: 2 }} />
+              <NotificationsIcon sx={{ fontSize: 60, color: 'var(--mf-border)', mb: 2 }} />
               <Typography variant="h6" color="text.secondary">You have no notifications.</Typography>
             </Box>
           ) : (
@@ -84,10 +84,10 @@ const NotificationMenu = () => {
                     sx={{
                       py: 3,
                       px: 4,
-                      borderBottom: '1px solid #f0f0f0',
-                      backgroundColor: notification.isRead ? 'transparent' : '#f0f7ff',
+                      borderBottom: '1px solid var(--mf-border)',
+                      backgroundColor: notification.isRead ? 'transparent' : 'rgba(7,154,154,0.08)',
                       transition: 'all 0.2s',
-                      '&:hover': { backgroundColor: '#f8f9fa' }
+                      '&:hover': { backgroundColor: 'var(--mf-hover)' }
                     }}
                     secondaryAction={
                       <Box>

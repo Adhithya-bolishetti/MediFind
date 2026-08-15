@@ -98,7 +98,10 @@ public class AdminUserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         User user = getUser(id);
 
-        // Clean up review records referencing this user (same database).
+        // Clean up records referencing this user (same database). Dependent
+        // rows must be removed first or the FK constraints on `users`
+        // (e.g. password_reset_tokens) fail the whole delete.
+        jdbcTemplate.update("DELETE FROM password_reset_tokens WHERE user_id = ?", id);
         jdbcTemplate.update("DELETE FROM reviews WHERE user_id = ?", id);
         jdbcTemplate.update("DELETE FROM hospital_reviews WHERE patient_id = ?", id);
 

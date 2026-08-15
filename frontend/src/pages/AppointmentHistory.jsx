@@ -18,7 +18,7 @@ import doctorService from '../services/doctorService';
 import appointmentService from '../services/appointmentService';
 
 const TEAL = '#079A9A';
-const NAVY = '#101B36';
+const NAVY = 'var(--mf-text)';
 
 const statusStyleMap = {
   PENDING: { bg: '#FEF9C3', color: '#A16207' },
@@ -30,7 +30,7 @@ const statusStyleMap = {
 };
 
 const StatusChip = ({ status }) => {
-  const s = statusStyleMap[status] || { bg: '#F3F4F6', color: '#6B7280' };
+  const s = statusStyleMap[status] || { bg: 'var(--mf-border)', color: '#6B7280' };
   return (
     <Chip label={status} size="small" sx={{ bgcolor: s.bg, color: s.color, fontWeight: 700, fontSize: '0.7rem', height: 22 }} />
   );
@@ -48,6 +48,7 @@ const AppointmentHistory = () => {
   const [reviewedStatus, setReviewedStatus] = useState({});
 
   const [declineTarget, setDeclineTarget] = useState(null);
+  const [completeTarget, setCompleteTarget] = useState(null);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [actionError, setActionError] = useState('');
 
@@ -135,6 +136,25 @@ const AppointmentHistory = () => {
     }
   };
 
+  const completeAppointment = async () => {
+    if (!completeTarget) return;
+    setActionLoadingId(completeTarget.id);
+    setActionError('');
+    try {
+      await appointmentService.complete(completeTarget.id, completeTarget.doctorId);
+      updateAppointmentStatus(completeTarget.id, 'COMPLETED');
+      setCompleteTarget(null);
+      showToast('Appointment marked as completed successfully.');
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      setActionError(msg || 'Failed to mark appointment as completed. Please try again.');
+      showToast(msg || 'Failed to mark appointment as completed.', 'error');
+      setCompleteTarget(null);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   const cancelAppointment = async (id) => {
     try {
       await api.put(`/appointments/${id}/cancel`);
@@ -155,7 +175,7 @@ const AppointmentHistory = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
       <Box mb={3}>
         <Typography variant="h5" fontWeight={800} color={NAVY}>
           {user.role === 'DOCTOR' ? 'My Schedule' : 'Booked Appointments'}
@@ -172,8 +192,8 @@ const AppointmentHistory = () => {
       )}
 
       {appointments.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 6, borderRadius: 4, textAlign: 'center', border: '1px dashed #D1D5DB' }}>
-          <EventIcon sx={{ fontSize: 56, color: '#D1D5DB', mb: 2 }} />
+        <Paper elevation={0} sx={{ p: 6, borderRadius: 4, textAlign: 'center', border: '1px dashed var(--mf-border)' }}>
+          <EventIcon sx={{ fontSize: 56, color: 'var(--mf-border)', mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
             No appointments found.
           </Typography>
@@ -205,7 +225,7 @@ const AppointmentHistory = () => {
                   sx={{
                     p: 3,
                     borderRadius: 3,
-                    border: '1px solid #E8EDF2',
+                    border: '1px solid var(--mf-border)',
                     borderLeft: `4px solid ${borderColor}`,
                     display: 'flex',
                     flexDirection: { xs: 'column', md: 'row' },
@@ -277,6 +297,21 @@ const AppointmentHistory = () => {
                       </Box>
                     )}
 
+                    {/* Doctor actions — accepted appointments can be completed */}
+                    {user.role === 'DOCTOR' && appt.status === 'CONFIRMED' && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        color="success"
+                        disabled={actionLoadingId === appt.id}
+                        startIcon={<CheckCircleIcon />}
+                        onClick={() => setCompleteTarget(appt)}
+                        sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
+                      >
+                        Completed
+                      </Button>
+                    )}
+
                     {/* Patient actions */}
                     {user.role === 'PATIENT' && (appt.status === 'PENDING' || appt.status === 'CONFIRMED') && (
                       <Button
@@ -312,6 +347,34 @@ const AppointmentHistory = () => {
           })}
         </Box>
       )}
+
+      {/* Complete confirmation */}
+      <Dialog open={!!completeTarget} onClose={() => setCompleteTarget(null)}>
+        <DialogTitle>Mark this appointment as completed?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will mark the consultation as completed and notify the patient.
+            {completeTarget && (
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 600, color: NAVY }}>
+                {completeTarget.user?.fullName || `Patient #${completeTarget.userId}`} — {completeTarget.appointmentTime} on {completeTarget.appointmentDate?.toString().slice(0, 10)}
+              </Box>
+            )}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setCompleteTarget(null)} disabled={actionLoadingId !== null}>
+            Cancel
+          </Button>
+          <Button
+            onClick={completeAppointment}
+            variant="contained"
+            disabled={actionLoadingId !== null}
+            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700, bgcolor: TEAL, '&:hover': { bgcolor: '#068A8A' } }}
+          >
+            {actionLoadingId !== null ? 'Marking...' : 'Mark Completed'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Decline confirmation */}
       <Dialog open={!!declineTarget} onClose={() => setDeclineTarget(null)}>

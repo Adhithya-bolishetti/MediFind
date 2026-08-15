@@ -24,7 +24,7 @@ const ProfilePhotoUpload = ({ onChange }) => {
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle2" sx={{ color: '#101B36', fontWeight: 600, mb: 1 }}>
+      <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
         Profile Photo <span style={{ color: '#d32f2f' }}>*</span>
       </Typography>
       
@@ -37,16 +37,16 @@ const ProfilePhotoUpload = ({ onChange }) => {
           justifyContent: 'center',
           width: 200,
           height: 200,
-          border: '2px dashed #D9DEE8',
+          border: '2px dashed var(--mf-border)',
           borderRadius: 4,
           cursor: 'pointer',
-          bgcolor: '#FAFBFC',
+          bgcolor: 'var(--mf-surface)',
           '&:hover': {
             borderColor: '#079A9A',
-            bgcolor: '#F0F9F9'
+            bgcolor: 'rgba(7,154,154,0.08)',
           },
           position: 'relative',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
         }}
       >
         <input
@@ -60,7 +60,7 @@ const ProfilePhotoUpload = ({ onChange }) => {
           <Avatar src={preview} sx={{ width: 140, height: 140, mb: 2 }} />
         ) : (
           <Box sx={{ position: 'relative', mb: 2 }}>
-            <Avatar sx={{ width: 100, height: 100, bgcolor: '#E1E5ED' }} />
+            <Avatar sx={{ width: 100, height: 100, bgcolor: 'var(--mf-hover)' }} />
             <Box sx={{ 
               position: 'absolute', 
               bottom: 0, 
@@ -69,17 +69,17 @@ const ProfilePhotoUpload = ({ onChange }) => {
               color: '#fff', 
               borderRadius: '50%', 
               p: 0.5,
-              display: 'flex'
+              display: 'flex',
             }}>
               <PhotoCameraRoundedIcon fontSize="small" />
             </Box>
           </Box>
         )}
         
-        <Typography variant="body2" sx={{ fontWeight: 600, color: '#101B36', mb: 0.5 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: 'var(--mf-text)', mb: 0.5 }}>
           Click to upload photo
         </Typography>
-        <Typography variant="caption" sx={{ color: '#9AA4B2' }}>
+        <Typography variant="caption" sx={{ color: 'var(--mf-muted)' }}>
           JPG, PNG (Max. 2MB)
         </Typography>
       </Box>

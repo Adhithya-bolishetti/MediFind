@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { useThemeMode } from '../../context/ThemeContext';
 import notificationService from '../../services/notificationService';
 
 // Icons
@@ -22,6 +23,8 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
 const SIDEBAR_WIDTH = 260;
 const TEAL = '#079A9A';
@@ -56,6 +59,7 @@ const adminNavItems = [
 
 const SidebarContent = ({ onClose }) => {
   const { user, logout } = useContext(AuthContext);
+  const { isDark, toggle: toggleTheme } = useThemeMode();
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -208,9 +212,34 @@ const SidebarContent = ({ onClose }) => {
         })}
       </List>
 
-      {/* Divider + Logout */}
+      {/* Divider + Theme toggle + Logout */}
       <Box sx={{ px: 2, pb: 3 }}>
         <Divider sx={{ mb: 2, borderColor: BORDER_COLOR }} />
+        <ListItem
+          onClick={toggleTheme}
+          sx={{
+            borderRadius: '10px',
+            px: 2,
+            py: 1.2,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': { bgcolor: 'var(--mf-hover)' },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 36, color: 'var(--mf-muted)' }}>
+            {isDark ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+          </ListItemIcon>
+          <ListItemText
+            primary={isDark ? 'Light Mode' : 'Dark Mode'}
+            slotProps={{
+              primary: {
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                color: 'var(--mf-text)',
+              },
+            }}
+          />
+        </ListItem>
         <ListItem
           onClick={handleLogout}
           sx={{

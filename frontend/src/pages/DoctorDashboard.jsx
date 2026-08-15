@@ -20,7 +20,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import notificationService from '../services/notificationService';
 
 const TEAL = '#079A9A';
-const NAVY = '#101B36';
+const NAVY = 'var(--mf-text)';
 
 const StatusChip = ({ status }) => {
   const colorMap = {
@@ -31,7 +31,7 @@ const StatusChip = ({ status }) => {
     DECLINED: { bg: '#FEE2E2', color: '#DC2626' },
     REJECTED: { bg: '#FEE2E2', color: '#DC2626' },
   };
-  const c = colorMap[status] || { bg: '#F3F4F6', color: '#6B7280' };
+  const c = colorMap[status] || { bg: 'var(--mf-border)', color: '#6B7280' };
   return (
     <Chip
       label={status}
@@ -57,7 +57,7 @@ const formatTime = (timeStr) => {
   return { time: `${String(hour12).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, meridiem: suffix };
 };
 
-const AppointmentRow = ({ appt, locationName, onAccept, onDecline, busy }) => {
+const AppointmentRow = ({ appt, locationName, onAccept, onDecline, onComplete, busy }) => {
   const dateObj = new Date(appt.appointmentDate);
   const display = formatTime(appt.appointmentTime);
   const patientName = appt.user?.fullName || `Patient #${appt.userId}`;
@@ -69,7 +69,7 @@ const AppointmentRow = ({ appt, locationName, onAccept, onDecline, busy }) => {
         alignItems: 'center',
         gap: 2,
         py: 2,
-        borderBottom: '1px solid #F3F4F6',
+        borderBottom: '1px solid var(--mf-border)',
         '&:last-child': { borderBottom: 'none' },
       }}
     >
@@ -138,6 +138,19 @@ const AppointmentRow = ({ appt, locationName, onAccept, onDecline, busy }) => {
           </Button>
         </Box>
       )}
+
+      {appt.status === 'CONFIRMED' && onComplete && (
+        <Button
+          variant="contained"
+          color="success"
+          size="small"
+          disabled={busy}
+          onClick={() => onComplete(appt)}
+          sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
+        >
+          Completed
+        </Button>
+      )}
     </Box>
   );
 };
@@ -148,7 +161,7 @@ const StatCard = ({ icon, label, value, iconBg, iconColor }) => (
     sx={{
       p: 2.5,
       borderRadius: 3,
-      border: '1px solid #E8EDF2',
+      border: '1px solid var(--mf-border)',
       display: 'flex',
       alignItems: 'center',
       gap: 2,
@@ -265,8 +278,23 @@ const DoctorDashboard = () => {
     }
   };
 
+  const handleComplete = async (appt) => {
+    if (!window.confirm('Mark this appointment as completed?')) return;
+    setActionLoadingId(appt.id);
+    try {
+      await appointmentService.complete(appt.id, doctorEntityId || appt.doctorId);
+      setAllAppts(prev => prev.map(a => (a.id === appt.id ? { ...a, status: 'COMPLETED' } : a)));
+      setTodayAppts(prev => prev.map(a => (a.id === appt.id ? { ...a, status: 'COMPLETED' } : a)));
+      showToast('Appointment marked as completed successfully.');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to mark appointment as completed.', 'error');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
 
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }} mb={3}>
@@ -280,7 +308,7 @@ const DoctorDashboard = () => {
         </Box>
         <IconButton
           onClick={() => navigate('/notifications')}
-          sx={{ bgcolor: '#fff', border: '1px solid #E8EDF2', borderRadius: 2 }}
+          sx={{ bgcolor: 'var(--mf-card)', border: '1px solid var(--mf-border)', borderRadius: 2 }}
         >
           <Box position="relative">
             <NotificationsNoneIcon sx={{ color: NAVY }} />
@@ -303,7 +331,7 @@ const DoctorDashboard = () => {
       </Box>
 
       {/* Today's Appointments */}
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2', mb: 3 }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid var(--mf-border)', mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={2}>
           <Typography variant="subtitle1" fontWeight={700} color={NAVY}>
             Today's Appointments
@@ -338,6 +366,7 @@ const DoctorDashboard = () => {
                 locationName={locationName}
                 onAccept={handleAccept}
                 onDecline={handleDecline}
+                onComplete={handleComplete}
                 busy={actionLoadingId === appt.id}
               />
             ))}
@@ -346,7 +375,7 @@ const DoctorDashboard = () => {
       </Paper>
 
       {/* Upcoming + Stats */}
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E8EDF2' }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid var(--mf-border)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} mb={3}>
           <Typography variant="subtitle1" fontWeight={700} color={NAVY}>
             Upcoming (Next 7 Days)

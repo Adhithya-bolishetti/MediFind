@@ -43,8 +43,18 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Passwords do not match");
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // Email is optional — never generate a fake one. Users may register
+        // with only a mobile number and add their email later.
+        String email = (request.getEmail() == null || request.getEmail().isBlank())
+                ? null : request.getEmail().trim().toLowerCase();
+        String mobileNumber = (request.getMobileNumber() == null || request.getMobileNumber().isBlank())
+                ? null : request.getMobileNumber().trim();
+
+        if (email != null && userRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException("Email is already in use.");
+        }
+        if (mobileNumber != null && userRepository.existsByMobileNumber(mobileNumber)) {
+            throw new UserAlreadyExistsException("An account with this mobile number already exists.");
         }
 
         Role requestedRole = Role.PATIENT; // Default role
@@ -61,7 +71,8 @@ public class AuthServiceImpl implements AuthService {
 
         User user = User.builder()
                 .fullName(request.getFullName())
-                .email(request.getEmail())
+                .email(email)
+                .mobileNumber(mobileNumber)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(requestedRole) 
                 .build();
@@ -70,13 +81,39 @@ public class AuthServiceImpl implements AuthService {
         return mapToUserResponse(savedUser);
     }
 
+    /**
+     * Resolves a login identifier to a user account. The identifier may be:
+     * <ul>
+     *   <li>an email address (current + legacy accounts)</li>
+     *   <li>a mobile number (new mobile-only accounts)</li>
+     *   <li>a legacy mobile-derived email like {@code 91xxxxxxxxxx@medifind.com}
+     *       for accounts created before mobile login existed</li>
+     * </ul>
+     */
+    private User findByIdentifier(String identifier) {
+        if (identifier == null || identifier.isBlank()) return null;
+        String value = identifier.trim().toLowerCase();
+
+        User user = userRepository.findByEmail(value).orElse(null);
+        if (user == null) {
+            user = userRepository.findByMobileNumber(value).orElse(null);
+        }
+        if (user == null && !value.contains("@")) {
+            // Legacy accounts stored the mobile as <mobile>@medifind.com
+            user = userRepository.findByEmail(value + "@medifind.com").orElse(null);
+        }
+        return user;
+    }
+
     @Override
     public LoginResponse login(LoginRequest request) {
+        // Resolve the identifier (email or mobile number) to an account.
+        User user = findByIdentifier(request.getEmail());
+
         // Suspended accounts must be rejected even though their credentials are
         // valid (User.isEnabled() returns false, which surfaces as DisabledException
         // during authentication). Check status explicitly so the user sees a clear
         // message instead of a generic "invalid credentials" error.
-        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user != null && "SUSPENDED".equalsIgnoreCase(user.getStatus())) {
             throw new BadCredentialsException("Your account has been suspended by the administrator. Please contact MediFind support.");
         }
@@ -102,16 +139,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserResponse getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Current user not found"));
+        // The JWT subject is the login identifier (email or mobile number).
+        String identifier = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = findByIdentifier(identifier);
+        if (user == null) {
+            throw new UserNotFoundException("Current user not found");
+        }
         return mapToUserResponse(user);
     }
 
     @Override
     public void forgotPassword(ForgotPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElse(null);
+        // Resolve the identifier — an email or a mobile number.
+        User user = findByIdentifier(request.getEmail());
         
         if (user == null) {
             // Do not expose whether the user exists or not
@@ -157,6 +197,7 @@ public class AuthServiceImpl implements AuthService {
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
+                .mobileNumber(user.getMobileNumber())
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

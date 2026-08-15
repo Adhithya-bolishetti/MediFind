@@ -9,7 +9,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import hospitalService from '../services/hospitalService';
 
 const TEAL = '#079A9A';
-const NAVY = '#101B36';
+const NAVY = 'var(--mf-text)';
 
 const HospitalSearch = () => {
   const [hospitals, setHospitals] = useState([]);
@@ -50,7 +50,7 @@ const HospitalSearch = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: '#F7F9FC' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
       <Container maxWidth="lg" disableGutters>
         <Box mb={3}>
           <Typography variant="h5" fontWeight={800} color={NAVY}>
@@ -72,7 +72,7 @@ const HospitalSearch = () => {
             gap: 2,
             borderRadius: 3,
             mb: 4,
-            border: '1px solid #E8EDF2',
+            border: '1px solid var(--mf-border)',
           }}
         >
           <TextField
@@ -83,7 +83,7 @@ const HospitalSearch = () => {
             onChange={(e) => setSearch(e.target.value)}
             sx={{
               '& .MuiOutlinedInput-root': { borderRadius: 2 },
-              '& fieldset': { borderColor: '#D9DEE8' },
+              '& fieldset': { borderColor: 'var(--mf-border)' },
               '&:hover fieldset': { borderColor: TEAL },
               '&.Mui-focused fieldset': { borderColor: TEAL },
             }}
@@ -125,7 +125,7 @@ const HospitalSearch = () => {
                     sx={{
                       p: 4,
                       borderRadius: 4,
-                      border: '1px solid #E8EDF2',
+                      border: '1px solid var(--mf-border)',
                       transition: 'all 0.3s',
                       '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 12px 32px rgba(0,0,0,0.08)', borderColor: `${TEAL}40` },
                     }}
@@ -186,7 +186,7 @@ const HospitalSearch = () => {
                         borderRadius: 2,
                         textTransform: 'none',
                         fontWeight: 600,
-                        borderColor: '#E8EDF2',
+                        borderColor: 'var(--mf-border)',
                         color: NAVY,
                         '&:hover': { borderColor: TEAL, color: TEAL },
                       }}
@@ -201,7 +201,7 @@ const HospitalSearch = () => {
             {hospitals.length === 0 && !loading && (
               <Grid size={12}>
                 <Box sx={{ textAlign: 'center' }} py={10}>
-                  <SearchIcon sx={{ fontSize: 64, color: '#D1D5DB', mb: 2 }} />
+                  <SearchIcon sx={{ fontSize: 64, color: 'var(--mf-border)', mb: 2 }} />
                   <Typography variant="h6" color="text.secondary">No hospitals found.</Typography>
                   <Button
                     variant="text"

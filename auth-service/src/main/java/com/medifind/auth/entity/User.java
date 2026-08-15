@@ -39,8 +39,15 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    /**
+     * Email is optional — users may register with just a mobile number and
+     * add their email later from profile creation.
+     */
+    @Column(unique = true)
     private String email;
+
+    /** Unique identifier used for login when no email has been provided. */
+    private String mobileNumber;
 
     @Column(nullable = false)
     private String password;
@@ -76,7 +83,8 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        // Login identifier: prefer email, fall back to mobile number.
+        return email != null ? email : mobileNumber;
     }
 
     @Override

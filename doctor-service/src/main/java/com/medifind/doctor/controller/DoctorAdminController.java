@@ -127,8 +127,13 @@ public class DoctorAdminController {
         reviewRepository.deleteAll(reviewRepository.findByDoctorId(id));
         doctorRepository.delete(doctor);
 
-        // Remove the linked user account (same medifind_db).
+        // Remove the linked user account (same medifind_db). Dependent rows
+        // referencing the user must be removed first or the FK constraints
+        // on `users` (e.g. password_reset_tokens) fail the whole delete.
         if (userId != null) {
+            jdbcTemplate.update("DELETE FROM password_reset_tokens WHERE user_id = ?", userId);
+            jdbcTemplate.update("DELETE FROM reviews WHERE user_id = ?", userId);
+            jdbcTemplate.update("DELETE FROM hospital_reviews WHERE patient_id = ?", userId);
             jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
         }
         return ResponseEntity.noContent().build();

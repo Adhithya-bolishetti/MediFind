@@ -10,16 +10,13 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const TEAL = '#079A9A';
-const DARK = '#101B36';
-const MUTED = '#5C6780';
-const BORDER = '#D9DEE8';
 
 // Shared input styling — consistent with the signup page.
 const inputSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: 2.5,
-    bgcolor: '#fff',
-    '& fieldset': { borderColor: BORDER },
+    bgcolor: 'var(--mf-input)',
+    '& fieldset': { borderColor: 'var(--mf-border)' },
     '&:hover fieldset': { borderColor: TEAL },
     '&.Mui-focused fieldset': { borderColor: TEAL, borderWidth: '1.5px' },
   },
@@ -57,11 +54,15 @@ const Login = () => {
     setLoading(true);
     
     try {
-      // Transform mobile number to a fake email to satisfy the existing backend API
-      const fakeEmail = `${countryCode.replace('+', '')}${data.mobileNumber}@medifind.com`;
-      
+      // The identifier is the mobile number (with country code) unless the user
+      // typed an email address. The backend resolves either one to the account.
+      const raw = (data.mobileNumber || '').trim();
+      const identifier = raw.includes('@')
+        ? raw
+        : `${countryCode.replace('+', '')}${raw}`;
+
       const payload = {
-        email: fakeEmail,
+        email: identifier,
         password: data.password
       };
 
@@ -98,13 +99,13 @@ const Login = () => {
           width: '100%', 
           maxWidth: 480,
           boxShadow: '0 12px 48px rgba(16, 27, 54, 0.10)',
-          border: '1px solid #EDF1F5',
+          border: '1px solid var(--mf-border)',
         }}
       >
-        <Typography variant="h4" fontWeight={800} gutterBottom color={DARK} sx={{ letterSpacing: '-0.5px', textAlign: 'center' }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom sx={{ color: 'var(--mf-text)', letterSpacing: '-0.5px', textAlign: 'center' }}>
           Welcome Back
         </Typography>
-        <Typography variant="body1" color={MUTED} mb={3} sx={{ textAlign: 'center' }}>
+        <Typography variant="body1" sx={{ color: 'var(--mf-muted)', mb: 3, textAlign: 'center' }}>
           Login to your MediFind account
         </Typography>
 
@@ -116,8 +117,8 @@ const Login = () => {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
-              Mobile Number
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
+              Mobile Number / Email
             </Typography>
             <Box sx={{ display: 'flex' }}>
               <FormControl sx={{ width: 96, mr: 1 }}>
@@ -125,9 +126,9 @@ const Login = () => {
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
                   sx={{ 
-                    bgcolor: '#fff', 
+                    bgcolor: 'var(--mf-input)', 
                     borderRadius: 2.5,
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: BORDER },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--mf-border)' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: TEAL },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: TEAL },
                   }}
@@ -139,12 +140,10 @@ const Login = () => {
               </FormControl>
               <TextField
                 fullWidth
-                placeholder="Enter your mobile number"
-                autoComplete="tel-national"
-                slotProps={{ htmlInput: { inputMode: 'numeric', maxLength: 10 } }}
+                placeholder="Enter mobile number or email"
+                autoComplete="username"
                 {...register("mobileNumber", { 
-                  required: "Mobile Number is required",
-                  pattern: { value: /^[0-9]{10}$/, message: "Must be a 10-digit number" }
+                  required: "Mobile number or email is required"
                 })}
                 error={!!errors.mobileNumber}
                 helperText={errors.mobileNumber?.message}
@@ -154,7 +153,7 @@ const Login = () => {
           </Box>
 
           <Box sx={{ mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
               Password
             </Typography>
             <TextField
@@ -222,14 +221,14 @@ const Login = () => {
         </form>
         
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Divider sx={{ flexGrow: 1, borderColor: '#E5E7EB' }} />
-          <Typography variant="body2" sx={{ color: '#9CA3AF', mx: 2 }}>
+          <Divider sx={{ flexGrow: 1, borderColor: 'var(--mf-border)' }} />
+          <Typography variant="body2" sx={{ color: 'var(--mf-muted)', mx: 2 }}>
             or
           </Typography>
-          <Divider sx={{ flexGrow: 1, borderColor: '#E5E7EB' }} />
+          <Divider sx={{ flexGrow: 1, borderColor: 'var(--mf-border)' }} />
         </Box>
 
-        <Typography textAlign="center" sx={{ color: MUTED, fontSize: '0.9rem' }}>
+        <Typography textAlign="center" sx={{ color: 'var(--mf-muted)', fontSize: '0.9rem' }}>
           Don't have an account?{' '}
           <Link to="/register" style={{ color: TEAL, textDecoration: 'none', fontWeight: 700 }}>
             Sign Up

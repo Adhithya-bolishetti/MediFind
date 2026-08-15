@@ -42,6 +42,7 @@ public class DoctorProfileResponse {
     private boolean availableForEmergency;
     private VerificationStatus verificationStatus;
     private String licenseCertificatePath;
+    private String licenseCertificate;
     private String rejectionReason;
     
     private Double rating;

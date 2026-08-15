@@ -35,7 +35,7 @@ export const BrandLogo = ({ size = 'md' }) => {
       >
         <AddBoxOutlinedIcon sx={{ color: '#fff', fontSize: icon }} />
       </Box>
-      <Typography variant={fontSize} component="span" sx={{ fontWeight: 800, color: DARK, letterSpacing: '-0.5px' }}>
+      <Typography variant={fontSize} component="span" sx={{ fontWeight: 800, color: 'var(--mf-text)', letterSpacing: '-0.5px' }}>
         Medi<span style={{ fontWeight: 500, color: TEAL }}>Find</span>
       </Typography>
     </Box>
@@ -48,7 +48,7 @@ const AuthLayout = ({ children }) => {
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        backgroundColor: '#F7F9FC',
+        backgroundColor: 'var(--mf-bg)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -88,7 +88,7 @@ const AuthLayout = ({ children }) => {
             p: { md: 6, lg: 9 },
             display: { xs: 'none', md: 'flex' },
             flexDirection: 'column',
-            background: 'linear-gradient(165deg, #E6F6F2 0%, #EFFAF7 45%, #E4F1F7 100%)',
+            background: 'var(--mf-gradient)',
             position: 'relative',
           }}
         >
@@ -123,7 +123,7 @@ const AuthLayout = ({ children }) => {
               variant="h3"
               sx={{
                 fontWeight: 800,
-                color: DARK,
+                color: 'var(--mf-text)',
                 mb: 5,
                 fontSize: { md: '2.25rem', lg: '2.75rem' },
                 lineHeight: 1.15,

@@ -10,15 +10,12 @@ import AuthLayout from '../components/auth/AuthLayout';
 import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded';
 
 const TEAL = '#079A9A';
-const DARK = '#101B36';
-const MUTED = '#5C6780';
-const BORDER = '#D9DEE8';
 
 const inputSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: 2.5,
-    bgcolor: '#fff',
-    '& fieldset': { borderColor: BORDER },
+    bgcolor: 'var(--mf-input)',
+    '& fieldset': { borderColor: 'var(--mf-border)' },
     '&:hover fieldset': { borderColor: TEAL },
     '&.Mui-focused fieldset': { borderColor: TEAL, borderWidth: '1.5px' },
   },
@@ -39,8 +36,9 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const fakeEmail = `${countryCode.replace('+', '')}${data.mobileNumber}@medifind.com`;
-      await authService.forgotPassword({ email: fakeEmail });
+      const raw = (data.mobileNumber || '').trim();
+      const identifier = raw.includes('@') ? raw : `${countryCode.replace('+', '')}${raw}`;
+      await authService.forgotPassword({ email: identifier });
       setSent(true);
     } catch (err) {
       if (err?.code === 'ERR_NETWORK') {
@@ -63,14 +61,14 @@ const ForgotPassword = () => {
           width: '100%',
           maxWidth: 480,
           boxShadow: '0 12px 48px rgba(16, 27, 54, 0.10)',
-          border: '1px solid #EDF1F5',
+          border: '1px solid var(--mf-border)',
         }}
       >
-        <Typography variant="h4" fontWeight={800} gutterBottom color={DARK} sx={{ letterSpacing: '-0.5px', textAlign: 'center' }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom sx={{ color: 'var(--mf-text)', letterSpacing: '-0.5px', textAlign: 'center' }}>
           Reset Password
         </Typography>
-        <Typography variant="body1" color={MUTED} mb={3} sx={{ textAlign: 'center' }}>
-          Enter your registered mobile number and we&apos;ll send you instructions to reset your password.
+        <Typography variant="body1" sx={{ color: 'var(--mf-muted)', mb: 3, textAlign: 'center' }}>
+          Enter your registered mobile number or email and we&apos;ll send you instructions to reset your password.
         </Typography>
 
         {error && (
@@ -86,8 +84,8 @@ const ForgotPassword = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ color: DARK, fontWeight: 600, mb: 1 }}>
-              Mobile Number
+            <Typography variant="subtitle2" sx={{ color: 'var(--mf-text)', fontWeight: 600, mb: 1 }}>
+              Mobile Number / Email
             </Typography>
             <Box sx={{ display: 'flex' }}>
               <FormControl sx={{ width: 96, mr: 1 }}>
@@ -95,9 +93,9 @@ const ForgotPassword = () => {
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
                   sx={{
-                    bgcolor: '#fff',
+                    bgcolor: 'var(--mf-input)',
                     borderRadius: 2.5,
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: BORDER },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--mf-border)' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: TEAL },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: TEAL },
                   }}
@@ -109,10 +107,9 @@ const ForgotPassword = () => {
               </FormControl>
               <TextField
                 fullWidth
-                placeholder="Enter your mobile number"
-                autoComplete="tel-national"
+                placeholder="Enter mobile number or email"
+                autoComplete="username"
                 slotProps={{
-                  htmlInput: { inputMode: 'numeric', maxLength: 10 },
                   input: {
                     startAdornment: (
                       <SmartphoneRoundedIcon sx={{ color: '#9AA4B2', mr: 1.25, alignSelf: 'center' }} />
@@ -120,8 +117,7 @@ const ForgotPassword = () => {
                   },
                 }}
                 {...register('mobileNumber', {
-                  required: 'Mobile Number is required',
-                  pattern: { value: /^[0-9]{10}$/, message: 'Must be a 10-digit number' },
+                  required: 'Mobile number or email is required',
                 })}
                 error={!!errors.mobileNumber}
                 helperText={errors.mobileNumber?.message}
@@ -160,7 +156,7 @@ const ForgotPassword = () => {
           </Button>
         </form>
 
-        <Typography textAlign="center" sx={{ color: MUTED, fontSize: '0.9rem' }}>
+        <Typography textAlign="center" sx={{ color: 'var(--mf-muted)', fontSize: '0.9rem' }}>
           Remembered your password?{' '}
           <Link to="/login" style={{ color: TEAL, textDecoration: 'none', fontWeight: 700 }}>
             Back to Log In

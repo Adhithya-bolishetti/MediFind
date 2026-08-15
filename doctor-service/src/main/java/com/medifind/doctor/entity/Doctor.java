@@ -30,7 +30,7 @@ public class Doctor {
     @Column(nullable = false)
     private String doctorName;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -93,6 +93,10 @@ public class Doctor {
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
     
     private String licenseCertificatePath;
+
+    /** Base64-encoded license/registration certificate (PDF, JPG or PNG). */
+    @Column(columnDefinition = "LONGTEXT")
+    private String licenseCertificate;
     private String rejectionReason;
 
     /** Aggregate rating out of 5.0. */

@@ -6,7 +6,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 const TEAL = '#079A9A';
-const DARK = '#101B36';
 
 const features = [
   {
@@ -57,7 +56,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <Typography variant="h2" component="h1" fontWeight={800} gutterBottom sx={{ color: DARK, letterSpacing: '-1px' }}>
+            <Typography variant="h2" component="h1" fontWeight={800} gutterBottom sx={{ color: 'var(--mf-text)', letterSpacing: '-1px' }}>
               Your Health, <span className="gradient-text">Our Priority</span>
             </Typography>
             <Typography variant="h5" color="text.secondary" paragraph sx={{ mb: 4, maxWidth: '600px', mx: 'auto', lineHeight: 1.6 }}>
@@ -108,7 +107,7 @@ const Home = () => {
 
       {/* Features Section */}
       <Container maxWidth="lg">
-        <Typography variant="h3" textAlign="center" fontWeight={800} sx={{ mb: 6, color: DARK, letterSpacing: '-0.5px' }}>
+        <Typography variant="h3" textAlign="center" fontWeight={800} sx={{ mb: 6, color: 'var(--mf-text)', letterSpacing: '-0.5px' }}>
           Platform Features
         </Typography>
         <Grid container spacing={4}>
@@ -126,8 +125,8 @@ const Home = () => {
                     p: 4, 
                     height: '100%', 
                     borderRadius: '24px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
+                    backgroundColor: 'var(--mf-card)',
+                    border: '1px solid var(--mf-border)',
                     transition: 'all 0.3s ease',
                     cursor: 'pointer',
                     '&:hover': {
@@ -141,7 +140,7 @@ const Home = () => {
                     width: 70, 
                     height: 70, 
                     borderRadius: '50%', 
-                    backgroundColor: '#E6F4F4', 
+                    backgroundColor: 'rgba(7,154,154,0.10)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',

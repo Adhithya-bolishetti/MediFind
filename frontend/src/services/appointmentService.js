@@ -26,6 +26,11 @@ const appointmentService = {
     return response.data;
   },
 
+  complete: async (id, doctorId) => {
+    const response = await api.put(`/appointments/${id}/complete?doctorId=${doctorId}`);
+    return response.data;
+  },
+
   // Admin appointment management
   getAllAdmin: async (params) => {
     const response = await api.get('/admin/appointments', { params });

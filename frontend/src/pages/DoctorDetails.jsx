@@ -19,14 +19,14 @@ import reviewService from '../services/reviewService';
 import api from '../services/api';
 
 const TEAL = '#079A9A';
-const DARK = '#101B36';
-const MUTED = '#5C6780';
-const BORDER = '#D9DEE8';
+const DARK = 'var(--mf-text)';
+const MUTED = 'var(--mf-muted)';
+const BORDER = 'var(--mf-border)';
 
 const inputSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: 2.5,
-    bgcolor: '#fff',
+    bgcolor: 'var(--mf-card)',
     '& fieldset': { borderColor: BORDER },
     '&:hover fieldset': { borderColor: TEAL },
     '&.Mui-focused fieldset': { borderColor: TEAL, borderWidth: '1.5px' },
@@ -274,7 +274,7 @@ const DoctorDetails = () => {
   const dist = doctor.ratingDistribution || {};
 
   return (
-    <Box sx={{ pb: 8, pt: 4, background: '#F7F9FC', minHeight: '100vh' }}>
+    <Box sx={{ pb: 8, pt: 4, background: 'var(--mf-bg)', minHeight: '100vh' }}>
       <Box sx={{ maxWidth: 1100, mx: 'auto', px: { xs: 2, md: 3 } }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, alignItems: 'flex-start' }}>
           {/* Doctor info card */}
@@ -284,7 +284,7 @@ const DoctorDetails = () => {
             transition={{ duration: 0.5 }}
             style={{ width: '100%', maxWidth: 340, flexShrink: 0, margin: '0 auto', marginBottom: 0 }}
           >
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid #E8EDF2', textAlign: 'center' }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid var(--mf-border)', textAlign: 'center' }}>
               <Avatar
                 src={doctor.profileImage || `https://i.pravatar.cc/150?u=doc${doctor.id}`}
                 sx={{ width: 130, height: 130, mx: 'auto', mb: 2.5, border: '4px solid #E0F2F1' }}
@@ -339,7 +339,7 @@ const DoctorDetails = () => {
           <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             {/* ─────────── Booking ─────────── */}
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.15 }}>
-              <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid #E8EDF2', mb: 4 }}>
+              <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid var(--mf-border)', mb: 4 }}>
                 <Typography variant="h5" fontWeight={800} color={DARK} gutterBottom>
                   Book an Appointment
                 </Typography>
@@ -453,7 +453,7 @@ const DoctorDetails = () => {
             </motion.div>
 
             {/* ─────────── Reviews ─────────── */}
-            <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid #E8EDF2' }}>
+            <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: '1px solid var(--mf-border)' }}>
               <Typography variant="h5" fontWeight={800} color={DARK} gutterBottom>
                 Patient Reviews
               </Typography>
@@ -506,7 +506,7 @@ const DoctorDetails = () => {
               ) : (
                 <Box sx={{ mb: 3 }}>
                   {visibleReviews.map((review) => (
-                    <Box key={review.id} sx={{ py: 2, borderBottom: '1px solid #F3F4F6' }}>
+                    <Box key={review.id} sx={{ py: 2, borderBottom: '1px solid var(--mf-border)' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1.5} mb={0.5}>
                         <Avatar sx={{ width: 34, height: 34, bgcolor: TEAL, fontSize: '0.85rem' }}>
                           {(review.patientName || 'P').charAt(0).toUpperCase()}

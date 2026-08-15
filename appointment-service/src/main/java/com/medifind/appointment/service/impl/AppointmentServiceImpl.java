@@ -246,6 +246,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
 
+        verifyDoctorOwnership(appointment, doctorId);
+
+        // Only accepted (CONFIRMED) appointments may be marked as completed.
+        if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Only accepted appointments can be marked as completed");
+        }
+
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment = appointmentRepository.save(appointment);
 
