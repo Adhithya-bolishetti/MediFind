@@ -13,6 +13,7 @@ dist/
 .idea/
 .vscode/
 .freebuff/
+.freebuff.log.err/
 
 .env
 .env.*
