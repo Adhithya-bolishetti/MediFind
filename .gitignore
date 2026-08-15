@@ -12,6 +12,7 @@ dist/
 
 .idea/
 .vscode/
+.freebuff/
 
 .env
 .env.*
