@@ -51,8 +51,9 @@ public class HospitalController {
     @Operation(summary = "Get all hospitals")
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<HospitalResponse>> getAllHospitals() {
-        return ResponseEntity.ok(hospitalService.getAllHospitals());
+    public ResponseEntity<List<HospitalResponse>> getAllHospitals(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return ResponseEntity.ok(hospitalService.getAllHospitals(includeInactive));
     }
 
     /**

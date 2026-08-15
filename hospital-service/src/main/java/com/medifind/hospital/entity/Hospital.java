@@ -54,6 +54,11 @@ public class Hospital {
     @Column(nullable = false)
     private boolean emergencyAvailable;
 
+    /** Whether the hospital is active/deactivated by an admin. */
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
     @Column(nullable = false)
     @Builder.Default
     private Double rating = 0.0;

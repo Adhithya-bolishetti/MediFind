@@ -61,6 +61,34 @@ spring:
           predicates:
             - Path=/api/notifications/**
 
+        # ─────────────── Admin Routes ───────────────
+        # Admin endpoints are split across the domain services; the JWT role
+        # claim (ROLE_ADMIN) is enforced by each service's security layer.
+        - id: admin-user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/admin/users/**
+
+        - id: admin-doctor-service
+          uri: lb://DOCTOR-SERVICE
+          predicates:
+            - Path=/api/admin/doctors/**
+
+        - id: admin-hospital-service
+          uri: lb://HOSPITAL-SERVICE
+          predicates:
+            - Path=/api/admin/hospitals/**
+
+        - id: admin-appointment-service
+          uri: lb://APPOINTMENT-SERVICE
+          predicates:
+            - Path=/api/admin/appointments/**
+
+        - id: admin-notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/admin/notifications/**
+
 eureka:
   client:
     service-url:

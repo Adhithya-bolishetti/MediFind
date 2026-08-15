@@ -27,7 +27,16 @@ import Dashboard from './pages/Dashboard';
 import AppointmentHistory from './pages/AppointmentHistory';
 import Profile from './pages/Profile';
 import NotificationMenu from './components/NotificationMenu';
+
+// Admin pages (sidebar + admin-only)
 import AdminDashboard from './pages/AdminDashboard';
+import AdminPatients from './pages/admin/AdminPatients';
+import AdminDoctors from './pages/admin/AdminDoctors';
+import AdminHospitals from './pages/admin/AdminHospitals';
+import AdminAppointments from './pages/admin/AdminAppointments';
+import AdminReviews from './pages/admin/AdminReviews';
+import AdminNotifications from './pages/admin/AdminNotifications';
+import AdminSettings from './pages/admin/AdminSettings';
 
 /**
  * WithSidebar — wraps children with DashboardLayout (sidebar + content area).
@@ -65,7 +74,7 @@ const Landing = () => {
     );
   }
 
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to={user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard'} replace />;
   return <Register />;
 };
 
@@ -144,12 +153,69 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ─────────────── Admin ─────────────── */}
+      {/* ─────────────── Admin (sidebar + ADMIN role only) ─────────────── */}
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route
-        path="/admin"
+        path="/admin/dashboard"
         element={
           <ProtectedRoute allowedRole="ADMIN">
-            <AdminDashboard />
+            <WithSidebar><AdminDashboard /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/patients"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminPatients /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/doctors"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminDoctors /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/hospitals"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminHospitals /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/appointments"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminAppointments /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/reviews"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminReviews /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/notifications"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminNotifications /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedRoute allowedRole="ADMIN">
+            <WithSidebar><AdminSettings /></WithSidebar>
           </ProtectedRoute>
         }
       />

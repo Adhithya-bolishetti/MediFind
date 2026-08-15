@@ -69,6 +69,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                     .appointmentDate(request.getAppointmentDate())
                     .appointmentTime(request.getAppointmentTime())
                     .reason(request.getReason())
+                    .consultationType(request.getConsultationType() != null && !request.getConsultationType().isBlank()
+                            ? request.getConsultationType() : "In-person")
                     .status(AppointmentStatus.PENDING)
                     .build();
 
@@ -129,6 +131,29 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponse getAppointmentById(Long id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+        return mapToResponse(appointment);
+    }
+
+    @Override
+    public List<AppointmentResponse> getAllAppointments(String status, String date) {
+        return appointmentRepository.findAll().stream()
+                .filter(a -> status == null || status.isBlank() || a.getStatus().name().equalsIgnoreCase(status))
+                .filter(a -> date == null || date.isBlank() || a.getAppointmentDate().toString().equals(date))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AppointmentResponse cancelAppointmentAsAdmin(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Completed appointments cannot be cancelled");
+        }
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment = appointmentRepository.save(appointment);
+        sendNotification(appointment.getUserId(), "APPOINTMENT_CANCELLED", "Appointment Cancelled",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been cancelled by the administrator.");
         return mapToResponse(appointment);
     }
 
@@ -278,6 +303,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .appointmentDate(appointment.getAppointmentDate())
                 .appointmentTime(appointment.getAppointmentTime())
                 .reason(appointment.getReason())
+                .consultationType(appointment.getConsultationType())
                 .status(appointment.getStatus())
                 .notes(appointment.getNotes())
                 .createdAt(appointment.getCreatedAt())

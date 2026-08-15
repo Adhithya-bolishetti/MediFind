@@ -10,4 +10,5 @@ public interface HospitalReviewService {
     List<HospitalReviewResponse> getHospitalReviews(Long hospitalId);
     HospitalReviewResponse updateReview(Long hospitalId, Long reviewId, HospitalReviewRequest request, Long patientId);
     void deleteReview(Long hospitalId, Long reviewId, Long patientId, boolean isAdmin);
+    HospitalReviewResponse updateReviewStatus(Long reviewId, com.medifind.hospital.entity.ReviewStatus status);
 }

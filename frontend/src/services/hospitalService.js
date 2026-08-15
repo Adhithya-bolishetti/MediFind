@@ -31,6 +31,27 @@ const hospitalService = {
   updateReviewStatus: async (reviewId, status) => {
     const response = await api.put(`/admin/hospitals/reviews/${reviewId}/status`, { status });
     return response.data;
+  },
+
+  // Admin hospital management
+  getAllWithInactive: async () => {
+    const response = await api.get('/hospitals', { params: { includeInactive: true } });
+    return response.data;
+  },
+
+  create: async (data) => {
+    const response = await api.post('/hospitals', data);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/hospitals/${id}`, data);
+    return response.data;
+  },
+
+  remove: async (id) => {
+    const response = await api.delete(`/hospitals/${id}`);
+    return response.data;
   }
 };
 

@@ -46,4 +46,7 @@ public class DoctorProfileResponse {
     private Double rating;
     private Integer totalReviews;
     private RatingDistribution ratingDistribution;
+
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime updatedAt;
 }

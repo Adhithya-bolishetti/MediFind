@@ -64,6 +64,11 @@ const doctorService = {
   },
 
   // Admin Operations
+  getAllAdmin: async (params) => {
+    const response = await api.get('/admin/doctors', { params });
+    return response.data;
+  },
+
   getPendingDoctors: async () => {
     const response = await api.get('/admin/doctors/pending');
     return response.data;
@@ -79,8 +84,23 @@ const doctorService = {
     return response.data;
   },
 
+  suspendDoctor: async (id) => {
+    const response = await api.put(`/admin/doctors/${id}/suspend`);
+    return response.data;
+  },
+
+  activateDoctor: async (id) => {
+    const response = await api.put(`/admin/doctors/${id}/activate`);
+    return response.data;
+  },
+
   getPendingReviews: async () => {
     const response = await api.get('/admin/doctors/reviews/pending');
+    return response.data;
+  },
+
+  getAllReviewsAdmin: async (params) => {
+    const response = await api.get('/admin/doctors/reviews', { params });
     return response.data;
   },
 

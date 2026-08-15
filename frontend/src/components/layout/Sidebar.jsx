@@ -17,6 +17,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const SIDEBAR_WIDTH = 260;
 const TEAL = '#079A9A';
@@ -36,6 +41,17 @@ const doctorNavItems = [
   { label: 'Appointments', icon: <EventNoteIcon />, path: '/appointments' },
   { label: 'Profile', icon: <PersonOutlinedIcon />, path: '/profile' },
   { label: 'Notifications', icon: <NotificationsNoneIcon />, path: '/notifications', notif: true },
+];
+
+const adminNavItems = [
+  { label: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
+  { label: 'Patients', icon: <PeopleAltIcon />, path: '/admin/patients' },
+  { label: 'Doctors', icon: <MedicalServicesIcon />, path: '/admin/doctors' },
+  { label: 'Hospitals', icon: <LocalHospitalIcon />, path: '/admin/hospitals' },
+  { label: 'Appointments', icon: <EventNoteIcon />, path: '/admin/appointments' },
+  { label: 'Reviews & Ratings', icon: <RateReviewIcon />, path: '/admin/reviews' },
+  { label: 'Notifications', icon: <NotificationsNoneIcon />, path: '/admin/notifications', notif: true },
+  { label: 'Settings', icon: <SettingsIcon />, path: '/admin/settings' },
 ];
 
 const SidebarContent = ({ onClose }) => {
@@ -60,7 +76,9 @@ const SidebarContent = ({ onClose }) => {
     return () => clearInterval(id);
   }, [user]);
 
-  const navItems = user?.role === 'DOCTOR' ? doctorNavItems : patientNavItems;
+  const navItems = user?.role === 'ADMIN' ? adminNavItems
+    : user?.role === 'DOCTOR' ? doctorNavItems
+    : patientNavItems;
 
   const handleNav = (path) => {
     navigate(path);
@@ -104,7 +122,7 @@ const SidebarContent = ({ onClose }) => {
           borderBottom: `1px solid ${BORDER_COLOR}`,
           mb: 1,
         }}
-        onClick={() => handleNav('/dashboard')}
+        onClick={() => handleNav(user?.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')}
       >
         <Box
           sx={{

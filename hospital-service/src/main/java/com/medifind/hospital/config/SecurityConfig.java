@@ -37,6 +37,8 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
+                // Admin management — ADMIN role only
+                .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                 // Write operations — ADMIN only
                 .requestMatchers(HttpMethod.POST,   "/api/hospitals/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/hospitals/**").hasAuthority("ROLE_ADMIN")

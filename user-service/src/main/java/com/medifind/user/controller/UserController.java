@@ -16,6 +16,25 @@ public class UserController {
 
     private final UserRepository userRepository;
 
+    /**
+     * Internal helper used by the notification-service for admin broadcasts.
+     * Returns id/name/email/status only — never passwords.
+     */
+    @GetMapping("/role/{role}")
+    public ResponseEntity<java.util.List<com.medifind.user.dto.UserResponse>> getUsersByRole(@PathVariable String role) {
+        java.util.List<com.medifind.user.dto.UserResponse> users = userRepository.findAll().stream()
+                .filter(u -> "ALL".equalsIgnoreCase(role) || role.equalsIgnoreCase(u.getRole()))
+                .map(u -> com.medifind.user.dto.UserResponse.builder()
+                        .id(u.getId())
+                        .fullName(u.getFullName())
+                        .email(u.getEmail())
+                        .role(u.getRole())
+                        .status(u.getStatus())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(users);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id)

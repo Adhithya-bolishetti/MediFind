@@ -24,4 +24,7 @@ public class UserResponse {
     private String profileImage;
     private String emergencyContactName;
     private String emergencyContactPhone;
+    private String status;
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime updatedAt;
 }

@@ -21,9 +21,10 @@ public interface HospitalService {
     /**
      * Retrieve all hospitals.
      *
-     * @return list of all hospital response DTOs
+     * @param includeInactive include deactivated hospitals (admin views)
+     * @return list of hospital response DTOs
      */
-    List<HospitalResponse> getAllHospitals();
+    List<HospitalResponse> getAllHospitals(boolean includeInactive);
 
     /**
      * Retrieve a single hospital by its ID.

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class HospitalAdminController {
 
     private final HospitalReviewRepository reviewRepo;
+    private final com.medifind.hospital.service.HospitalReviewService reviewService;
 
     // Review Moderation
     @GetMapping("/reviews/pending")
@@ -29,12 +30,9 @@ public class HospitalAdminController {
     }
 
     @PutMapping("/reviews/{reviewId}/status")
-    public ResponseEntity<Void> updateReviewStatus(
+    public ResponseEntity<com.medifind.hospital.dto.HospitalReviewResponse> updateReviewStatus(
             @PathVariable Long reviewId,
             @RequestBody Map<String, String> payload) {
-        
-        HospitalReview review = reviewRepo.findById(reviewId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
         
         String statusStr = payload.get("status");
         if (statusStr == null) {
@@ -42,9 +40,6 @@ public class HospitalAdminController {
         }
         
         ReviewStatus status = ReviewStatus.valueOf(statusStr.toUpperCase());
-        review.setStatus(status);
-        reviewRepo.save(review);
-        
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(reviewService.updateReviewStatus(reviewId, status));
     }
 }

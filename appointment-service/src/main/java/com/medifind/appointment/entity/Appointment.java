@@ -34,6 +34,10 @@ public class Appointment {
     @Column(nullable = false)
     private String reason;
 
+    /** Consultation mode — "In-person" or "Online". */
+    @Column(nullable = false)
+    private String consultationType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AppointmentStatus status;

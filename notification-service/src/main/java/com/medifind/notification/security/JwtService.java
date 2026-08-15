@@ -29,6 +29,16 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        Object roles = claims.get("roles");
+        if (roles instanceof java.util.List<?>) {
+            return (java.util.List<String>) roles;
+        }
+        return java.util.List.of();
+    }
+
     /**
      * Validate the token — verifies signature and checks expiry.
      */

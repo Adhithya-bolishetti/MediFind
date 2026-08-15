@@ -19,6 +19,7 @@ public class AppointmentResponse {
     private LocalDate appointmentDate;
     private LocalTime appointmentTime;
     private String reason;
+    private String consultationType;
     private AppointmentStatus status;
     private String notes;
     private LocalDateTime createdAt;

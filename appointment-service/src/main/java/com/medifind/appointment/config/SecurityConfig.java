@@ -37,12 +37,8 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
-                // Write operations — ADMIN only
-                .requestMatchers(HttpMethod.POST,   "/api/hospitals/**").hasAuthority("ROLE_ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/api/hospitals/**").hasAuthority("ROLE_ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/hospitals/**").hasAuthority("ROLE_ADMIN")
-                // Read operations — any authenticated user
-                .requestMatchers(HttpMethod.GET, "/api/hospitals/**").authenticated()
+                // Admin management — ADMIN role only
+                .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

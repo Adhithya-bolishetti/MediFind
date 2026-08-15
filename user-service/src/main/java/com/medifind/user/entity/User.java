@@ -29,6 +29,9 @@ public class User {
     @Column(nullable = false)
     private String role;
 
+    @Column(nullable = false)
+    private String status = "ACTIVE";
+
     private String phone;
     private String gender;
     private java.time.LocalDate dateOfBirth;

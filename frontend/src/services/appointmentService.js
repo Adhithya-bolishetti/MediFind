@@ -24,6 +24,22 @@ const appointmentService = {
   decline: async (id, doctorId) => {
     const response = await api.put(`/appointments/${id}/decline?doctorId=${doctorId}`);
     return response.data;
+  },
+
+  // Admin appointment management
+  getAllAdmin: async (params) => {
+    const response = await api.get('/admin/appointments', { params });
+    return response.data;
+  },
+
+  getByIdAdmin: async (id) => {
+    const response = await api.get(`/admin/appointments/${id}`);
+    return response.data;
+  },
+
+  cancelAdmin: async (id) => {
+    const response = await api.put(`/admin/appointments/${id}/cancel`);
+    return response.data;
   }
 };
 

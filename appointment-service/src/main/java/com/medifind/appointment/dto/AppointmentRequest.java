@@ -22,4 +22,7 @@ public class AppointmentRequest {
 
     @NotBlank(message = "Reason is required")
     private String reason;
+
+    /** Optional — defaults to "In-person". */
+    private String consultationType;
 }

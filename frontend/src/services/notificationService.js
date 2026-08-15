@@ -34,6 +34,17 @@ const notificationService = {
   delete: async (id) => {
     const response = await api.delete(`/notifications/${id}`);
     return response.data;
+  },
+
+  // Admin notifications
+  sendToUser: async (data) => {
+    const response = await api.post('/admin/notifications', data);
+    return response.data;
+  },
+
+  broadcast: async (data) => {
+    const response = await api.post('/admin/notifications/broadcast', data);
+    return response.data;
   }
 };
 

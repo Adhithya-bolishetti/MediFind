@@ -55,6 +55,37 @@ Credentials defined in `auth-service/src/main/resources/application.yml`:
 CREATE DATABASE IF NOT EXISTS medifind_db;
 ```
 
+## Admin Account
+
+The application includes an Admin Dashboard (`/admin/dashboard`) for users with the `ADMIN` role.
+
+| Field  | Value                    |
+|--------|--------------------------|
+| Email  | `911234567890@medifind.com` |
+| Mobile | `1234567890` (login uses the `+91` country code prefix) |
+| Password | `admin123`             |
+
+> **Note:** Admin accounts must be created in the database — the `ADMIN` role is never
+> selectable during signup. To (re)create or reset the seeded admin account, run:
+>
+> ```bash
+> mysql -u root -p < database/seed-admin.sql
+> ```
+>
+> To change the password, regenerate the BCrypt hash with `database/GenHash.java`
+> and update `database/seed-admin.sql`, then re-run the script.
+
+## Test Accounts
+
+| Role    | Mobile Number | Password     | Lands on              |
+|---------|---------------|--------------|-----------------------|
+| Admin   | `1234567890`  | `admin123`   | Admin Dashboard       |
+| Patient | `5555555555`  | `Test@12345` | Patient Dashboard     |
+| Doctor  | `4444444444`  | `Test@12345` | Doctor Dashboard      |
+
+These are seed accounts used for local testing. The patient and doctor accounts have
+completed profiles; new signups are redirected to profile creation first.
+
 ## API Endpoints
 
 ### Auth Service (Accessible via API Gateway)

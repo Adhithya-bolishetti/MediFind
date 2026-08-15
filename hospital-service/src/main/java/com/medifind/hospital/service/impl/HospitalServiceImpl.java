@@ -50,10 +50,11 @@ public class HospitalServiceImpl implements HospitalService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<HospitalResponse> getAllHospitals() {
-        log.info("Fetching all hospitals");
+    public List<HospitalResponse> getAllHospitals(boolean includeInactive) {
+        log.info("Fetching all hospitals (includeInactive={})", includeInactive);
         return hospitalRepository.findAll()
                 .stream()
+                .filter(h -> includeInactive || h.isActive())
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -95,6 +96,9 @@ public class HospitalServiceImpl implements HospitalService {
         hospital.setLatitude(request.getLatitude());
         hospital.setLongitude(request.getLongitude());
         hospital.setEmergencyAvailable(request.isEmergencyAvailable());
+        if (request.getActive() != null) {
+            hospital.setActive(request.getActive());
+        }
 
         Hospital updated = hospitalRepository.save(hospital);
         log.info("Hospital updated successfully with id: {}", updated.getId());
@@ -128,6 +132,7 @@ public class HospitalServiceImpl implements HospitalService {
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .emergencyAvailable(request.isEmergencyAvailable())
+                .active(request.getActive() == null || request.getActive())
                 .build();
     }
 
@@ -143,6 +148,7 @@ public class HospitalServiceImpl implements HospitalService {
                 .latitude(hospital.getLatitude())
                 .longitude(hospital.getLongitude())
                 .emergencyAvailable(hospital.isEmergencyAvailable())
+                .active(hospital.isActive())
                 .createdAt(hospital.getCreatedAt())
                 .updatedAt(hospital.getUpdatedAt())
                 .rating(hospital.getRating())

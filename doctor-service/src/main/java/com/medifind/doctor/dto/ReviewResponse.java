@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class ReviewResponse {
     private Long id;
     private Long doctorId;
+    private String doctorName;
     private Long userId;
     private String patientName;
     private Long appointmentId;

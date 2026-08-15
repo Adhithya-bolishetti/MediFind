@@ -58,6 +58,8 @@ public interface DoctorService {
     List<com.medifind.doctor.dto.ReviewResponse> getDoctorReviews(Long doctorId);
     com.medifind.doctor.dto.ReviewResponse updateReview(Long doctorId, Long reviewId, com.medifind.doctor.dto.ReviewRequest request, Long userId);
     void deleteReview(Long doctorId, Long reviewId, Long userId, boolean isAdmin);
+    com.medifind.doctor.dto.ReviewResponse updateReviewStatus(Long reviewId, com.medifind.doctor.entity.ReviewStatus status);
+    com.medifind.doctor.dto.ReviewResponse mapToReviewResponsePublic(com.medifind.doctor.entity.Review review);
     
     List<com.medifind.doctor.dto.DoctorRecommendationResponse> getRecommendations(String specialization, String city, Double minimumRating, Integer minimumExperience, Boolean available);
 

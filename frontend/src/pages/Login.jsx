@@ -66,12 +66,13 @@ const Login = () => {
       const user = await login(res.accessToken);
       
       // Determine post-login routing
-      if (user.role === 'DOCTOR') {
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'DOCTOR') {
         navigate(user.isProfileComplete ? '/dashboard' : '/doctor/profile');
       } else if (user.role === 'PATIENT') {
         navigate(user.isProfileComplete ? '/dashboard' : '/patient/profile');
       } else {
-        // ADMIN or other roles
         navigate('/dashboard');
       }
 

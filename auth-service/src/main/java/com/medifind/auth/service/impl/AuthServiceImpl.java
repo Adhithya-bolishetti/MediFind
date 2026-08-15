@@ -86,6 +86,10 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+        if (user.getStatus() != null && "SUSPENDED".equalsIgnoreCase(user.getStatus())) {
+            throw new BadCredentialsException("Your account has been suspended. Contact support for assistance.");
+        }
+
         String jwtToken = jwtService.generateToken(user);
 
         return LoginResponse.builder()

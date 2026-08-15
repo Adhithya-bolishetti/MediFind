@@ -34,9 +34,17 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public DoctorResponse createDoctor(DoctorRequest request) { return null; }
 
+    /**
+     * Only APPROVED doctors are exposed publicly (Find Doctors, search, etc.).
+     */
+    private boolean isPubliclyVisible(Doctor d) {
+        return d.getVerificationStatus() == com.medifind.doctor.entity.VerificationStatus.APPROVED;
+    }
+
     @Override
     public List<DoctorResponse> getAllDoctors() {
         return doctorRepository.findAll().stream()
+                .filter(this::isPubliclyVisible)
                 .map(this::mapToDoctorResponse)
                 .collect(Collectors.toList());
     }
@@ -44,6 +52,9 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public DoctorResponse getDoctorById(Long id) {
         Doctor d = getDoctor(id);
+        if (!isPubliclyVisible(d)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor not found");
+        }
         return mapToDoctorResponse(d);
     }
 
@@ -56,6 +67,7 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public List<DoctorResponse> searchDoctors(String query, String specialization, String city, Long hospitalId, Boolean available, Double minimumRating, Integer experience) {
         return doctorRepository.findAll().stream()
+                .filter(this::isPubliclyVisible)
                 .filter(d -> query == null || query.trim().isEmpty() || matchesQuery(d, query))
                 .filter(d -> specialization == null || (d.getSpecialization() != null && d.getSpecialization().name().toLowerCase().contains(specialization.toLowerCase())))
                 .filter(d -> city == null || (d.getCity() != null && d.getCity().toLowerCase().contains(city.toLowerCase())))
@@ -228,9 +240,23 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<ReviewResponse> getDoctorReviews(Long doctorId) {
+        // Only approved (publicly visible) reviews are shown to patients.
         return reviewRepository.findByDoctorId(doctorId).stream()
+                .filter(r -> r.getStatus() == com.medifind.doctor.entity.ReviewStatus.APPROVED)
                 .map(this::mapToReviewResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ReviewResponse updateReviewStatus(Long reviewId, com.medifind.doctor.entity.ReviewStatus status) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
+        review.setStatus(status);
+        review = reviewRepository.save(review);
+        // Hiding/restoring a review changes the public average rating.
+        Doctor doctor = getDoctor(review.getDoctorId());
+        updateDoctorRating(doctor);
+        return mapToReviewResponse(review);
     }
 
     @Override
@@ -272,6 +298,7 @@ public class DoctorServiceImpl implements DoctorService {
         List<Doctor> allDoctors = doctorRepository.findAll();
         
         return allDoctors.stream()
+                .filter(this::isPubliclyVisible)
                 .filter(d -> specialization == null || (d.getSpecialization() != null && d.getSpecialization().name().equalsIgnoreCase(specialization)))
                 .filter(d -> minimumRating == null || d.getRating() >= minimumRating)
                 .filter(d -> minimumExperience == null || d.getExperience() >= minimumExperience)
@@ -342,6 +369,11 @@ public class DoctorServiceImpl implements DoctorService {
         doctorRepository.save(doctor);
     }
     
+    @Override
+    public ReviewResponse mapToReviewResponsePublic(Review review) {
+        return mapToReviewResponse(review);
+    }
+
     private ReviewResponse mapToReviewResponse(Review review) {
         String patientName = null;
         try {
@@ -351,9 +383,18 @@ public class DoctorServiceImpl implements DoctorService {
             // Patient lookup is best-effort; fall back to showing the id on the frontend.
         }
 
+        String doctorName = null;
+        try {
+            Doctor d = getDoctor(review.getDoctorId());
+            doctorName = d.getDoctorName();
+        } catch (Exception e) {
+            // Best-effort
+        }
+
         return ReviewResponse.builder()
                 .id(review.getId())
                 .doctorId(review.getDoctorId())
+                .doctorName(doctorName)
                 .userId(review.getUserId())
                 .patientName(patientName)
                 .appointmentId(review.getAppointmentId())
@@ -437,8 +478,9 @@ public class DoctorServiceImpl implements DoctorService {
                 .appointmentDuration(request.getAppointmentDuration())
                 .availableForOnlineConsultation(Boolean.TRUE.equals(request.getAvailableForOnlineConsultation()))
                 .availableForEmergency(Boolean.TRUE.equals(request.getAvailableForEmergency()))
-                .verificationStatus(com.medifind.doctor.entity.VerificationStatus.APPROVED)
-                .available(true)
+                // New doctor profiles start PENDING until reviewed & approved by an admin.
+                .verificationStatus(com.medifind.doctor.entity.VerificationStatus.PENDING)
+                .available(false)
                 .build();
 
         doctor = doctorRepository.save(doctor);
@@ -551,6 +593,8 @@ public class DoctorServiceImpl implements DoctorService {
                 .verificationStatus(doctor.getVerificationStatus())
                 .licenseCertificatePath(doctor.getLicenseCertificatePath())
                 .rejectionReason(doctor.getRejectionReason())
+                .createdAt(doctor.getCreatedAt())
+                .updatedAt(doctor.getUpdatedAt())
                 .rating(doctor.getRating())
                 .totalReviews(doctor.getTotalReviews())
                 .ratingDistribution(RatingDistribution.builder()

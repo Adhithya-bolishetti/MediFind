@@ -24,6 +24,7 @@ public class HospitalResponse {
     private Double latitude;
     private Double longitude;
     private boolean emergencyAvailable;
+    private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     

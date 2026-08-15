@@ -41,4 +41,7 @@ public class HospitalRequest {
     private Double longitude;
 
     private boolean emergencyAvailable;
+
+    /** Optional — deactivate/reactivate a hospital (admin only). */
+    private Boolean active;
 }

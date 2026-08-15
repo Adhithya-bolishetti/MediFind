@@ -49,6 +49,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private String status = "ACTIVE";
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -92,6 +96,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        // Suspended accounts cannot authenticate at all.
+        return status == null || "ACTIVE".equalsIgnoreCase(status);
     }
 }

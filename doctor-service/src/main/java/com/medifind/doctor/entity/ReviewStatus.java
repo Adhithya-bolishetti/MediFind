@@ -4,5 +4,6 @@ public enum ReviewStatus {
     PENDING,
     APPROVED,
     REJECTED,
-    FLAGGED
+    FLAGGED,
+    HIDDEN
 }

@@ -88,9 +88,21 @@ public class HospitalReviewServiceImpl implements HospitalReviewService {
 
     @Override
     public List<HospitalReviewResponse> getHospitalReviews(Long hospitalId) {
+        // Only approved (publicly visible) reviews are shown to patients.
         return reviewRepository.findByHospitalId(hospitalId).stream()
+                .filter(r -> r.getStatus() == ReviewStatus.APPROVED)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public HospitalReviewResponse updateReviewStatus(Long reviewId, ReviewStatus status) {
+        HospitalReview review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
+        review.setStatus(status);
+        review = reviewRepository.save(review);
+        updateHospitalRating(getHospital(review.getHospitalId()));
+        return mapToResponse(review);
     }
 
     @Override
