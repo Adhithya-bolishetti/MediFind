@@ -3,10 +3,6 @@ import {
   Box, Typography, Paper, Grid, CircularProgress, Button, Avatar, Divider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { IconButton } from '@mui/material';
-import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
-import { useThemeMode } from '../context/ThemeContext';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import StarIcon from '@mui/icons-material/Star';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -21,7 +17,7 @@ import userService from '../services/userService';
 import doctorService from '../services/doctorService';
 import hospitalService from '../services/hospitalService';
 import appointmentService from '../services/appointmentService';
-import { TEAL, NAVY, MUTED, BORDER, BG, SURFACE, HOVER, StatusChip, formatDate, isToday } from './admin/shared';
+import { TEAL, NAVY, MUTED, BORDER, BG, StatusChip, formatDate, isToday } from './admin/shared';
 
 const StatCard = ({ icon, label, value, delta, deltaLabel, color, onClick }) => (
   <Paper
@@ -78,7 +74,6 @@ const QuickAction = ({ icon, label, onClick, color }) => (
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
-  const { isDark, toggle } = useThemeMode();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ patients: [], doctors: [], hospitals: [], appointments: [], reviews: [] });
@@ -181,10 +176,6 @@ const AdminDashboard = () => {
             Here&apos;s what&apos;s happening with MediFind today.
           </Typography>
         </Box>
-        <IconButton onClick={toggle} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          sx={{ color: NAVY, bgcolor: SURFACE, border: `1px solid ${BORDER}`, '&:hover': { bgcolor: HOVER } }}>
-          {isDark ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
-        </IconButton>
       </Box>
 
       {error && (

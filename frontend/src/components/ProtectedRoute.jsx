@@ -31,10 +31,10 @@ const AccessDenied = () => {
 };
 
 const ProtectedRoute = ({ children, requireProfileComplete, requireProfileIncomplete, allowedRole }) => {
-  const { user, token, loading } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
   const location = useLocation();
 
-  if (loading || (token && !user)) {
+  if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: 'var(--mf-bg)' }}>
         <CircularProgress sx={{ color: '#079A9A' }} />
@@ -43,6 +43,9 @@ const ProtectedRoute = ({ children, requireProfileComplete, requireProfileIncomp
   }
 
   if (!user) {
+    // No valid session — send to login. This also covers the case where a
+    // stored token exists but the user failed to load (stale/revoked session),
+    // so the route can never hang on a spinner forever.
     // Save the location they were trying to go to
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

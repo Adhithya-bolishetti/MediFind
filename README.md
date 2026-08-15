@@ -61,9 +61,9 @@ The application includes an Admin Dashboard (`/admin/dashboard`) for users with 
 
 | Field  | Value                    |
 |--------|--------------------------|
-| Email  | `911234567890@medifind.com` |
-| Mobile | `1234567890` (login uses the `+91` country code prefix) |
-| Password | `admin123`             |
+| Email  | `9392392909@medifind.com` |
+| Mobile | `9392392909` (login uses the `+91` country code prefix) |
+| Password | `Admin@232470`        |
 
 > **Note:** Admin accounts must be created in the database — the `ADMIN` role is never
 > selectable during signup. To (re)create or reset the seeded admin account, run:
@@ -79,7 +79,7 @@ The application includes an Admin Dashboard (`/admin/dashboard`) for users with 
 
 | Role    | Mobile Number | Password     | Lands on              |
 |---------|---------------|--------------|-----------------------|
-| Admin   | `1234567890`  | `admin123`   | Admin Dashboard       |
+| Admin   | `9392392909`  | `Admin@232470` | Admin Dashboard      |
 | Patient | `5555555555`  | `Test@12345` | Patient Dashboard     |
 | Doctor  | `4444444444`  | `Test@12345` | Doctor Dashboard      |
 

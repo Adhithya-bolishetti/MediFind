@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 
 /**
  * Global light/dark theme for the MediFind app (admin dashboard in particular).
@@ -90,6 +91,12 @@ export const ThemeProvider = ({ children }) => {
 
   return (
     <MuiThemeProvider theme={muiTheme}>
+      {/* Render CssBaseline inside the dynamic provider so the <body>
+          background/text follow the active mode. The static light baseline in
+          main.jsx sits outside this provider, so without this the body stays
+          light even in dark mode and any inherited text (e.g. Typography
+          without an explicit color) becomes black-on-dark and unreadable. */}
+      <CssBaseline />
       <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
     </MuiThemeProvider>
   );

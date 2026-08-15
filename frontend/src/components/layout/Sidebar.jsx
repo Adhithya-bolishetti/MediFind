@@ -28,7 +28,6 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
 const SIDEBAR_WIDTH = 260;
 const TEAL = '#079A9A';
-const NAVY = 'var(--mf-text)';
 const LIGHT_TEAL_BG = 'rgba(7, 154, 154, 0.12)';
 const BORDER_COLOR = 'var(--mf-border)';
 
@@ -185,7 +184,9 @@ const SidebarContent = ({ onClose }) => {
               <ListItemIcon
                 sx={{
                   minWidth: 36,
-                  color: active ? TEAL : '#6B7280',
+                  // Theme-aware: --mf-muted resolves to a readable slate on both
+                  // light (#5C6780) and dark (#94A3B8) sidebar surfaces.
+                  color: active ? TEAL : 'var(--mf-muted)',
                 }}
               >
                 {item.notif ? (
@@ -198,12 +199,14 @@ const SidebarContent = ({ onClose }) => {
               </ListItemIcon>
               <ListItemText
                 primary={item.label}
-                slotProps={{
-                  primary: {
+                slotProps={{ primary: { noWrap: true } }}
+                sx={{
+                  // MUI Typography drops non-palette `color` props, so the text
+                  // styling must go through sx for the CSS vars to apply.
+                  '& .MuiListItemText-primary': {
                     fontWeight: active ? 700 : 500,
                     fontSize: '0.875rem',
-                    color: active ? TEAL : NAVY,
-                    noWrap: true,
+                    color: active ? TEAL : 'var(--mf-text)',
                   },
                 }}
               />
@@ -231,8 +234,8 @@ const SidebarContent = ({ onClose }) => {
           </ListItemIcon>
           <ListItemText
             primary={isDark ? 'Light Mode' : 'Dark Mode'}
-            slotProps={{
-              primary: {
+            sx={{
+              '& .MuiListItemText-primary': {
                 fontWeight: 500,
                 fontSize: '0.875rem',
                 color: 'var(--mf-text)',
@@ -256,8 +259,8 @@ const SidebarContent = ({ onClose }) => {
           </ListItemIcon>
           <ListItemText
             primary="Logout"
-            slotProps={{
-              primary: {
+            sx={{
+              '& .MuiListItemText-primary': {
                 fontWeight: 500,
                 fontSize: '0.875rem',
                 color: '#EF4444',

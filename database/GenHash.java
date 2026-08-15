@@ -13,7 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  */
 public class GenHash {
     public static void main(String[] args) {
-        String plain = args.length > 0 ? args[0] : "admin123";
+        String plain = args.length > 0 ? args[0] : "Admin@232470";
         System.out.println("HASH=" + new BCryptPasswordEncoder().encode(plain));
     }
 }

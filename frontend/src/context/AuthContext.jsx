@@ -40,7 +40,11 @@ export const AuthProvider = ({ children }) => {
       return fullUser;
     } catch (e) {
       console.error('Error fetching user data:', e);
-      if (e?.response?.status === 401 || e?.response?.status === 403) {
+      // A 401/403 means the token is rejected; a 404 from /auth/me means the
+      // account behind the token no longer exists (deleted or renamed — e.g.
+      // after an admin credential change). In every case the stored session is
+      // dead, so clear it instead of leaving the app stuck on a loading spinner.
+      if (e?.response?.status === 401 || e?.response?.status === 403 || e?.response?.status === 404) {
         logout();
       }
       throw e;

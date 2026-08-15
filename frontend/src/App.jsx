@@ -67,7 +67,10 @@ const ConditionalSidebar = ({ children }) => {
 const Landing = () => {
   const { user, token, loading } = useContext(AuthContext);
 
-  if (loading || (token && !user)) {
+  // Only show the spinner while we're actually authenticating. If a stored
+  // token exists but the user failed to load (stale/revoked session, network
+  // outage), send them to login instead of spinning forever.
+  if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F7F9FC' }}>
         <CircularProgress sx={{ color: '#079A9A' }} />
@@ -75,6 +78,7 @@ const Landing = () => {
     );
   }
 
+  if (token && !user) return <Navigate to="/login" replace />;
   if (user) return <Navigate to={user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard'} replace />;
   return <Register />;
 };
