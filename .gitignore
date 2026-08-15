@@ -1,8 +1,4 @@
 target/
-*.class
-node_modules/
-.env
-
 **/target/
 *.class
 
@@ -10,15 +6,15 @@ node_modules/
 frontend/node_modules/
 dist/
 
-.idea/
-.vscode/
-.freebuff/
-.freebuff.log.err/
-.freebuff.log.err
-
 .env
 .env.*
 *.env
+
+.idea/
+.vscode/
+
+.freebuff/
+.freebuff.log.err
 
 *.log
 
