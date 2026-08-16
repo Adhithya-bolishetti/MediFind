@@ -57,6 +57,7 @@ const ProtectedRoute = ({ children, requireProfileComplete, requireProfileIncomp
   if (requireProfileComplete && !user.isProfileComplete) {
     if (user.role === 'DOCTOR') return <Navigate to="/doctor/profile" replace />;
     if (user.role === 'PATIENT') return <Navigate to="/patient/profile" replace />;
+    if (user.role === 'HOSPITAL') return <Navigate to="/hospital/setup" replace />;
   }
 
   if (requireProfileIncomplete && user.isProfileComplete) {

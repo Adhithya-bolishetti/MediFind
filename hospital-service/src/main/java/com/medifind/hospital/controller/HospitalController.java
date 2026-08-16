@@ -67,6 +67,20 @@ public class HospitalController {
     }
 
     /**
+     * Search hospitals by name / city / address / type / facilities.
+     * Only publicly visible (approved & active) hospitals are returned.
+     */
+    @Operation(summary = "Search hospitals")
+    @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<HospitalResponse>> searchHospitals(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String type) {
+        return ResponseEntity.ok(hospitalService.searchHospitals(q, city, type));
+    }
+
+    /**
      * Update an existing hospital. ADMIN only.
      */
     @Operation(summary = "Update a hospital", description = "Requires ADMIN role")

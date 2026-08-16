@@ -78,6 +78,8 @@ const Login = () => {
         navigate(user.isProfileComplete ? '/dashboard' : '/doctor/profile');
       } else if (user.role === 'PATIENT') {
         navigate(user.isProfileComplete ? '/dashboard' : '/patient/profile');
+      } else if (user.role === 'HOSPITAL') {
+        navigate(user.isProfileComplete ? '/hospital/dashboard' : '/hospital/setup');
       } else {
         navigate('/dashboard');
       }

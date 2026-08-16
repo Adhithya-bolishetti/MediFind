@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
         if (request.getRole() != null) {
             try {
                 Role parsedRole = Role.valueOf(request.getRole().toUpperCase());
-                if (parsedRole == Role.PATIENT || parsedRole == Role.DOCTOR) {
+                if (parsedRole == Role.PATIENT || parsedRole == Role.DOCTOR || parsedRole == Role.HOSPITAL) {
                     requestedRole = parsedRole;
                 }
             } catch (IllegalArgumentException e) {

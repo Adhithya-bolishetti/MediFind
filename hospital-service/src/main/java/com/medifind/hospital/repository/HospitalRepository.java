@@ -17,4 +17,9 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
 
     /** Find a hospital by its unique email address. */
     Optional<Hospital> findByEmail(String email);
+
+    /** Find the hospital owned by an auth user. */
+    Optional<Hospital> findByUserId(Long userId);
+
+    boolean existsByUserId(Long userId);
 }

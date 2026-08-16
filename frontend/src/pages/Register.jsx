@@ -14,6 +14,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import MedicalServicesRoundedIcon from '@mui/icons-material/MedicalServicesRounded';
+import LocalHospitalRoundedIcon from '@mui/icons-material/LocalHospitalRounded';
 
 const TEAL = '#079A9A';
 
@@ -125,6 +126,8 @@ const Register = () => {
         navigate('/doctor/profile');
       } else if (user.role === 'PATIENT') {
         navigate('/patient/profile');
+      } else if (user.role === 'HOSPITAL') {
+        navigate('/hospital/setup');
       } else {
         navigate('/dashboard');
       }
@@ -175,6 +178,7 @@ const Register = () => {
                   {[
                     { value: 'PATIENT', icon: <PersonRoundedIcon fontSize="medium" />, title: "I'm a Patient", desc: 'Find doctors & book appointments' },
                     { value: 'DOCTOR', icon: <MedicalServicesRoundedIcon fontSize="medium" />, title: "I'm a Doctor", desc: 'Manage patients & appointments' },
+                    { value: 'HOSPITAL', icon: <LocalHospitalRoundedIcon fontSize="medium" />, title: "I'm a Hospital", desc: 'Manage your hospital & services' },
                   ].map((opt) => {
                     const active = field.value === opt.value;
                     return (

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import authService from '../services/authService';
 import api from '../services/api';
 import doctorService from '../services/doctorService';
+import hospitalService from '../services/hospitalService';
 import userService from '../services/userService';
 
 export const AuthContext = createContext(null);
@@ -28,6 +29,13 @@ export const AuthProvider = ({ children }) => {
           const profile = await userService.getProfile(userData.id);
           // Assuming phone and gender are the minimum required fields for a completed patient profile
           isProfileComplete = !!(profile.phone && profile.gender);
+        } catch (e) {
+          isProfileComplete = false;
+        }
+      } else if (userData.role === 'HOSPITAL') {
+        try {
+          const status = await hospitalService.getProfileStatus();
+          isProfileComplete = status && status !== 'INCOMPLETE';
         } catch (e) {
           isProfileComplete = false;
         }

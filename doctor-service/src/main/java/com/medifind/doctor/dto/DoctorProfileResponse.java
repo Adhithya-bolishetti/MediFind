@@ -11,6 +11,7 @@ import java.time.LocalDate;
 public class DoctorProfileResponse {
     private Long id;
     private Long userId;
+    private Long hospitalId;
     private String doctorName;
     private String email;
     private String phoneNumber;

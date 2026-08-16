@@ -22,6 +22,14 @@ import DoctorDetails from './pages/DoctorDetails';
 // Profile setup pages (no sidebar — standalone layout)
 import DoctorProfileSetup from './pages/DoctorProfileSetup';
 import PatientProfileSetup from './pages/PatientProfileSetup';
+import HospitalProfileSetup from './pages/HospitalProfileSetup';
+
+// Hospital dashboard pages (sidebar + HOSPITAL role)
+import HospitalDashboard from './pages/HospitalDashboard';
+import HospitalProfile from './pages/HospitalProfile';
+import HospitalImages from './pages/HospitalImages';
+import HospitalReviews from './pages/HospitalReviews';
+import HospitalDetails from './pages/HospitalDetails';
 
 // Authenticated dashboard pages (use sidebar)
 import Dashboard from './pages/Dashboard';
@@ -79,7 +87,11 @@ const Landing = () => {
   }
 
   if (token && !user) return <Navigate to="/login" replace />;
-  if (user) return <Navigate to={user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard'} replace />;
+  if (user) {
+    if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'HOSPITAL') return <Navigate to={user.isProfileComplete ? '/hospital/dashboard' : '/hospital/setup'} replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
   return <Register />;
 };
 
@@ -105,6 +117,7 @@ const AppRoutes = () => (
       <Route path="/doctors" element={<ConditionalSidebar><FindDoctors /></ConditionalSidebar>} />
       <Route path="/doctors/:id" element={<ConditionalSidebar><DoctorDetails /></ConditionalSidebar>} />
       <Route path="/hospitals" element={<ConditionalSidebar><HospitalSearch /></ConditionalSidebar>} />
+      <Route path="/hospitals/:id" element={<ConditionalSidebar><HospitalDetails /></ConditionalSidebar>} />
 
       {/* ─────────────── Profile Setup (no sidebar) ─────────────── */}
       <Route
@@ -120,6 +133,14 @@ const AppRoutes = () => (
         element={
           <ProtectedRoute requireProfileIncomplete allowedRole="PATIENT">
             <PatientProfileSetup />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hospital/setup"
+        element={
+          <ProtectedRoute requireProfileIncomplete allowedRole="HOSPITAL">
+            <HospitalProfileSetup />
           </ProtectedRoute>
         }
       />
@@ -153,6 +174,48 @@ const AppRoutes = () => (
         path="/notifications"
         element={
           <ProtectedRoute requireProfileComplete>
+            <WithSidebar><NotificationMenu /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ─────────────── Hospital (sidebar + HOSPITAL role) ─────────────── */}
+      <Route
+        path="/hospital/dashboard"
+        element={
+          <ProtectedRoute requireProfileComplete allowedRole="HOSPITAL">
+            <WithSidebar><HospitalDashboard /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hospital/profile"
+        element={
+          <ProtectedRoute requireProfileComplete allowedRole="HOSPITAL">
+            <WithSidebar><HospitalProfile /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hospital/images"
+        element={
+          <ProtectedRoute requireProfileComplete allowedRole="HOSPITAL">
+            <WithSidebar><HospitalImages /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hospital/reviews"
+        element={
+          <ProtectedRoute requireProfileComplete allowedRole="HOSPITAL">
+            <WithSidebar><HospitalReviews /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hospital/notifications"
+        element={
+          <ProtectedRoute requireProfileComplete allowedRole="HOSPITAL">
             <WithSidebar><NotificationMenu /></WithSidebar>
           </ProtectedRoute>
         }

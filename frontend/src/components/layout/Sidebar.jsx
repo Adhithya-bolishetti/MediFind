@@ -23,6 +23,7 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
@@ -43,6 +44,14 @@ const doctorNavItems = [
   { label: 'Appointments', icon: <EventNoteIcon />, path: '/appointments' },
   { label: 'Profile', icon: <PersonOutlinedIcon />, path: '/profile' },
   { label: 'Notifications', icon: <NotificationsNoneIcon />, path: '/notifications', notif: true },
+];
+
+const hospitalNavItems = [
+  { label: 'Dashboard', icon: <DashboardIcon />, path: '/hospital/dashboard' },
+  { label: 'Hospital Profile', icon: <LocalHospitalIcon />, path: '/hospital/profile' },
+  { label: 'Images', icon: <PhotoLibraryIcon />, path: '/hospital/images' },
+  { label: 'Reviews & Ratings', icon: <RateReviewIcon />, path: '/hospital/reviews' },
+  { label: 'Notifications', icon: <NotificationsNoneIcon />, path: '/hospital/notifications', notif: true },
 ];
 
 const adminNavItems = [
@@ -81,6 +90,7 @@ const SidebarContent = ({ onClose }) => {
 
   const navItems = user?.role === 'ADMIN' ? adminNavItems
     : user?.role === 'DOCTOR' ? doctorNavItems
+    : user?.role === 'HOSPITAL' ? hospitalNavItems
     : patientNavItems;
 
   const handleNav = (path) => {

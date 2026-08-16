@@ -41,7 +41,8 @@ public class Hospital {
     @Column(nullable = false)
     private String phoneNumber;
 
-    @Column(nullable = false, unique = true)
+    /** Contact email — optional for self-registered hospitals; unique when set. */
+    @Column(unique = true)
     private String email;
 
     /** GPS latitude — range [-90.0, +90.0]. */
@@ -58,6 +59,51 @@ public class Hospital {
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
+
+    // ─────────── Hospital-owner profile fields ───────────
+
+    /** Auth user id of the hospital owner (null for admin-created rows). */
+    private Long userId;
+
+    /** e.g. Multi-Speciality, Super-Speciality, Clinic, Nursing Home, Government. */
+    private String hospitalType;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private String pincode;
+
+    private String website;
+
+    /** Comma-separated facility list, e.g. "ICU,Ambulance,Pharmacy". */
+    @Column(columnDefinition = "TEXT")
+    private String facilities;
+
+    /** Comma-separated specialties, e.g. "Cardiology,Orthopedics". */
+    @Column(columnDefinition = "TEXT")
+    private String specialties;
+
+    /** Free-text operating hours, e.g. "Mon–Sat: 9 AM – 9 PM". */
+    @Column(columnDefinition = "TEXT")
+    private String operatingHours;
+
+    /** Whether the hospital provides an ambulance service. */
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean ambulanceAvailable = false;
+
+    /** Ambulance hotline — only used when ambulanceAvailable is true. */
+    private String ambulancePhone;
+
+    /** Cover image (base64 data URL) — first of the hospital's images. */
+    @Column(columnDefinition = "LONGTEXT")
+    private String imageUrl;
+
+    /** Approval/suspension lifecycle status. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private HospitalStatus status = HospitalStatus.APPROVED;
 
     @Column(nullable = false)
     @Builder.Default

@@ -54,6 +54,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
 
+                    // Expose the authenticated user id + role as request attributes so
+                    // controllers can enforce ownership without re-parsing the token.
+                    try {
+                        Integer userIdObj = jwtService.extractClaim(jwt, claims -> claims.get("userId", Integer.class));
+                        if (userIdObj != null) {
+                            request.setAttribute("X-User-Id", userIdObj.longValue());
+                        }
+                        List<String> rolesClaim = jwtService.extractRoles(jwt);
+                        String joined = String.join(",", rolesClaim == null ? List.of() : rolesClaim);
+                        if (joined.contains("ADMIN")) request.setAttribute("X-User-Role", "ADMIN");
+                        else if (joined.contains("HOSPITAL")) request.setAttribute("X-User-Role", "HOSPITAL");
+                        else if (joined.contains("DOCTOR")) request.setAttribute("X-User-Role", "DOCTOR");
+                        else if (joined.contains("PATIENT")) request.setAttribute("X-User-Role", "PATIENT");
+                    } catch (Exception ex) {
+                        log.debug("Could not extract user id from JWT: {}", ex.getMessage());
+                    }
+
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(username, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

@@ -39,7 +39,18 @@ public class SecurityConfig {
                 ).permitAll()
                 // Admin management — ADMIN role only
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                // Write operations — ADMIN only
+                // Hospital-owner self-service — any authenticated user; the
+                // service layer enforces ownership via X-User-Id.
+                .requestMatchers("/api/hospitals/profile/**").authenticated()
+                .requestMatchers(HttpMethod.POST,   "/api/hospitals/*/images").authenticated()
+                .requestMatchers(HttpMethod.PUT,    "/api/hospitals/*/images/reorder").authenticated()
+                .requestMatchers(HttpMethod.PUT,    "/api/hospitals/images/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/hospitals/images/**").authenticated()
+                // Review creation — any authenticated patient (ownership verified in service)
+                .requestMatchers(HttpMethod.POST,   "/api/hospitals/*/reviews").authenticated()
+                .requestMatchers(HttpMethod.PUT,    "/api/hospitals/*/reviews/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/hospitals/*/reviews/**").authenticated()
+                // Other write operations — ADMIN only
                 .requestMatchers(HttpMethod.POST,   "/api/hospitals/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/hospitals/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/hospitals/**").hasAuthority("ROLE_ADMIN")

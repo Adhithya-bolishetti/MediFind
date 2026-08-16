@@ -67,6 +67,9 @@ public class HospitalReviewServiceImpl implements HospitalReviewService {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment or Doctor not found");
             }
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify appointment details");
+        } catch (ResponseStatusException e) {
+            // Keep validation errors (400/403) intact — don't mask them as 503.
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not verify appointment details");
         }

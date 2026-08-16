@@ -573,6 +573,7 @@ public class DoctorServiceImpl implements DoctorService {
         return DoctorProfileResponse.builder()
                 .id(doctor.getId())
                 .userId(doctor.getUserId())
+                .hospitalId(doctor.getHospitalId())
                 .doctorName(doctor.getDoctorName())
                 .email(doctor.getEmail())
                 .phoneNumber(doctor.getPhoneNumber())
