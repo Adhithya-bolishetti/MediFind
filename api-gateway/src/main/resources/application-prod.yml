@@ -1,0 +1,8 @@
+# ────────────────────────────────────────────────────────────────────
+# Production Profile — API Gateway
+# Activate: SPRING_PROFILES_ACTIVE=prod
+# ────────────────────────────────────────────────────────────────────
+
+eureka:
+  instance:
+    prefer-ip-address: true

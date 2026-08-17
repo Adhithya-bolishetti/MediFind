@@ -1,0 +1,25 @@
+# ────────────────────────────────────────────────────────────────────
+# Production Profile — User Service
+# Activate: SPRING_PROFILES_ACTIVE=prod
+# ────────────────────────────────────────────────────────────────────
+
+spring:
+  datasource:
+    username: ${DB_USERNAME:medifind}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET}
