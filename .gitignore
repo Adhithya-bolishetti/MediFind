@@ -15,7 +15,6 @@ dist/
 .vscode/
 
 .freebuff/
-.freebuff.log.err
 
 *.log
 
