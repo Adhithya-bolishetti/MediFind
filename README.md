@@ -94,8 +94,9 @@ The application includes an Admin Dashboard (`/admin/dashboard`) for users with 
 | Admin   | `9392392909`  | `DemoAdmin@123` (DEMO) | Admin Dashboard      |
 | Patient | `5555555555`  | `Test@12345` (DEMO) | Patient Dashboard     |
 | Doctor  | `4444444444`  | `Test@12345` (DEMO) | Doctor Dashboard      |
+| Hospital| `3333333333`  | `Test@12345` (DEMO) | Hospital Dashboard    |
 
-These are seed accounts used for local testing. The patient and doctor accounts have
+These are seed accounts used for local testing. The patient, doctor, and hospital accounts have
 completed profiles; new signups are redirected to profile creation first.
 
 ## API Endpoints
