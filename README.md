@@ -8,10 +8,13 @@ This project is structured as a multi-module Maven project. The components inclu
 
 - **Discovery Server (Eureka)**: Service registry for microservices.
 - **API Gateway (Spring Cloud Gateway)**: Single entry point, routing requests to appropriate services.
+- **Auth Service (Port 8081):** Manages authentication and user accounts.
 - **User Service (Port 8082):** Manages user profiles.
 - **Doctor Service (Port 8083):** Manages doctor profiles, availability, reviews, and recommendations.
 - **Hospital Service (Port 8084):** Manages hospital profiles.
+- **Notification Service (Port 8085):** Handles email and SMS notifications.
 - **Appointment Service (Port 8086):** Manages appointment bookings, cancellations, and status updates.
+- **Frontend:** React application built with Vite and Material UI.
 
 ## Folder Structure
 
@@ -21,7 +24,12 @@ medifind/
 ├── discovery-server/
 ├── api-gateway/
 ├── auth-service/
-└── user-service/
+├── user-service/
+├── doctor-service/
+├── hospital-service/
+├── notification-service/
+├── appointment-service/
+└── frontend/
 ```
 
 ## Tech Stack
@@ -34,15 +42,22 @@ medifind/
 - **Maven**
 - **Lombok & MapStruct**
 - **Swagger / OpenAPI 3**
+- **React 19 & Vite**
+- **Material UI**
 
 ## Ports Configuration
 
-| Service          | Port | Description                  |
-|------------------|------|------------------------------|
-| Discovery Server | 8761 | Eureka Dashboard & Registry  |
-| API Gateway      | 8080 | Main entry point for clients |
-| Auth Service     | 8081 | Authentication and Users DB  |
-| User Service     | 8082 | User profiles (skeleton)     |
+| Service              | Port | Description                                      |
+|----------------------|------|--------------------------------------------------|
+| Discovery Server     | 8761 | Eureka Dashboard & Registry                      |
+| API Gateway          | 8080 | Main entry point for clients                     |
+| Auth Service         | 8081 | Authentication and Users DB                      |
+| User Service         | 8082 | Manages user profiles                            |
+| Doctor Service       | 8083 | Manages doctor profiles, availability & reviews  |
+| Hospital Service     | 8084 | Manages hospital profiles                        |
+| Notification Service | 8085 | Handles email/SMS notifications                  |
+| Appointment Service  | 8086 | Manages bookings and cancellations               |
+| Frontend             | 5173 | React/Vite UI application                        |
 
 ## Database Configuration
 
@@ -128,4 +143,11 @@ Auth Service API Docs: `http://localhost:8081/swagger-ui.html`
    mvn spring-boot:run
    ```
 
-Alternatively, you can run the `*Application.java` classes directly from your IDE.
+6. **Run Frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+Alternatively, you can run the `*Application.java` classes directly from your IDE for the backend services.
