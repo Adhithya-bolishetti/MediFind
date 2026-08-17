@@ -63,7 +63,7 @@ The application includes an Admin Dashboard (`/admin/dashboard`) for users with 
 |--------|--------------------------|
 | Email  | `9392392909@medifind.com` |
 | Mobile | `9392392909` (login uses the `+91` country code prefix) |
-| Password | `Admin@232470`        |
+| Password | `DemoAdmin@123` (DEMO CREDENTIAL) |
 
 > **Note:** Admin accounts must be created in the database — the `ADMIN` role is never
 > selectable during signup. To (re)create or reset the seeded admin account, run:
@@ -71,17 +71,14 @@ The application includes an Admin Dashboard (`/admin/dashboard`) for users with 
 > ```bash
 > mysql -u root -p < database/seed-admin.sql
 > ```
->
-> To change the password, regenerate the BCrypt hash with `database/GenHash.java`
-> and update `database/seed-admin.sql`, then re-run the script.
 
 ## Test Accounts
 
 | Role    | Mobile Number | Password     | Lands on              |
 |---------|---------------|--------------|-----------------------|
-| Admin   | `9392392909`  | `Admin@232470` | Admin Dashboard      |
-| Patient | `5555555555`  | `Test@12345` | Patient Dashboard     |
-| Doctor  | `4444444444`  | `Test@12345` | Doctor Dashboard      |
+| Admin   | `9392392909`  | `DemoAdmin@123` (DEMO) | Admin Dashboard      |
+| Patient | `5555555555`  | `Test@12345` (DEMO) | Patient Dashboard     |
+| Doctor  | `4444444444`  | `Test@12345` (DEMO) | Doctor Dashboard      |
 
 These are seed accounts used for local testing. The patient and doctor accounts have
 completed profiles; new signups are redirected to profile creation first.
