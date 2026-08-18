@@ -1,0 +1,82 @@
+services:
+  # ── API Gateway (Public) ──────────────────────────
+  - type: web
+    name: api-gateway
+    env: docker
+    dockerContext: .
+    dockerfilePath: api-gateway/Dockerfile
+    envVars:
+      - key: EUREKA_SERVER_URL
+        value: http://discovery-server:8761/eureka/
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # Must be set in dashboard (e.g., Vercel frontend URL)
+
+  # ── Discovery Server (Private) ────────────────────
+  - type: pserv
+    name: discovery-server
+    env: docker
+    dockerContext: .
+    dockerfilePath: discovery-server/Dockerfile
+    envVars:
+      - key: EUREKA_HOSTNAME
+        value: discovery-server
+
+  # ── Auth Service (Private) ────────────────────────
+  - type: pserv
+    name: auth-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: auth-service/Dockerfile
+    envVars: &shared-env
+      - key: EUREKA_SERVER_URL
+        value: http://discovery-server:8761/eureka/
+      - key: DB_HOST
+        value: medifind-mysql # Use internal Render MySQL or external managed DB
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── User Service (Private) ────────────────────────
+  - type: pserv
+    name: user-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: user-service/Dockerfile
+    envVars: *shared-env
+
+  # ── Doctor Service (Private) ──────────────────────
+  - type: pserv
+    name: doctor-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: doctor-service/Dockerfile
+    envVars: *shared-env
+
+  # ── Hospital Service (Private) ────────────────────
+  - type: pserv
+    name: hospital-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: hospital-service/Dockerfile
+    envVars: *shared-env
+
+  # ── Appointment Service (Private) ─────────────────
+  - type: pserv
+    name: appointment-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: appointment-service/Dockerfile
+    envVars: *shared-env
+
+  # ── Notification Service (Private) ────────────────
+  - type: pserv
+    name: notification-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: notification-service/Dockerfile
+    envVars: *shared-env

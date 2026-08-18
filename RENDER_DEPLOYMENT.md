@@ -1,106 +1,58 @@
-# Render Deployment Preparation for MediFind
+# Render Deployment for MediFind
 
-The MediFind backend has been successfully configured and prepared for deployment on Render using Docker. This document explains the architecture and provides step-by-step manual deployment instructions.
+The MediFind backend has been successfully configured and prepared for deployment on Render using Docker. This document explains the architecture, current limitations, and provides step-by-step deployment instructions.
 
 ## 1. Architecture Overview
 
-- **Database**: `mysql` (Docker image on Render Private Service)
-- **Discovery**: `discovery-server` (Render Private Service, Port 8761)
-- **Gateway**: `api-gateway` (Render Web Service, Public Port 8080)
-- **Services**: `auth-service`, `user-service`, `doctor-service`, `hospital-service`, `appointment-service`, `notification-service` (Render Private Services)
+- **Database**: `mysql`
+- **Discovery**: `discovery-server` (Render Private Service)
+- **Gateway**: `api-gateway` (Render Web Service, Public)
+- **Microservices**: `auth-service`, `user-service`, `doctor-service`, `hospital-service`, `appointment-service`, `notification-service` (Render Private Services)
 
-*Note on Database: Render does not provide managed MySQL natively. To keep MySQL as the backend database without rewriting to PostgreSQL, we deploy a Private Service running the official MySQL Docker image with a Persistent Disk.*
+## 2. Render Free-Tier Reality & Limitations
 
-## 2. GitHub Repository Setup
+**IMPORTANT: This architecture CANNOT be fully deployed on Render's Free Tier.**
+- **Private Services**: Render does not offer private services on the free tier. Only 1 Web Service is free. This architecture requires at least 7 private services.
+- **MySQL**: Render does not offer managed MySQL. Deploying MySQL as a Docker container on Render requires a persistent disk (which is only available for paid instances).
+- **Service Count**: The microservices architecture requires 8 separate containers. The free tier limits concurrent runtimes.
 
-Ensure all created Dockerfiles (`*/Dockerfile`) and the `docker-compose.yml` are committed and pushed to your GitHub repository.
+**Recommendation:** You must use a paid Render account (Team plan or individual paid instances) to deploy this infrastructure. For the database, you can either deploy MySQL on a Render Private Service with a persistent disk, or use a managed MySQL provider like Aiven or AWS RDS.
 
-## 3. Deployment Order
+## 3. Deployment using `render.yaml` (Infrastructure as Code)
 
-You must create and deploy the services on Render in the following order:
+We have provided a `render.yaml` Blueprint file at the root of the project to automate the creation of the services.
 
-1. **MySQL Database**
-2. **Discovery Server**
-3. **Backend Microservices (Auth, User, Doctor, Hospital, Appointment, Notification)**
-4. **API Gateway**
+1. In the Render Dashboard, click **New +** > **Blueprint**.
+2. Connect your GitHub repository containing the MediFind project.
+3. Render will parse `render.yaml` and prompt you to enter the missing environment variables (marked as `sync: false`).
 
-## 4. Creating the Services
+### Required Environment Variables:
+- `DB_USERNAME`: Your MySQL username (e.g., `admin`).
+- `DB_PASSWORD`: Your MySQL password.
+- `JWT_SECRET`: A strong, random string (generate with `openssl rand -base64 48`).
+- `CORS_ALLOWED_ORIGINS`: The URL of your Vercel frontend (e.g., `https://medifind-frontend.vercel.app`). Do not use `*`.
 
-### 4.1 MySQL Database (Private Service)
+## 4. Local Validation with Docker Compose
 
-1. **Type:** New Private Service
-2. **Name:** `medifind-mysql`
-3. **Repository:** Your GitHub Repository
-4. **Environment:** Docker
-5. **Start Command:** (Leave Blank)
-6. **Docker Build Context:** `.` (Root of repository)
-7. **Dockerfile Path:** Create a simple `Dockerfile.mysql` at the root, or for the Private Service just configure it using a raw image. *Since Render Private Services need a repo, create a `Dockerfile.mysql` in the repo with `FROM mysql:8.0`.*
-   *Alternative:* Use a managed MySQL database from a provider like Aiven or AWS RDS and skip this step.
-8. **Disks:**
-   - Mount Path: `/var/lib/mysql`
-   - Size: 5 GB
-9. **Environment Variables:**
-   - `MYSQL_ROOT_PASSWORD` = `<your-secure-password>`
-   - `MYSQL_DATABASE` = `medifind_db`
+`docker-compose.yml` is specifically designed for **LOCAL VALIDATION** and development. Render **DOES NOT** deploy `docker-compose.yml` directly.
 
-### 4.2 Discovery Server (Private Service)
+To test the stack locally:
+1. Copy `.env.example` to `.env`.
+2. Fill in `.env` with dummy values for local testing. **NEVER commit `.env` to Git.**
+3. Run `docker compose up -d --build`.
+4. Ensure the API Gateway starts successfully on `http://localhost:8080`.
 
-1. **Type:** New Private Service
-2. **Name:** `discovery-server`
-3. **Repository:** Your GitHub Repository
-4. **Environment:** Docker
-5. **Docker Build Context:** `.` (Root)
-6. **Dockerfile Path:** `discovery-server/Dockerfile`
-7. **Environment Variables:**
-   - `EUREKA_HOSTNAME` = `discovery-server`
+## 5. Security & Configuration Notes
 
-### 4.3 Microservices (Private Services)
+- **Secrets**: No secrets are hardcoded in the codebase. All credentials, including database passwords and JWT secrets, are loaded dynamically from environment variables.
+- **Ports**: All services use the Render-injected `PORT` environment variable (`server.port=${PORT:...}`) but default to their respective local ports (e.g., 8080, 8081, 8761) when running locally.
+- **CORS**: Ensure your API Gateway correctly restricts origins to your Vercel frontend via the `CORS_ALLOWED_ORIGINS` variable.
+- **Git Safety**: `.env` is ignored by `.gitignore`.
 
-For **each** of the microservices (`auth-service`, `user-service`, `doctor-service`, `hospital-service`, `appointment-service`, `notification-service`), create a Render Private Service.
+## 6. Frontend Configuration
 
-1. **Type:** New Private Service
-2. **Name:** `<service-name>` (e.g., `user-service`)
-3. **Repository:** Your GitHub Repository
-4. **Environment:** Docker
-5. **Docker Build Context:** `.` (Root)
-6. **Dockerfile Path:** `<service-name>/Dockerfile`
-7. **Environment Variables:**
-   - `EUREKA_SERVER_URL` = `http://discovery-server:8761/eureka/`
-   - `DB_HOST` = `medifind-mysql` (Or your managed DB host)
-   - `DB_PORT` = `3306`
-   - `DB_USERNAME` = `root` (Or your managed DB username)
-   - `DB_PASSWORD` = `<your-secure-password>`
-   - `JWT_SECRET` = `<your-strong-jwt-secret>`
+After the API Gateway is deployed successfully, Render will assign it a public URL (e.g., `https://api-gateway-xxx.onrender.com`).
+Go to your Vercel dashboard and set the frontend environment variable:
+- `VITE_API_BASE_URL` = `https://api-gateway-xxx.onrender.com`
 
-### 4.4 API Gateway (Web Service)
-
-1. **Type:** New Web Service
-2. **Name:** `api-gateway`
-3. **Repository:** Your GitHub Repository
-4. **Environment:** Docker
-5. **Docker Build Context:** `.` (Root)
-6. **Dockerfile Path:** `api-gateway/Dockerfile`
-7. **Environment Variables:**
-   - `EUREKA_SERVER_URL` = `http://discovery-server:8761/eureka/`
-   - `CORS_ALLOWED_ORIGINS` = `https://<your-vercel-frontend-domain>`
-   - `PORT` = `8080` (Render will override this, but it's safe to define)
-
-## 5. Health Checks
-
-Render will automatically use TCP health checks. For the API Gateway (Web Service), it will ensure the container binds to the `PORT` and accepts connections. Since actuator is not included by default, the default TCP health check is perfectly sufficient.
-
-## 6. Frontend Connection
-
-Once the API Gateway is successfully deployed, Render will provide a public URL like `https://api-gateway-xxxx.onrender.com`.
-
-1. Go to your **Vercel** dashboard for the frontend deployment.
-2. Update the environment variable:
-   `VITE_API_BASE_URL` = `https://api-gateway-xxxx.onrender.com`
-3. Redeploy the frontend.
-
-## 7. Troubleshooting
-
-- **Eureka Registration Issues:** Ensure all microservices have `EUREKA_SERVER_URL` correctly pointed to the Discovery Server's Render internal hostname (`discovery-server`).
-- **Database Connection Issues:** Check that `DB_HOST` and credentials exactly match the MySQL Private Service or your managed DB.
-- **CORS Errors:** Verify that `CORS_ALLOWED_ORIGINS` on the API Gateway matches the exact Vercel URL (without a trailing slash).
-- **Authentication Errors:** Ensure `JWT_SECRET` is identical across all microservices that validate tokens.
+Redeploy the frontend to apply the changes.

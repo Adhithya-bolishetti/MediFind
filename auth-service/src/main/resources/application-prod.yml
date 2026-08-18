@@ -8,7 +8,7 @@
 
 spring:
   datasource:
-    username: ${DB_USERNAME:medifind}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
