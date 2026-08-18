@@ -1,58 +1,68 @@
-# Render Deployment for MediFind
+# MediFind - Production Deployment Guide (Zero Cost Architecture)
 
-The MediFind backend has been successfully configured and prepared for deployment on Render using Docker. This document explains the architecture, current limitations, and provides step-by-step deployment instructions.
+This guide provides step-by-step instructions for deploying the MediFind backend as a completely free architecture using Render and Cloudinary.
 
-## 1. Architecture Overview
+## Architecture
 
-- **Database**: `mysql`
-- **Discovery**: `discovery-server` (Render Private Service)
-- **Gateway**: `api-gateway` (Render Web Service, Public)
-- **Microservices**: `auth-service`, `user-service`, `doctor-service`, `hospital-service`, `appointment-service`, `notification-service` (Render Private Services)
+*   **Frontend:** Vercel (Free)
+*   **Backend:** Render Web Service (Free Tier) - Single Spring Boot Monolith
+*   **Database:** Aiven MySQL / PlanetScale (Free Tier)
+*   **File Storage:** Cloudinary (Free Tier)
 
-## 2. Render Free-Tier Reality & Limitations
+This repository contains a unified backend. We have removed the Eureka Discovery Server and API Gateway. All microservices are now merged into a single deployable Spring Boot application to fit within the Render Free tier limitations (which does not support private services).
 
-**IMPORTANT: This architecture CANNOT be fully deployed on Render's Free Tier.**
-- **Private Services**: Render does not offer private services on the free tier. Only 1 Web Service is free. This architecture requires at least 7 private services.
-- **MySQL**: Render does not offer managed MySQL. Deploying MySQL as a Docker container on Render requires a persistent disk (which is only available for paid instances).
-- **Service Count**: The microservices architecture requires 8 separate containers. The free tier limits concurrent runtimes.
+## Prerequisites
 
-**Recommendation:** You must use a paid Render account (Team plan or individual paid instances) to deploy this infrastructure. For the database, you can either deploy MySQL on a Render Private Service with a persistent disk, or use a managed MySQL provider like Aiven or AWS RDS.
+1.  A [Render](https://render.com/) account.
+2.  A [Cloudinary](https://cloudinary.com/) account.
+3.  A MySQL Database (from a free provider like Aiven).
+4.  A GitHub repository containing this codebase.
 
-## 3. Deployment using `render.yaml` (Infrastructure as Code)
+## 1. Setup Cloudinary
 
-We have provided a `render.yaml` Blueprint file at the root of the project to automate the creation of the services.
+1.  Sign up for a free Cloudinary account.
+2.  Go to the Dashboard and locate your **Product Environment Credentials**:
+    *   `Cloud Name`
+    *   `API Key`
+    *   `API Secret`
+3.  Save these credentials for the Render setup.
 
-1. In the Render Dashboard, click **New +** > **Blueprint**.
-2. Connect your GitHub repository containing the MediFind project.
-3. Render will parse `render.yaml` and prompt you to enter the missing environment variables (marked as `sync: false`).
+## 2. Deploy to Render via Blueprint
 
-### Required Environment Variables:
-- `DB_USERNAME`: Your MySQL username (e.g., `admin`).
-- `DB_PASSWORD`: Your MySQL password.
-- `JWT_SECRET`: A strong, random string (generate with `openssl rand -base64 48`).
-- `CORS_ALLOWED_ORIGINS`: The URL of your Vercel frontend (e.g., `https://medifind-frontend.vercel.app`). Do not use `*`.
+The repository includes a `render.yaml` file configured for a zero-cost single Web Service deployment.
 
-## 4. Local Validation with Docker Compose
+1.  Log in to the [Render Dashboard](https://dashboard.render.com/).
+2.  Click **New** -> **Blueprint**.
+3.  Connect your GitHub repository containing the MediFind source code.
+4.  Render will automatically detect the `render.yaml` configuration.
 
-`docker-compose.yml` is specifically designed for **LOCAL VALIDATION** and development. Render **DOES NOT** deploy `docker-compose.yml` directly.
+## 3. Configure Environment Variables
 
-To test the stack locally:
-1. Copy `.env.example` to `.env`.
-2. Fill in `.env` with dummy values for local testing. **NEVER commit `.env` to Git.**
-3. Run `docker compose up -d --build`.
-4. Ensure the API Gateway starts successfully on `http://localhost:8080`.
+Render will prompt you to provide the values for the secrets defined in `render.yaml` (`sync: false`). Enter the following:
 
-## 5. Security & Configuration Notes
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `DB_HOST` | MySQL database host | `db.example.com` |
+| `DB_PORT` | MySQL database port | `3306` |
+| `DB_USERNAME` | MySQL database username | `admin` |
+| `DB_PASSWORD` | MySQL database password | `secret_password` |
+| `DB_NAME` | MySQL database name | `medifind` |
+| `JWT_SECRET` | Secret key for JWT signing | `your-256-bit-secret-key-here` |
+| `CORS_ALLOWED_ORIGINS`| URL of your Vercel frontend | `https://your-frontend.vercel.app` |
+| `CLOUDINARY_CLOUD_NAME`| Cloudinary Cloud Name | `dxxxxxx` |
+| `CLOUDINARY_API_KEY` | Cloudinary API Key | `123456789` |
+| `CLOUDINARY_API_SECRET`| Cloudinary API Secret | `secret_abc123` |
 
-- **Secrets**: No secrets are hardcoded in the codebase. All credentials, including database passwords and JWT secrets, are loaded dynamically from environment variables.
-- **Ports**: All services use the Render-injected `PORT` environment variable (`server.port=${PORT:...}`) but default to their respective local ports (e.g., 8080, 8081, 8761) when running locally.
-- **CORS**: Ensure your API Gateway correctly restricts origins to your Vercel frontend via the `CORS_ALLOWED_ORIGINS` variable.
-- **Git Safety**: `.env` is ignored by `.gitignore`.
+## 4. Automatic Build & Deploy
 
-## 6. Frontend Configuration
+Once the environment variables are saved, Render will:
+1. Use the multi-stage `Dockerfile` located at `./medifind-backend/Dockerfile`.
+2. Build the application using Maven (`mvn clean package`).
+3. Run the application using the OpenJDK 21 slim runtime.
+4. Inject the `$PORT` automatically (mapped in `application.yml`).
 
-After the API Gateway is deployed successfully, Render will assign it a public URL (e.g., `https://api-gateway-xxx.onrender.com`).
-Go to your Vercel dashboard and set the frontend environment variable:
-- `VITE_API_BASE_URL` = `https://api-gateway-xxx.onrender.com`
+## 5. Validate Deployment
 
-Redeploy the frontend to apply the changes.
+1. Once the Render service is `Live`, click the provided `.onrender.com` URL.
+2. Ensure you append `/api/users/...` to test API routes, as there is no root index page.
+3. Update your Vercel Frontend environment variable (`VITE_API_URL` or equivalent) to point to your new Render URL.

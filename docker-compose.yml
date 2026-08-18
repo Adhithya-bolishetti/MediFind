@@ -17,38 +17,14 @@ services:
       timeout: 10s
       retries: 5
 
-  discovery-server:
+  medifind-backend:
     build:
-      context: .
-      dockerfile: discovery-server/Dockerfile
-    container_name: medifind-discovery
-    ports:
-      - "8761:8761"
-    environment:
-      - EUREKA_HOSTNAME=discovery-server
-
-  api-gateway:
-    build:
-      context: .
-      dockerfile: api-gateway/Dockerfile
-    container_name: medifind-gateway
+      context: ./medifind-backend
+      dockerfile: Dockerfile
+    container_name: medifind-backend
     ports:
       - "8080:8080"
     environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
-      - CORS_ALLOWED_ORIGINS=http://localhost:5173
-    depends_on:
-      - discovery-server
-
-  auth-service:
-    build:
-      context: .
-      dockerfile: auth-service/Dockerfile
-    container_name: medifind-auth
-    ports:
-      - "8081:8081"
-    environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USERNAME=${DB_USERNAME}
@@ -57,108 +33,6 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      discovery-server:
-        condition: service_started
-
-  user-service:
-    build:
-      context: .
-      dockerfile: user-service/Dockerfile
-    container_name: medifind-user
-    ports:
-      - "8082:8082"
-    environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      mysql:
-        condition: service_healthy
-      discovery-server:
-        condition: service_started
-
-  doctor-service:
-    build:
-      context: .
-      dockerfile: doctor-service/Dockerfile
-    container_name: medifind-doctor
-    ports:
-      - "8083:8083"
-    environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      mysql:
-        condition: service_healthy
-      discovery-server:
-        condition: service_started
-
-  hospital-service:
-    build:
-      context: .
-      dockerfile: hospital-service/Dockerfile
-    container_name: medifind-hospital
-    ports:
-      - "8084:8084"
-    environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      mysql:
-        condition: service_healthy
-      discovery-server:
-        condition: service_started
-
-  appointment-service:
-    build:
-      context: .
-      dockerfile: appointment-service/Dockerfile
-    container_name: medifind-appointment
-    ports:
-      - "8086:8086"
-    environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      mysql:
-        condition: service_healthy
-      discovery-server:
-        condition: service_started
-
-  notification-service:
-    build:
-      context: .
-      dockerfile: notification-service/Dockerfile
-    container_name: medifind-notification
-    ports:
-      - "8085:8085"
-    environment:
-      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      mysql:
-        condition: service_healthy
-      discovery-server:
-        condition: service_started
 
 volumes:
   mysql-data:
