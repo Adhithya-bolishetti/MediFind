@@ -14,8 +14,6 @@ dist/
 .idea/
 .vscode/
 
-.freebuff/
-
 *.log
 
 .DS_Store
