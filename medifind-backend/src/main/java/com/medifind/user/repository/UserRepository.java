@@ -10,4 +10,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     java.util.Optional<User> findByMobileNumber(String mobileNumber);
     boolean existsByEmail(String email);
     boolean existsByMobileNumber(String mobileNumber);
+    boolean existsByRole(com.medifind.auth.entity.Role role);
 }
