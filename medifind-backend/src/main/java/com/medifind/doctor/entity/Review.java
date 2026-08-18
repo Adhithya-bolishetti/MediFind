@@ -34,6 +34,7 @@ public class Review {
 
     private Boolean recommendation;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReviewStatus status = ReviewStatus.PENDING;

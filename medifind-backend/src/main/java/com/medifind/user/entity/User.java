@@ -38,6 +38,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private com.medifind.auth.entity.Role role;
 
+    @Builder.Default
     @Column(nullable = false)
     private String status = "ACTIVE";
 
