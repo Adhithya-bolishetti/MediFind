@@ -6,7 +6,7 @@ import com.medifind.doctor.entity.Review;
 import com.medifind.doctor.repository.DoctorRepository;
 import com.medifind.doctor.repository.ReviewRepository;
 import com.medifind.doctor.util.AvailabilityUtils;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
@@ -33,6 +32,21 @@ public class DoctorServiceImpl implements DoctorService {
     private final ObjectMapper objectMapper;
     private final HospitalService hospitalService;
     private final UserRepository userRepository;
+
+    public DoctorServiceImpl(
+            DoctorRepository doctorRepository,
+            ReviewRepository reviewRepository,
+            @Lazy AppointmentService appointmentService,
+            ObjectMapper objectMapper,
+            HospitalService hospitalService,
+            UserRepository userRepository) {
+        this.doctorRepository = doctorRepository;
+        this.reviewRepository = reviewRepository;
+        this.appointmentService = appointmentService;
+        this.objectMapper = objectMapper;
+        this.hospitalService = hospitalService;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public DoctorResponse createDoctor(DoctorRequest request) { return null; }
