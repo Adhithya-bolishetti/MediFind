@@ -34,13 +34,20 @@ public class AdminSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        if (userRepository.existsByRole(Role.ADMIN)) {
-            log.info("An ADMIN user already exists. Skipping admin initialization.");
+        if (adminPassword == null || adminPassword.trim().isEmpty()) {
+            log.warn("ADMIN_PASSWORD environment variable is missing. Cannot initialize or synchronize admin account.");
             return;
         }
 
-        if (adminPassword == null || adminPassword.trim().isEmpty()) {
-            log.warn("No ADMIN user exists, but ADMIN_PASSWORD environment variable is missing. Cannot create default admin account.");
+        // Safely strip accidental quotes and whitespace from the environment variable
+        String finalPassword = adminPassword.replace("\"", "").trim();
+
+        User existingAdmin = userRepository.findFirstByRole(Role.ADMIN).orElse(null);
+
+        if (existingAdmin != null) {
+            log.info("An ADMIN user already exists. Synchronizing password to ensure it matches the environment variable securely.");
+            existingAdmin.setPassword(passwordEncoder.encode(finalPassword));
+            userRepository.save(existingAdmin);
             return;
         }
         
@@ -52,7 +59,7 @@ public class AdminSeeder implements CommandLineRunner {
         String mobileToSave = (adminMobile == null || adminMobile.trim().isEmpty()) ? null : adminMobile.trim();
         
         if (emailToSave == null && mobileToSave == null) {
-            log.warn("No ADMIN user exists, but both ADMIN_EMAIL and ADMIN_MOBILE are missing. Cannot create default admin account without an identifier.");
+            log.warn("No ADMIN user exists, but both ADMIN_EMAIL and ADMIN_MOBILE are missing. Cannot create default admin account.");
             return;
         }
 
@@ -60,7 +67,7 @@ public class AdminSeeder implements CommandLineRunner {
                 .fullName(adminName)
                 .email(emailToSave)
                 .mobileNumber(mobileToSave)
-                .password(passwordEncoder.encode(adminPassword))
+                .password(passwordEncoder.encode(finalPassword))
                 .role(Role.ADMIN)
                 .build();
 
