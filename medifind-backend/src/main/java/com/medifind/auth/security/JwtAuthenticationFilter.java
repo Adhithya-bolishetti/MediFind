@@ -67,6 +67,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    
+                    // Set X-User-Id for controllers that rely on it
+                    if (userDetails instanceof com.medifind.user.entity.User) {
+                        request.setAttribute("X-User-Id", ((com.medifind.user.entity.User) userDetails).getId());
+                    }
                 }
             }
             filterChain.doFilter(request, response);
