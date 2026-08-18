@@ -1,42 +1,26 @@
 # MediFind Backend
 
-MediFind is a healthcare platform built using Java 21, Spring Boot 3.x, and Spring Cloud Microservices architecture.
+MediFind is a monolithic healthcare platform built using Java 21 and Spring Boot 3.x.
 
 ## Architecture
 
-This project is structured as a multi-module Maven project. The components include:
-
-- **Discovery Server (Eureka)**: Service registry for microservices.
-- **API Gateway (Spring Cloud Gateway)**: Single entry point, routing requests to appropriate services.
-- **Auth Service (Port 8081):** Manages authentication and user accounts.
-- **User Service (Port 8082):** Manages user profiles.
-- **Doctor Service (Port 8083):** Manages doctor profiles, availability, reviews, and recommendations.
-- **Hospital Service (Port 8084):** Manages hospital profiles.
-- **Notification Service (Port 8085):** Handles email and SMS notifications.
-- **Appointment Service (Port 8086):** Manages appointment bookings, cancellations, and status updates.
-- **Frontend:** React application built with Vite and Material UI.
+This project is a standalone Spring Boot monolithic application. All previous microservices have been merged into a single `medifind-backend` backend.
 
 ## Folder Structure
 
-```
+```text
 medifind/
-├── pom.xml
-├── discovery-server/
-├── api-gateway/
-├── auth-service/
-├── user-service/
-├── doctor-service/
-├── hospital-service/
-├── notification-service/
-├── appointment-service/
-└── frontend/
+├── medifind-backend/   # The monolithic Spring Boot application
+├── frontend/           # React application built with Vite and Material UI
+├── database/           # Database scripts and seed data
+├── RAILWAY_DEPLOYMENT.md # Deployment instructions
+└── README.md
 ```
 
 ## Tech Stack
 
 - **Java 21**
 - **Spring Boot 3.2.4**
-- **Spring Cloud 2023.0.1**
 - **Spring Security & JWT**
 - **MySQL & Spring Data JPA**
 - **Maven**
@@ -45,26 +29,22 @@ medifind/
 - **React 19 & Vite**
 - **Material UI**
 
-## Ports Configuration
+## Services & Ports Configuration
 
-| Service              | Port | Description                                      |
-|----------------------|------|--------------------------------------------------|
-| Discovery Server     | 8761 | Eureka Dashboard & Registry                      |
-| API Gateway          | 8080 | Main entry point for clients                     |
-| Auth Service         | 8081 | Authentication and Users DB                      |
-| User Service         | 8082 | Manages user profiles                            |
-| Doctor Service       | 8083 | Manages doctor profiles, availability & reviews  |
-| Hospital Service     | 8084 | Manages hospital profiles                        |
-| Notification Service | 8085 | Handles email/SMS notifications                  |
-| Appointment Service  | 8086 | Manages bookings and cancellations               |
-| Frontend             | 5173 | React/Vite UI application                        |
+| Service            | Port | Description                                      |
+|--------------------|------|--------------------------------------------------|
+| Backend (Monolith) | 8080 | Main Spring Boot Backend                         |
+| Frontend           | 5173 | React/Vite UI application                        |
 
 ## Database Configuration
 
-The Auth Service expects a MySQL database named `medifind_db`.
-Credentials defined in `auth-service/src/main/resources/application.yml`:
-- Username: `root`
-- Password: `root` (Change this if your MySQL setup requires a different password or no password)
+The backend expects a MySQL database named `medifind_db`.
+Credentials and configurations can be defined via environment variables:
+- `DB_HOST` (default: `localhost`)
+- `DB_PORT` (default: `3306`)
+- `DB_NAME` (default: `medifind_db`)
+- `DB_USERNAME` (default: `root`)
+- `DB_PASSWORD` (default: `123456`)
 
 ```sql
 CREATE DATABASE IF NOT EXISTS medifind_db;
@@ -101,54 +81,37 @@ completed profiles; new signups are redirected to profile creation first.
 
 ## API Endpoints
 
-### Auth Service (Accessible via API Gateway)
-Base URL: `http://localhost:8080/api/auth`
+### API (Backend)
+Base URL: `http://localhost:8080/api`
 
-- `POST /register`: Register a new user
-- `POST /login`: Authenticate and receive a JWT
-- `GET /me`: Get current logged-in user details (Requires `Authorization: Bearer <token>`)
+- `POST /auth/register`: Register a new user
+- `POST /auth/login`: Authenticate and receive a JWT
+- `GET /auth/me`: Get current logged-in user details (Requires `Authorization: Bearer <token>`)
 
 ### Swagger Documentation
-Auth Service API Docs: `http://localhost:8081/swagger-ui.html`
+Backend API Docs: `http://localhost:8080/swagger-ui.html`
 
 ## How to Run
 
-1. **Build the project**
-   Navigate to the root directory `medifind` and run:
-   ```bash
-   mvn clean install -DskipTests
-   ```
+1. **Ensure MySQL is running**
+   Create the database `medifind_db`.
 
-2. **Run Discovery Server**
+2. **Run Backend**
+   Navigate to the backend directory and run:
    ```bash
-   cd discovery-server
+   cd medifind-backend
    mvn spring-boot:run
    ```
 
-3. **Run API Gateway**
-   ```bash
-   cd api-gateway
-   mvn spring-boot:run
-   ```
-
-4. **Run Auth Service**
-   Ensure MySQL is running, then execute:
-   ```bash
-   cd auth-service
-   mvn spring-boot:run
-   ```
-
-5. **Run User Service**
-   ```bash
-   cd user-service
-   mvn spring-boot:run
-   ```
-
-6. **Run Frontend**
+3. **Run Frontend**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
 
-Alternatively, you can run the `*Application.java` classes directly from your IDE for the backend services.
+Alternatively, you can run the `MediFindApplication.java` class directly from your IDE.
+
+## Deployment
+
+This application natively supports deployment to **Railway** without Docker. Refer to [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for full deployment instructions.
