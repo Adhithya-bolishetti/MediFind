@@ -49,12 +49,8 @@ Go to your Railway service's **Variables** tab and add the following:
 
 ### Email Configuration
 - `MAIL_ENABLED`: Set to `true`
-- `MAIL_HOST`: Your SMTP host (e.g., `smtp.gmail.com`)
-- `MAIL_PORT`: Your SMTP port (usually `587` or `465`)
-- `MAIL_USERNAME`: Your email address
-- `MAIL_PASSWORD`: Your email app password (do not use your actual password)
-- `MAIL_SMTP_AUTH`: Set to `true`
-- `MAIL_SMTP_STARTTLS`: Set to `true`
+- `RESEND_API_KEY`: Your Resend API Key (e.g. `re_...`)
+- `RESEND_FROM_EMAIL`: Sender email address (must be a verified domain, or `onboarding@resend.dev` for testing)
 
 ### Note on Port
 Do NOT manually configure `PORT` or `server.port`. Railway injects the `PORT` environment variable automatically, and the application is configured to listen on it (`server.port: ${PORT:8080}`).

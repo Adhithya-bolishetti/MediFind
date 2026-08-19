@@ -4,13 +4,14 @@ import com.medifind.notification.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.scheduling.annotation.Async;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -20,14 +21,23 @@ import org.thymeleaf.context.Context;
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
 
     @Value("${app.mail.enabled:false}")
     private boolean mailEnabled;
 
-    @Value("${spring.mail.username:noreply@medifind.com}")
+    @Value("${resend.api-key:}")
+    private String resendApiKey;
+
+    @Value("${resend.from-email:onboarding@resend.dev}")
     private String fromEmail;
+
+    private Resend resend;
+
+    @PostConstruct
+    public void init() {
+        this.resend = new Resend(resendApiKey);
+    }
 
     @Async
     @Override
@@ -37,16 +47,18 @@ public class EmailServiceImpl implements EmailService {
             return;
         }
 
+        CreateEmailOptions sendEmailRequest = CreateEmailOptions.builder()
+                .from(fromEmail)
+                .to(to)
+                .subject(subject)
+                .text(body)
+                .build();
+
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(body, false);
-            javaMailSender.send(message);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to {}", to, e);
+            CreateEmailResponse data = resend.emails().send(sendEmailRequest);
+            log.info("Email sent successfully to {}, Resend ID: {}", to, data.getId());
+        } catch (ResendException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 
@@ -54,20 +66,22 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
         if (!mailEnabled) {
-            log.info("Email disabled. Mock sending HTML email to {}: Subject: {}, Body: {}", to, subject, htmlBody);
+            log.info("Email disabled. Mock sending HTML email to {}: Subject: {}", to, subject);
             return;
         }
 
+        CreateEmailOptions sendEmailRequest = CreateEmailOptions.builder()
+                .from(fromEmail)
+                .to(to)
+                .subject(subject)
+                .html(htmlBody)
+                .build();
+
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            javaMailSender.send(message);
-        } catch (MessagingException e) {
-            log.error("Failed to send HTML email to {}", to, e);
+            CreateEmailResponse data = resend.emails().send(sendEmailRequest);
+            log.info("Email sent successfully to {}, Resend ID: {}", to, data.getId());
+        } catch (ResendException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
     
