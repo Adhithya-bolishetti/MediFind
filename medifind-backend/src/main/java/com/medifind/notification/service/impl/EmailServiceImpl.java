@@ -11,12 +11,17 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+import org.springframework.scheduling.annotation.Async;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender javaMailSender;
+    private final TemplateEngine templateEngine;
 
     @Value("${app.mail.enabled:false}")
     private boolean mailEnabled;
@@ -24,6 +29,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username:noreply@medifind.com}")
     private String fromEmail;
 
+    @Async
     @Override
     public void sendEmail(String to, String subject, String body) {
         if (!mailEnabled) {
@@ -41,10 +47,10 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(message);
         } catch (MessagingException e) {
             log.error("Failed to send email to {}", to, e);
-            throw new RuntimeException("Failed to send email", e);
         }
     }
 
+    @Async
     @Override
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
         if (!mailEnabled) {
@@ -62,7 +68,46 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(message);
         } catch (MessagingException e) {
             log.error("Failed to send HTML email to {}", to, e);
-            throw new RuntimeException("Failed to send email", e);
         }
+    }
+    
+    @Async
+    @Override
+    public void sendOtpEmail(String to, String otp, String purpose) {
+        Context context = new Context();
+        context.setVariable("otp", otp);
+        
+        String subject = "MediFind - Your Verification Code";
+        String template = "otp"; // default
+        
+        if ("PASSWORD_RESET".equals(purpose)) {
+            subject = "MediFind - Password Reset Code";
+            context.setVariable("purpose", "resetting your password");
+        } else if ("EMAIL_VERIFICATION".equals(purpose)) {
+            subject = "MediFind - Verify Your Email";
+            context.setVariable("purpose", "verifying your email address");
+        } else {
+            context.setVariable("purpose", "verifying your account");
+        }
+        
+        String htmlBody = templateEngine.process("email/" + template, context);
+        sendHtmlEmail(to, subject, htmlBody);
+    }
+    
+    @Async
+    @Override
+    public void sendAppointmentStatusEmail(String to, String appointmentId, String patientName, String doctorName, String date, String time, String status) {
+        Context context = new Context();
+        context.setVariable("appointmentId", appointmentId);
+        context.setVariable("patientName", patientName);
+        context.setVariable("doctorName", doctorName);
+        context.setVariable("date", date);
+        context.setVariable("time", time);
+        context.setVariable("status", status);
+        
+        String subject = "MediFind - Appointment " + status;
+        String htmlBody = templateEngine.process("email/appointment", context);
+        
+        sendHtmlEmail(to, subject, htmlBody);
     }
 }

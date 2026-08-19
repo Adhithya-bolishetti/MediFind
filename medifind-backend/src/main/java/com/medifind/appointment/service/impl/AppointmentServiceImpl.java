@@ -14,6 +14,7 @@ import com.medifind.doctor.service.DoctorService;
 import com.medifind.user.repository.UserRepository;
 import com.medifind.user.entity.User;
 import com.medifind.notification.service.NotificationService;
+import com.medifind.notification.service.EmailService;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -31,6 +32,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Override
     public AppointmentResponse createAppointment(AppointmentRequest request, Long userId) {
@@ -79,8 +81,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
             appointment = appointmentRepository.save(appointment);
 
-            sendNotification(userId, "APPOINTMENT_BOOKED", "Appointment Booked",
-                    "Your appointment has been booked successfully for " + request.getAppointmentDate() + " at " + request.getAppointmentTime());
+            sendNotification(appointment, userId, "APPOINTMENT_BOOKED", "Appointment Booked",
+                    "Your appointment has been booked successfully for " + request.getAppointmentDate() + " at " + request.getAppointmentTime(), "BOOKED");
 
             return mapToResponse(appointment);
         }
@@ -155,8 +157,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment = appointmentRepository.save(appointment);
-        sendNotification(appointment.getUserId(), "APPOINTMENT_CANCELLED", "Appointment Cancelled",
-                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been cancelled by the administrator.");
+        sendNotification(appointment, appointment.getUserId(), "APPOINTMENT_CANCELLED", "Appointment Cancelled",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been cancelled by the administrator.", "CANCELLED");
         return mapToResponse(appointment);
     }
 
@@ -190,8 +192,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment = appointmentRepository.save(appointment);
 
-        sendNotification(userId, "APPOINTMENT_CANCELLED", "Appointment Cancelled",
-                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been cancelled.");
+        sendNotification(appointment, userId, "APPOINTMENT_CANCELLED", "Appointment Cancelled",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been cancelled.", "CANCELLED");
 
         return mapToResponse(appointment);
     }
@@ -211,8 +213,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CONFIRMED);
         appointment = appointmentRepository.save(appointment);
 
-        sendNotification(appointment.getUserId(), "APPOINTMENT_CONFIRMED", "Appointment Confirmed",
-                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been confirmed.");
+        sendNotification(appointment, appointment.getUserId(), "APPOINTMENT_CONFIRMED", "Appointment Confirmed",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been confirmed.", "CONFIRMED");
 
         return mapToResponse(appointment);
     }
@@ -232,8 +234,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.DECLINED);
         appointment = appointmentRepository.save(appointment);
 
-        sendNotification(appointment.getUserId(), "APPOINTMENT_DECLINED", "Appointment Declined",
-                "Your appointment scheduled for " + appointment.getAppointmentDate() + " was declined by the doctor.");
+        sendNotification(appointment, appointment.getUserId(), "APPOINTMENT_DECLINED", "Appointment Declined",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " was declined by the doctor.", "DECLINED");
 
         return mapToResponse(appointment);
     }
@@ -260,8 +262,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment = appointmentRepository.save(appointment);
 
-        sendNotification(appointment.getUserId(), "APPOINTMENT_COMPLETED", "Appointment Completed",
-                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been marked as completed.");
+        sendNotification(appointment, appointment.getUserId(), "APPOINTMENT_COMPLETED", "Appointment Completed",
+                "Your appointment scheduled for " + appointment.getAppointmentDate() + " has been marked as completed.", "COMPLETED");
 
         return mapToResponse(appointment);
     }
@@ -332,7 +334,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .build();
     }
 
-    private void sendNotification(Long userId, String type, String title, String message) {
+    private void sendNotification(Appointment appointment, Long userId, String type, String title, String message, String emailStatus) {
         try {
             // 1. Send In-App Notification
             NotificationRequest request = NotificationRequest.builder()
@@ -344,14 +346,24 @@ public class AppointmentServiceImpl implements AppointmentService {
             notificationService.createNotification(objectMapper.convertValue(request, com.medifind.notification.dto.NotificationRequest.class));
 
             // 2. Fetch User to get Email
-            UserResponse user = objectMapper.convertValue(userRepository.findById(userId).orElse(null), UserResponse.class);
-            if (user != null && user.getEmail() != null) {
-                java.util.Map<String, Object> emailRequest = new java.util.HashMap<>();
-                emailRequest.put("to", user.getEmail());
-                emailRequest.put("subject", title);
-                emailRequest.put("body", message);
-                emailRequest.put("isHtml", false);
-                notificationService.sendSystemEmail(objectMapper.convertValue(emailRequest, com.medifind.notification.dto.SendEmailRequest.class));
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null && user.getEmail() != null && !user.getEmail().isBlank()) {
+                DoctorResponse doctor = null;
+                try {
+                    doctor = objectMapper.convertValue(doctorService.getDoctorById(appointment.getDoctorId()), DoctorResponse.class);
+                } catch (Exception e) {}
+
+                String doctorName = doctor != null ? doctor.getDoctorName() : "Your Doctor";
+                
+                emailService.sendAppointmentStatusEmail(
+                    user.getEmail(),
+                    "#" + appointment.getId(),
+                    user.getFullName(),
+                    doctorName,
+                    appointment.getAppointmentDate().toString(),
+                    appointment.getAppointmentTime().toString(),
+                    emailStatus
+                );
             }
         } catch (Exception e) {
             System.err.println("Failed to send notification: " + e.getMessage());

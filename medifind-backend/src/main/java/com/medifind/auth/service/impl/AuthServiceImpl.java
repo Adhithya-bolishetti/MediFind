@@ -12,10 +12,9 @@ import com.medifind.auth.exception.UserNotFoundException;
 import com.medifind.user.repository.UserRepository;
 import com.medifind.auth.dto.ForgotPasswordRequest;
 import com.medifind.auth.dto.ResetPasswordRequest;
-import com.medifind.auth.entity.PasswordResetToken;
-import com.medifind.auth.repository.PasswordResetTokenRepository;
 import com.medifind.auth.service.AuthService;
 import com.medifind.auth.service.JwtService;
+import com.medifind.auth.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,7 +31,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -153,22 +152,12 @@ public class AuthServiceImpl implements AuthService {
         // Resolve the identifier — an email or a mobile number.
         User user = findByIdentifier(request.getEmail());
         
-        if (user == null) {
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
             // Do not expose whether the user exists or not
             return;
         }
 
-        String token = UUID.randomUUID().toString();
-        PasswordResetToken resetToken = PasswordResetToken.builder()
-                .token(token)
-                .user(user)
-                .expiryDate(LocalDateTime.now().plusHours(24))
-                .build();
-        
-        passwordResetTokenRepository.save(resetToken);
-
-        // TODO: Call Notification Service to send email with the token
-        System.out.println("DEBUG: Password reset token for " + user.getEmail() + " is " + token);
+        otpService.generateAndSendOtp(user.getEmail(), "PASSWORD_RESET");
     }
 
     @Override
@@ -177,19 +166,15 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Passwords do not match");
         }
 
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token"));
-
-        if (resetToken.isExpired()) {
-            throw new IllegalArgumentException("Invalid or expired reset token");
+        User user = findByIdentifier(request.getEmail());
+        if (user == null) {
+            throw new IllegalArgumentException("Invalid user");
         }
 
-        User user = resetToken.getUser();
+        otpService.verifyOtp(user.getEmail(), request.getOtp(), "PASSWORD_RESET");
+
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-
-        // Invalidate the token
-        passwordResetTokenRepository.delete(resetToken);
     }
 
     private UserResponse mapToUserResponse(User user) {
