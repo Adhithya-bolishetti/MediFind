@@ -42,9 +42,9 @@ app:
   mail:
     enabled: ${MAIL_ENABLED:false}
 
-resend:
-  api-key: ${RESEND_API_KEY:}
-  from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+sendgrid:
+  api-key: ${SENDGRID_API_KEY:}
+  from-email: ${SENDGRID_FROM_EMAIL:adhithyabolishetti24@gmail.com}
 
 springdoc:
   swagger-ui:

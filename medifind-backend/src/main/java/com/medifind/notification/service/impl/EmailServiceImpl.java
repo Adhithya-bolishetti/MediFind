@@ -6,15 +6,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
-import com.resend.services.emails.model.CreateEmailResponse;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.scheduling.annotation.Async;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -26,17 +31,17 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.mail.enabled:false}")
     private boolean mailEnabled;
 
-    @Value("${resend.api-key:}")
-    private String resendApiKey;
+    @Value("${sendgrid.api-key:}")
+    private String sendGridApiKey;
 
-    @Value("${resend.from-email:onboarding@resend.dev}")
+    @Value("${sendgrid.from-email:adhithyabolishetti24@gmail.com}")
     private String fromEmail;
 
-    private Resend resend;
+    private SendGrid sendGrid;
 
     @PostConstruct
     public void init() {
-        this.resend = new Resend(resendApiKey);
+        this.sendGrid = new SendGrid(sendGridApiKey);
     }
 
     @Async
@@ -47,18 +52,25 @@ public class EmailServiceImpl implements EmailService {
             return;
         }
 
-        CreateEmailOptions sendEmailRequest = CreateEmailOptions.builder()
-                .from(fromEmail)
-                .to(to)
-                .subject(subject)
-                .text(body)
-                .build();
+        Email from = new Email(fromEmail);
+        Email toEmail = new Email(to);
+        Content content = new Content("text/plain", body);
+        Mail mail = new Mail(from, subject, toEmail, content);
 
+        Request request = new Request();
         try {
-            CreateEmailResponse data = resend.emails().send(sendEmailRequest);
-            log.info("Email sent successfully to {}, Resend ID: {}", to, data.getId());
-        } catch (ResendException e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+            
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                log.info("Email sent successfully to {}, SendGrid Status: {}", to, response.getStatusCode());
+            } else {
+                log.error("Failed to send email to {}: SendGrid Status {}, Body: {}", to, response.getStatusCode(), response.getBody());
+            }
+        } catch (IOException ex) {
+            log.error("Failed to send email to {}: {}", to, ex.getMessage());
         }
     }
 
@@ -70,18 +82,25 @@ public class EmailServiceImpl implements EmailService {
             return;
         }
 
-        CreateEmailOptions sendEmailRequest = CreateEmailOptions.builder()
-                .from(fromEmail)
-                .to(to)
-                .subject(subject)
-                .html(htmlBody)
-                .build();
+        Email from = new Email(fromEmail);
+        Email toEmail = new Email(to);
+        Content content = new Content("text/html", htmlBody);
+        Mail mail = new Mail(from, subject, toEmail, content);
 
+        Request request = new Request();
         try {
-            CreateEmailResponse data = resend.emails().send(sendEmailRequest);
-            log.info("Email sent successfully to {}, Resend ID: {}", to, data.getId());
-        } catch (ResendException e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+            
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                log.info("Email sent successfully to {}, SendGrid Status: {}", to, response.getStatusCode());
+            } else {
+                log.error("Failed to send email to {}: SendGrid Status {}, Body: {}", to, response.getStatusCode(), response.getBody());
+            }
+        } catch (IOException ex) {
+            log.error("Failed to send HTML email to {}: {}", to, ex.getMessage());
         }
     }
     

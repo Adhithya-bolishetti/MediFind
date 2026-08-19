@@ -49,8 +49,8 @@ Go to your Railway service's **Variables** tab and add the following:
 
 ### Email Configuration
 - `MAIL_ENABLED`: Set to `true`
-- `RESEND_API_KEY`: Your Resend API Key (e.g. `re_...`)
-- `RESEND_FROM_EMAIL`: Sender email address (must be a verified domain, or `onboarding@resend.dev` for testing)
+- `SENDGRID_API_KEY`: Your SendGrid API Key (e.g. `SG....`)
+- `SENDGRID_FROM_EMAIL`: Sender email address (e.g. `adhithyabolishetti24@gmail.com`)
 
 ### Note on Port
 Do NOT manually configure `PORT` or `server.port`. Railway injects the `PORT` environment variable automatically, and the application is configured to listen on it (`server.port: ${PORT:8080}`).
