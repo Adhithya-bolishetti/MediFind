@@ -116,6 +116,7 @@ public class AuthServiceImpl implements AuthService {
         // during authentication). Check status explicitly so the user sees a clear
         // message instead of a generic "invalid credentials" error.
         if (user != null && "SUSPENDED".equalsIgnoreCase(user.getStatus())) {
+            log.warn("Login attempt for suspended user: {}", request.getEmail());
             throw new BadCredentialsException("Your account has been suspended by the administrator. Please contact MediFind support.");
         }
 
@@ -127,7 +128,12 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (AuthenticationException e) {
+            log.warn("Failed login attempt for identifier: {}", request.getEmail());
             throw new BadCredentialsException("Invalid email or password");
+        }
+
+        if (user != null && user.getRole() == Role.ADMIN) {
+            log.info("Admin user logged in successfully: {}", request.getEmail());
         }
 
         String jwtToken = jwtService.generateToken(user);
