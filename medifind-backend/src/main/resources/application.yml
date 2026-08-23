@@ -42,9 +42,10 @@ app:
   mail:
     enabled: ${MAIL_ENABLED:false}
 
-sendgrid:
-  api-key: ${SENDGRID_API_KEY:}
-  from-email: ${SENDGRID_FROM_EMAIL:adhithyabolishetti24@gmail.com}
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${RESEND_FROM_EMAIL:noreply@medifind.com}
+  from-name: ${RESEND_FROM_NAME:MediFind}
 
 springdoc:
   swagger-ui:

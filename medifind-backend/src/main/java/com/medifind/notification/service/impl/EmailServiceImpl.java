@@ -1,25 +1,23 @@
 package com.medifind.notification.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medifind.notification.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-
 import jakarta.annotation.PostConstruct;
 import org.springframework.scheduling.annotation.Async;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,81 +25,91 @@ import java.io.IOException;
 public class EmailServiceImpl implements EmailService {
 
     private final TemplateEngine templateEngine;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.mail.enabled:false}")
     private boolean mailEnabled;
 
-    @Value("${sendgrid.api-key:}")
-    private String sendGridApiKey;
+    @Value("${resend.api-key:}")
+    private String resendApiKey;
 
-    @Value("${sendgrid.from-email:adhithyabolishetti24@gmail.com}")
+    @Value("${resend.from-email:noreply@medifind.com}")
     private String fromEmail;
 
-    private SendGrid sendGrid;
+    @Value("${resend.from-name:MediFind}")
+    private String fromName;
+
+    private HttpClient httpClient;
 
     @PostConstruct
     public void init() {
-        this.sendGrid = new SendGrid(sendGridApiKey);
+        if (mailEnabled && (resendApiKey == null || resendApiKey.isBlank())) {
+            throw new IllegalStateException("RESEND_API_KEY missing");
+        }
+        this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .build();
+    }
+
+    private void sendResendEmail(String to, String subject, String htmlBody, String textBody) {
+        if (!mailEnabled) {
+            log.info("Email disabled. Mock sending to {}: Subject: {}", to, subject);
+            return;
+        }
+
+        log.info("Sending email to {}", to);
+        log.info("Subject: {}", subject);
+
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("from", fromName + " <" + fromEmail + ">");
+            payload.put("to", List.of(to));
+            payload.put("subject", subject);
+            if (htmlBody != null) {
+                payload.put("html", htmlBody);
+            }
+            if (textBody != null) {
+                payload.put("text", textBody);
+            }
+
+            String requestBody = objectMapper.writeValueAsString(payload);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Resend response: {}", response.body());
+                log.info("Email sent successfully to {}", to);
+            } else {
+                log.error("Failed to send email to {}. Resend status: {}, response: {}", to, response.statusCode(), response.body());
+                throw new RuntimeException("Resend API returned status " + response.statusCode() + ": " + response.body());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Resend API error", e);
+            throw new RuntimeException("Email sending interrupted", e);
+        } catch (Exception ex) {
+            log.error("Resend API error", ex);
+            throw new RuntimeException("Failed to send email to " + to, ex);
+        }
     }
 
     @Async
     @Override
     public void sendEmail(String to, String subject, String body) {
-        if (!mailEnabled) {
-            log.info("Email disabled. Mock sending to {}: Subject: {}, Body: {}", to, subject, body);
-            return;
-        }
-
-        Email from = new Email(fromEmail);
-        Email toEmail = new Email(to);
-        Content content = new Content("text/plain", body);
-        Mail mail = new Mail(from, subject, toEmail, content);
-
-        Request request = new Request();
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sendGrid.api(request);
-            
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                log.info("Email sent successfully to {}, SendGrid Status: {}", to, response.getStatusCode());
-            } else {
-                log.error("Failed to send email to {}: SendGrid Status {}, Body: {}", to, response.getStatusCode(), response.getBody());
-            }
-        } catch (IOException ex) {
-            log.error("Failed to send email to {}: {}", to, ex.getMessage());
-        }
+        sendResendEmail(to, subject, null, body);
     }
 
     @Async
     @Override
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
-        if (!mailEnabled) {
-            log.info("Email disabled. Mock sending HTML email to {}: Subject: {}", to, subject);
-            return;
-        }
-
-        Email from = new Email(fromEmail);
-        Email toEmail = new Email(to);
-        Content content = new Content("text/html", htmlBody);
-        Mail mail = new Mail(from, subject, toEmail, content);
-
-        Request request = new Request();
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sendGrid.api(request);
-            
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                log.info("Email sent successfully to {}, SendGrid Status: {}", to, response.getStatusCode());
-            } else {
-                log.error("Failed to send email to {}: SendGrid Status {}, Body: {}", to, response.getStatusCode(), response.getBody());
-            }
-        } catch (IOException ex) {
-            log.error("Failed to send HTML email to {}: {}", to, ex.getMessage());
-        }
+        sendResendEmail(to, subject, htmlBody, null);
     }
     
     @Async
@@ -142,5 +150,52 @@ public class EmailServiceImpl implements EmailService {
         String htmlBody = templateEngine.process("email/appointment", context);
         
         sendHtmlEmail(to, subject, htmlBody);
+    }
+    
+    @Override
+    public String sendTestEmail(String to) {
+        if (!mailEnabled) {
+            return "mock-id-12345";
+        }
+        
+        log.info("Sending test email to {}", to);
+        String subject = "MediFind Test Email";
+        String htmlBody = "<h1>Hello from MediFind!</h1><p>Your Resend integration is working.</p>";
+        
+        try {
+            Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("from", fromName + " <" + fromEmail + ">");
+            payload.put("to", List.of(to));
+            payload.put("subject", subject);
+            payload.put("html", htmlBody);
+
+            String requestBody = objectMapper.writeValueAsString(payload);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Resend response: {}", response.body());
+                // Parse the message ID from the response if possible, otherwise return a generic ID
+                try {
+                    Map<String, Object> responseMap = objectMapper.readValue(response.body(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                    return responseMap.containsKey("id") ? (String) responseMap.get("id") : "unknown-id";
+                } catch (Exception e) {
+                    return "unknown-id";
+                }
+            } else {
+                log.error("Failed to send email to {}. Resend status: {}, response: {}", to, response.statusCode(), response.body());
+                throw new RuntimeException("Resend API returned status " + response.statusCode() + ": " + response.body());
+            }
+        } catch (Exception ex) {
+            log.error("Resend API error", ex);
+            throw new RuntimeException("Failed to send test email to " + to, ex);
+        }
     }
 }

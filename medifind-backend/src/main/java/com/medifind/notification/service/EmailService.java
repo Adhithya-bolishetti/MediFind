@@ -6,4 +6,6 @@ public interface EmailService {
     
     void sendOtpEmail(String to, String otp, String purpose);
     void sendAppointmentStatusEmail(String to, String appointmentId, String patientName, String doctorName, String date, String time, String status);
+    
+    String sendTestEmail(String to);
 }
