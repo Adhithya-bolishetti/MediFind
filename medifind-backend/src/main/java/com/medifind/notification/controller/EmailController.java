@@ -19,15 +19,12 @@ public class EmailController {
     @Value("${app.mail.enabled:false}")
     private boolean mailEnabled;
 
-    @Value("${resend.from-email:noreply@medifind.com}")
-    private String senderEmail;
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> checkHealth() {
         Map<String, Object> response = new HashMap<>();
-        response.put("provider", "RESEND");
+        response.put("provider", "NONE");
         response.put("configured", mailEnabled);
-        response.put("sender", senderEmail);
         return ResponseEntity.ok(response);
     }
 

@@ -112,7 +112,7 @@ class ForgotPasswordIntegrationTest {
         ForgotPasswordRequest request = new ForgotPasswordRequest();
         request.setEmail("test@example.com");
 
-        doThrow(new RuntimeException("Simulated Resend API failure"))
+        doThrow(new RuntimeException("Simulated Email API failure"))
                 .when(emailService).sendOtpEmail(anyString(), anyString(), anyString());
 
         mockMvc.perform(post("/api/auth/forgot-password")

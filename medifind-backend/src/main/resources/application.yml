@@ -42,10 +42,6 @@ app:
   mail:
     enabled: ${MAIL_ENABLED:false}
 
-resend:
-  api-key: ${RESEND_API_KEY:}
-  from-email: ${RESEND_FROM_EMAIL:noreply@medifind.com}
-  from-name: ${RESEND_FROM_NAME:MediFind}
 
 springdoc:
   swagger-ui:
