@@ -13,7 +13,7 @@ dist/
 
 .idea/
 .vscode/
-freebuff/
+.freebuff/
 *.log
 
 .DS_Store
