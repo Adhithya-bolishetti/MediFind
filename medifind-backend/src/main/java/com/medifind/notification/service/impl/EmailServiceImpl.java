@@ -100,19 +100,16 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    @Async
     @Override
     public void sendEmail(String to, String subject, String body) {
         sendResendEmail(to, subject, null, body);
     }
 
-    @Async
     @Override
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
         sendResendEmail(to, subject, htmlBody, null);
     }
     
-    @Async
     @Override
     public void sendOtpEmail(String to, String otp, String purpose) {
         Context context = new Context();

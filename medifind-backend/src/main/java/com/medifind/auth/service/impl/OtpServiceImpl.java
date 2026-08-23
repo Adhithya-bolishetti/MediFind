@@ -44,6 +44,7 @@ public class OtpServiceImpl implements OtpService {
         // Generate 6-digit OTP
         String rawOtp = String.format("%06d", secureRandom.nextInt(1000000));
         String hashedOtp = passwordEncoder.encode(rawOtp);
+        log.info("Token generated (OTP generated)");
 
         OtpEntity otpEntity = existingOtpOpt.map(existing -> {
             if (existing.isUsed() || existing.isExpired() || existing.getAttemptCount() >= MAX_ATTEMPTS) {
@@ -57,10 +58,14 @@ public class OtpServiceImpl implements OtpService {
         }).orElseGet(() -> createNewOtpEntity(email, hashedOtp, purpose));
 
         otpRepository.save(otpEntity);
+        log.info("Token stored (OTP stored)");
 
-        // Send Email asynchronously
+        log.info("Email request prepared");
+        // Send Email (now synchronously)
         emailService.sendOtpEmail(email, rawOtp, purpose);
+        log.info("Email sent");
         log.info("OTP generated for email: {}, purpose: {}", email, purpose);
+        log.info("Response returned");
     }
 
     private OtpEntity createNewOtpEntity(String email, String hashedOtp, String purpose) {

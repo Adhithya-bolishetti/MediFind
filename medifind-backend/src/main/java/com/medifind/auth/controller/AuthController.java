@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -45,9 +49,15 @@ public class AuthController {
 
     @Operation(summary = "Request password reset link")
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody com.medifind.auth.dto.ForgotPasswordRequest request) {
-        authService.forgotPassword(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody com.medifind.auth.dto.ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request);
+            return ResponseEntity.ok(Map.of("message", "If an account exists, a reset link/OTP has been sent."));
+        } catch (Exception e) {
+            log.error("Forgot password failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "An unexpected error occurred while processing the forgot password request."));
+        }
     }
 
     @Operation(summary = "Reset password using token")
