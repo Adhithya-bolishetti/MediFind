@@ -3,6 +3,7 @@ import {
   Box, Typography, Grid, Paper, TextField, Button, Avatar,
   Chip, CircularProgress, Tabs, Tab, Alert, InputAdornment,
   MenuItem, Select, FormControl, InputLabel, IconButton,
+  Divider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -14,10 +15,13 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import CloseIcon from '@mui/icons-material/Close';
 import SortIcon from '@mui/icons-material/Sort';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import AddIcon from '@mui/icons-material/Add';
 import doctorService from '../services/doctorService';
 
 const TEAL = '#079A9A';
 const NAVY = 'var(--mf-text)';
+const EMERGENCY_RED = '#DC2626';
 
 const specializations = [
   'All', 'GENERAL_PHYSICIAN', 'CARDIOLOGIST', 'DERMATOLOGIST',
@@ -37,19 +41,23 @@ const haversineKm = (lat1, lon1, lat2, lon2) => {
 };
 
 const formatDistance = (km) => {
+  if (km == null) return '';
   if (km < 1) return `${Math.round(km * 1000)} m away`;
   return `${km.toFixed(1)} km away`;
 };
 
-const DoctorCard = ({ doctor, onClick }) => {
+// ─────────── Doctor Card ───────────
+
+const DoctorCard = ({ doctor, onClick, showDistance }) => {
   const name = doctor.doctorName || `${doctor.firstName || ''} ${doctor.lastName || ''}`.trim() || 'Doctor';
   const spec = doctor.specialization || doctor.specialty || '—';
   const rating = doctor.rating > 0 ? doctor.rating.toFixed(1) : 'New';
   const reviews = doctor.totalReviews || 0;
   const exp = doctor.experience;
   const fee = doctor.consultationFee;
-  const hospitalName = doctor.hospitalInfo?.hospitalName || doctor.clinicName;
+  const hospitalName = doctor.hospitalInfo?.hospitalName || doctor.hospital;
   const location = [doctor.city, doctor.state].filter(Boolean).join(', ');
+  const distance = doctor._distanceKm ?? doctor.distanceKm;
 
   return (
     <Paper
@@ -138,11 +146,18 @@ const DoctorCard = ({ doctor, onClick }) => {
             <Typography variant="caption" color="text.secondary">₹{fee} consultation fee</Typography>
           </Box>
         )}
-        {doctor._distanceKm != null && (
+        {distance != null && showDistance && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.8 }}>
             <MyLocationIcon sx={{ fontSize: 15, color: '#3B82F6' }} />
             <Typography variant="caption" fontWeight={600} color="#3B82F6">
-              {formatDistance(doctor._distanceKm)}
+              {formatDistance(distance)}
+            </Typography>
+          </Box>
+        )}
+        {doctor.rankingScore != null && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.8 }}>
+            <Typography variant="caption" color="text.secondary">
+              Match score: <strong>{doctor.rankingScore.toFixed(1)}/100</strong>
             </Typography>
           </Box>
         )}
@@ -186,18 +201,71 @@ const DoctorCard = ({ doctor, onClick }) => {
   );
 };
 
+// ─────────── Hospital Card (for emergency nearest hospitals) ───────────
+
+const HospitalCard = ({ hospital }) => {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2.5,
+        borderRadius: 3,
+        border: '1px solid var(--mf-border)',
+        bgcolor: hospital.emergencyAvailable ? '#FEF2F2' : 'white',
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+        <LocalHospitalIcon sx={{ fontSize: 28, color: hospital.emergencyAvailable ? EMERGENCY_RED : TEAL }} />
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body2" fontWeight={700} color={NAVY}>
+            {hospital.hospitalName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block">
+            {hospital.address}{hospital.city ? `, ${hospital.city}` : ''}
+          </Typography>
+          {hospital.phoneNumber && (
+            <Typography variant="caption" color="text.secondary">
+              📞 {hospital.phoneNumber}
+            </Typography>
+          )}
+          {hospital.emergencyAvailable && (
+            <Chip
+              label="24/7 Emergency"
+              size="small"
+              sx={{ mt: 0.5, bgcolor: '#FEE2E2', color: EMERGENCY_RED, fontWeight: 600, fontSize: '0.65rem' }}
+            />
+          )}
+        </Box>
+        {hospital.distanceKm != null && (
+          <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+            <Typography variant="caption" fontWeight={700} color="#3B82F6">
+              {formatDistance(hospital.distanceKm)}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Paper>
+  );
+};
+
+// ─────────── Main FindDoctors Component ───────────
+
 const FindDoctors = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [search, setSearch] = useState('');
   const [specFilter, setSpecFilter] = useState('All');
-  const [symptoms, setSymptoms] = useState('');
+  const [symptomInput, setSymptomInput] = useState('');
+  const [symptomChips, setSymptomChips] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
   const [sortBy, setSortBy] = useState('recommended');
   const [userCoords, setUserCoords] = useState(null);
-  const [geoStatus, setGeoStatus] = useState('idle'); // idle | loading | ok | denied
+  const [geoStatus, setGeoStatus] = useState('idle');
   const [geoNote, setGeoNote] = useState('');
+
+  // Symptom search results state
+  const [symptomResult, setSymptomResult] = useState(null);
 
   useEffect(() => {
     fetchDoctors();
@@ -215,16 +283,67 @@ const FindDoctors = () => {
     }
   };
 
-  const fetchBySymptoms = async (symptomsText) => {
+  const addSymptomChip = () => {
+    const trimmed = symptomInput.trim();
+    if (trimmed && !symptomChips.includes(trimmed)) {
+      setSymptomChips([...symptomChips, trimmed]);
+      setSymptomInput('');
+    }
+  };
+
+  const removeSymptomChip = (chip) => {
+    setSymptomChips(symptomChips.filter((c) => c !== chip));
+  };
+
+  const handleSymptomKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addSymptomChip();
+    }
+  };
+
+  const fetchBySymptoms = async () => {
+    if (symptomChips.length === 0) return;
     setLoading(true);
+    setSymptomResult(null);
     try {
-      const data = await doctorService.getRecommendationsBySymptoms(symptomsText);
-      setDoctors(Array.isArray(data) ? data : []);
+      // Request location if not already available
+      let lat = userCoords?.lat ?? null;
+      let lng = userCoords?.lng ?? null;
+
+      if (!lat || !lng) {
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            if (!('geolocation' in navigator)) return reject(new Error('no geo'));
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+          });
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+          setUserCoords({ lat, lng });
+        } catch {
+          // Location not available — proceed without it
+        }
+      }
+
+      const data = await doctorService.searchBySymptoms(symptomChips, lat, lng);
+      setSymptomResult(data);
+
+      // Also update the doctors list with the recommended doctors
+      if (data?.recommendedDoctors) {
+        setDoctors(data.recommendedDoctors);
+      }
     } catch (err) {
       console.error('Failed to fetch symptom recommendations', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearSymptomSearch = () => {
+    setSymptomChips([]);
+    setSymptomInput('');
+    setSymptomResult(null);
+    fetchDoctors();
   };
 
   const requestLocation = () => {
@@ -273,6 +392,7 @@ const FindDoctors = () => {
         d.clinicName,
         d.clinicAddress,
         d.hospitalInfo?.hospitalName,
+        d.hospital,
       ];
       return fields.some((f) => f && f.toLowerCase().includes(q));
     });
@@ -308,10 +428,15 @@ const FindDoctors = () => {
         ((a.city || '') + (a.state || '')).localeCompare(((b.city || '') + (b.state || '')), undefined, { sensitivity: 'base' })
       );
     } else if (sortBy === 'recommended') {
-      list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      // If we have ranking scores from symptom search, preserve that order
+      if (symptomResult?.recommendedDoctors?.length > 0) {
+        list = [...list].sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
+      } else {
+        list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      }
     }
     return list;
-  }, [doctors, search, specFilter, sortBy, userCoords]);
+  }, [doctors, search, specFilter, sortBy, userCoords, symptomResult]);
 
   const clearFilters = () => {
     setSearch('');
@@ -335,7 +460,7 @@ const FindDoctors = () => {
       <Paper elevation={0} sx={{ mb: 3, borderRadius: 4, border: '1px solid var(--mf-border)', overflow: 'hidden' }}>
         <Tabs
           value={tab}
-          onChange={(e, v) => setTab(v)}
+          onChange={(e, v) => { setTab(v); if (v === 0) clearSymptomSearch(); }}
           variant="fullWidth"
           sx={{
             borderBottom: '1px solid var(--mf-border)',
@@ -348,7 +473,7 @@ const FindDoctors = () => {
           <Tab label="Symptom-Based" icon={<HealingIcon />} iconPosition="start" />
         </Tabs>
 
-        <Box component="form" onSubmit={(e) => { e.preventDefault(); if (tab === 1) fetchBySymptoms(symptoms); }} sx={{ p: 3 }}>
+        <Box sx={{ p: 3 }}>
           {tab === 1 && (
             <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
               <strong>Disclaimer:</strong> This is a recommendation helper, NOT a medical diagnosis. In emergencies, call emergency services immediately.
@@ -429,39 +554,235 @@ const FindDoctors = () => {
               )}
             </>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                placeholder="Describe your symptoms (e.g., chest pain, breathing difficulty)..."
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                size="small"
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                size="medium"
-                disabled={loading || symptoms.length < 5}
-                sx={{
-                  flexShrink: 0,
-                  px: 3,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  bgcolor: TEAL,
-                  height: 40,
-                  '&:hover': { bgcolor: '#068A8A' },
-                }}
-              >
-                {loading ? 'Searching...' : 'Search'}
-              </Button>
+            /* ─────────── Symptom-Based Search UI ─────────── */
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+                <TextField
+                  fullWidth
+                  placeholder="Type a symptom and press Enter to add (e.g., fever, cough, headache)..."
+                  value={symptomInput}
+                  onChange={(e) => setSymptomInput(e.target.value)}
+                  onKeyDown={handleSymptomKeyDown}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <HealingIcon sx={{ color: '#9CA3AF' }} />
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: 2 },
+                    },
+                  }}
+                  size="small"
+                />
+                <Button
+                  variant="outlined"
+                  size="small"
+                  disabled={!symptomInput.trim()}
+                  onClick={addSymptomChip}
+                  sx={{
+                    flexShrink: 0,
+                    px: 2,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: TEAL,
+                    color: TEAL,
+                    height: 40,
+                    minWidth: 44,
+                    '&:hover': { borderColor: '#068A8A', bgcolor: `${TEAL}08` },
+                  }}
+                >
+                  <AddIcon />
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={loading || symptomChips.length === 0}
+                  onClick={fetchBySymptoms}
+                  sx={{
+                    flexShrink: 0,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    bgcolor: TEAL,
+                    height: 40,
+                    '&:hover': { bgcolor: '#068A8A' },
+                  }}
+                >
+                  {loading ? 'Analyzing...' : 'Find Doctors'}
+                </Button>
+              </Box>
+
+              {/* Symptom Chips */}
+              {symptomChips.length > 0 && (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                  {symptomChips.map((chip) => (
+                    <Chip
+                      key={chip}
+                      label={chip}
+                      onDelete={() => removeSymptomChip(chip)}
+                      sx={{
+                        bgcolor: `${TEAL}15`,
+                        color: TEAL,
+                        fontWeight: 600,
+                        '& .MuiChip-deleteIcon': { color: TEAL, '&:hover': { color: '#068A8A' } },
+                      }}
+                    />
+                  ))}
+                  <Button
+                    size="small"
+                    onClick={() => setSymptomChips([])}
+                    sx={{ color: '#9CA3AF', textTransform: 'none', fontSize: '0.75rem' }}
+                  >
+                    Clear all
+                  </Button>
+                </Box>
+              )}
             </Box>
           )}
         </Box>
       </Paper>
+
+      {/* ─────────── Symptom Search Result Banner ─────────── */}
+      {symptomResult && (
+        <Box sx={{ mb: 3 }}>
+          {/* Emergency Condition Banner */}
+          {symptomResult.emergency && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 2,
+                borderRadius: 3,
+                border: `2px solid ${EMERGENCY_RED}`,
+                bgcolor: '#FEF2F2',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <WarningAmberIcon sx={{ fontSize: 32, color: EMERGENCY_RED }} />
+                <Typography variant="h6" fontWeight={800} color={EMERGENCY_RED}>
+                  🚨 EMERGENCY CONDITION DETECTED
+                </Typography>
+              </Box>
+
+              {/* Condition Summary Grid */}
+              <Grid container spacing={2} sx={{ mb: 1.5 }}>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Condition Type</Typography>
+                    <Typography variant="body1" fontWeight={800} color={EMERGENCY_RED}>EMERGENCY</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Severity Score</Typography>
+                    <Typography variant="body1" fontWeight={800} color={EMERGENCY_RED}>{symptomResult.severityScore ?? '—'}/100</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Confidence</Typography>
+                    <Typography variant="body1" fontWeight={800} color={EMERGENCY_RED}>{symptomResult.confidence ?? '—'}%</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Specialist</Typography>
+                    <Typography variant="body1" fontWeight={800} color={NAVY}>{(symptomResult.specialization || '').replace(/_/g, ' ')}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Typography variant="body2" color="#991B1B" sx={{ mb: 0.5 }}>
+                {symptomResult.message || 'Seek immediate medical attention.'}
+              </Typography>
+              <Typography variant="caption" color="#B91C1C" display="block">
+                {symptomResult.explanation}
+              </Typography>
+              <Alert severity="error" sx={{ mt: 1.5, borderRadius: 2, bgcolor: '#DC262615', border: '1px solid #DC262630' }}>
+                Immediate medical attention recommended. Call emergency services or visit the nearest hospital below.
+              </Alert>
+            </Paper>
+          )}
+
+          {/* Normal Condition Banner */}
+          {!symptomResult.emergency && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 2,
+                borderRadius: 3,
+                border: `2px solid #16A34A`,
+                bgcolor: '#F0FDF4',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <HealingIcon sx={{ fontSize: 24, color: '#16A34A' }} />
+                <Typography variant="h6" fontWeight={800} color="#16A34A">
+                  ✅ NORMAL CONDITION DETECTED
+                </Typography>
+              </Box>
+
+              {/* Condition Summary Grid */}
+              <Grid container spacing={2} sx={{ mb: 1.5 }}>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Condition Type</Typography>
+                    <Typography variant="body1" fontWeight={800} color="#16A34A">NORMAL</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Severity Score</Typography>
+                    <Typography variant="body1" fontWeight={800} color="#16A34A">{symptomResult.severityScore ?? '—'}/100</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Confidence</Typography>
+                    <Typography variant="body1" fontWeight={800} color="#16A34A">{symptomResult.confidence ?? '—'}%</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: 'white', borderRadius: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Recommended Specialist</Typography>
+                    <Typography variant="body1" fontWeight={800} color={NAVY}>{(symptomResult.specialization || '').replace(/_/g, ' ')}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Typography variant="body2" color="#166534" sx={{ mb: 0.5 }}>
+                Book an appointment with a specialist.
+              </Typography>
+              <Typography variant="caption" color="#15803D" display="block">
+                {symptomResult.explanation}
+              </Typography>
+            </Paper>
+          )}
+
+          {/* Nearest Hospitals (Emergency only) */}
+          {symptomResult.emergency && symptomResult.nearestHospitals?.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight={700} color={NAVY} sx={{ mb: 1.5 }}>
+                🏥 Nearest Hospitals
+              </Typography>
+              <Grid container spacing={2}>
+                {symptomResult.nearestHospitals.slice(0, 6).map((hospital, i) => (
+                  <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={hospital.id || i}>
+                    <HospitalCard hospital={hospital} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+        </Box>
+      )}
 
       {/* Results */}
       {loading ? (
@@ -473,9 +794,12 @@ const FindDoctors = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="body2" color="text.secondary">
               {filtered.length} doctor{filtered.length !== 1 ? 's' : ''} found
+              {symptomResult && !symptomResult.emergency && symptomResult.specialization && (
+                <> · {(symptomResult.specialization || '').replace(/_/g, ' ')}</>
+              )}
             </Typography>
-            {(search || specFilter !== 'All' || sortBy !== 'recommended') && (
-              <Button size="small" onClick={clearFilters} sx={{ color: TEAL, textTransform: 'none', fontWeight: 600 }}>
+            {(search || specFilter !== 'All' || sortBy !== 'recommended' || symptomChips.length > 0) && (
+              <Button size="small" onClick={() => { clearFilters(); clearSymptomSearch(); }} sx={{ color: TEAL, textTransform: 'none', fontWeight: 600 }}>
                 Clear search & filters
               </Button>
             )}
@@ -486,6 +810,7 @@ const FindDoctors = () => {
                 <DoctorCard
                   doctor={doctor}
                   onClick={() => navigate(`/doctors/${doctor.id}`)}
+                  showDistance={sortBy === 'nearest' || (symptomResult != null)}
                 />
               </Grid>
             ))}
@@ -499,7 +824,7 @@ const FindDoctors = () => {
                   <Button
                     variant="text"
                     sx={{ mt: 1, color: TEAL, textTransform: 'none' }}
-                    onClick={clearFilters}
+                    onClick={() => { clearFilters(); clearSymptomSearch(); }}
                   >
                     Clear search & filters
                   </Button>

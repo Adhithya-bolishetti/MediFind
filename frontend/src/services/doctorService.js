@@ -23,6 +23,16 @@ const doctorService = {
     return response.data;
   },
 
+  searchBySymptoms: async (symptoms, latitude, longitude) => {
+    const payload = { symptoms };
+    if (latitude != null && longitude != null) {
+      payload.latitude = latitude;
+      payload.longitude = longitude;
+    }
+    const response = await api.post('/doctors/search-by-symptoms', payload);
+    return response.data;
+  },
+
   getAvailableSlots: async (doctorId, date) => {
     const response = await api.get(`/doctors/${doctorId}/available-slots?date=${date}`);
     return response.data;

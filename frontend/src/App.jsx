@@ -119,7 +119,7 @@ const AppRoutes = () => (
       <Route path="/hospitals" element={<ConditionalSidebar><HospitalSearch /></ConditionalSidebar>} />
       <Route path="/hospitals/:id" element={<ConditionalSidebar><HospitalDetails /></ConditionalSidebar>} />
 
-      {/* ─────────────── Profile Setup (no sidebar) ─────────────── */}
+      {/* ─────────────── Profile Setup ─────────────── */}
       <Route
         path="/doctor/profile"
         element={

@@ -2,46 +2,37 @@ package com.medifind.doctor.controller;
 
 import com.medifind.doctor.dto.EmergencyCheckRequest;
 import com.medifind.doctor.dto.EmergencyCheckResponse;
+import com.medifind.doctor.service.SymptomAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * Emergency check endpoint — now delegates to {@link SymptomAnalysisService}
+ * for consistent, severity-based emergency detection across the application.
+ */
 @RestController
 @RequestMapping("/api/emergency")
+@RequiredArgsConstructor
 public class EmergencyController {
 
-    private final List<String> emergencyKeywords = Arrays.asList(
-            "chest pain", "breathing difficulty", "heart", "stroke", "bleeding", "unconscious"
-    );
+    private final SymptomAnalysisService symptomAnalysisService;
 
     @Operation(summary = "Check if symptoms constitute an emergency")
     @PostMapping("/check")
     public ResponseEntity<EmergencyCheckResponse> checkEmergency(@RequestBody EmergencyCheckRequest request) {
-        boolean isEmergency = false;
+        SymptomAnalysisService.SymptomAnalysis analysis =
+                symptomAnalysisService.analyse(request.getSymptoms());
 
-        if (request.getSymptoms() != null) {
-            for (String symptom : request.getSymptoms()) {
-                String lowerSymptom = symptom.toLowerCase();
-                for (String keyword : emergencyKeywords) {
-                    if (lowerSymptom.contains(keyword)) {
-                        isEmergency = true;
-                        break;
-                    }
-                }
-                if (isEmergency) break;
-            }
-        }
-
-        if (isEmergency) {
+        if (analysis.emergency()) {
             return ResponseEntity.ok(EmergencyCheckResponse.builder()
                     .emergency(true)
-                    .message("Please seek emergency medical attention immediately.")
+                    .message("Please seek emergency medical attention immediately. Severity: "
+                            + analysis.severityScore() + "/100.")
                     .recommendedAction("NEAREST_HOSPITAL")
                     .build());
         } else {
