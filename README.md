@@ -88,6 +88,42 @@ Base URL: `http://localhost:8080/api`
 - `POST /auth/login`: Authenticate and receive a JWT
 - `GET /auth/me`: Get current logged-in user details (Requires `Authorization: Bearer <token>`)
 
+### Video Consultation
+- `GET /video/appointments/{id}/room`: resolve the WebRTC room for an online appointment
+- `ws://localhost:8080/ws/video?roomId=<id>&token=<jwt>`: signaling socket
+
+## Video Consultation
+
+Appointments booked with the **Online** consultation type get a peer-to-peer video
+room. Media flows directly between the patient and the doctor over WebRTC — the
+backend only relays the SDP/ICE handshake and never sees or stores the call itself.
+
+**Flow**
+
+1. A patient books a doctor and picks *Online* as the consultation type.
+2. The doctor accepts the appointment (`CONFIRMED`).
+3. From **My Appointments** (or either dashboard) both sides get a **Join Video
+   Call** button, enabled from 15 minutes before the scheduled time until 60
+   minutes after it.
+4. `/appointments/:id/call` opens the call: camera and mic toggles, the peer's
+   mute state, and hang-up.
+
+**Access rules** — enforced server-side on both the REST room lookup and the
+WebSocket handshake, so a leaked room token grants nothing on its own:
+
+- The caller must be that appointment's patient or its doctor.
+- The appointment must be `CONFIRMED` and of type `Online`.
+- The current time must fall inside the join window.
+
+**Connectivity** — the default configuration uses public STUN servers, which
+covers most home and mobile networks. Participants behind symmetric NAT or a
+corporate firewall need a TURN relay; set `VIDEO_TURN_URL`, `VIDEO_TURN_USERNAME`
+and `VIDEO_TURN_CREDENTIAL` (see `.env.example`) to add one.
+
+> Browsers only grant camera and microphone access on `https://` or `localhost`.
+> Testing over a LAN IP such as `http://192.168.x.x:5173` will fail at the
+> permission prompt.
+
 ### Swagger Documentation
 Backend API Docs: `http://localhost:8080/swagger-ui.html`
 

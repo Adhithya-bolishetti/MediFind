@@ -19,7 +19,9 @@ import StarIcon from '@mui/icons-material/Star';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import notificationService from '../services/notificationService';
+import { getCallAvailability } from '../services/videoService';
 
 const TEAL = '#079A9A';
 const NAVY = 'var(--mf-text)';
@@ -320,6 +322,21 @@ const PatientDashboard = () => {
                       fontWeight: 700, fontSize: '0.7rem',
                     }}
                   />
+                  {getCallAvailability(upcomingAppt).joinable && (
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="small"
+                      startIcon={<VideocamIcon />}
+                      onClick={() => navigate(`/appointments/${upcomingAppt.id}/call`)}
+                      sx={{
+                        mt: 1.5, bgcolor: TEAL, textTransform: 'none',
+                        borderRadius: 2, fontWeight: 700, '&:hover': { bgcolor: '#068A8A' },
+                      }}
+                    >
+                      Join Video Call
+                    </Button>
+                  )}
                 </Box>
               </Box>
             ) : (

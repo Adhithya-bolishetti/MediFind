@@ -34,6 +34,7 @@ import HospitalDetails from './pages/HospitalDetails';
 // Authenticated dashboard pages (use sidebar)
 import Dashboard from './pages/Dashboard';
 import AppointmentHistory from './pages/AppointmentHistory';
+import VideoConsultation from './pages/VideoConsultation';
 import Profile from './pages/Profile';
 import NotificationMenu from './components/NotificationMenu';
 
@@ -159,6 +160,15 @@ const AppRoutes = () => (
         element={
           <ProtectedRoute requireProfileComplete>
             <WithSidebar><AppointmentHistory /></WithSidebar>
+          </ProtectedRoute>
+        }
+      />
+      {/* Video consultation — full-screen, no sidebar, so the call owns the viewport. */}
+      <Route
+        path="/appointments/:id/call"
+        element={
+          <ProtectedRoute requireProfileComplete>
+            <VideoConsultation />
           </ProtectedRoute>
         }
       />

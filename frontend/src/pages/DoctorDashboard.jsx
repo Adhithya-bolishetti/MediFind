@@ -17,7 +17,9 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import notificationService from '../services/notificationService';
+import { getCallAvailability } from '../services/videoService';
 
 const TEAL = '#079A9A';
 const NAVY = 'var(--mf-text)';
@@ -57,10 +59,11 @@ const formatTime = (timeStr) => {
   return { time: `${String(hour12).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, meridiem: suffix };
 };
 
-const AppointmentRow = ({ appt, locationName, onAccept, onDecline, onComplete, busy }) => {
+const AppointmentRow = ({ appt, locationName, onAccept, onDecline, onComplete, onJoinCall, busy }) => {
   const dateObj = new Date(appt.appointmentDate);
   const display = formatTime(appt.appointmentTime);
   const patientName = appt.user?.fullName || `Patient #${appt.userId}`;
+  const call = getCallAvailability(appt);
 
   return (
     <Box
@@ -137,6 +140,21 @@ const AppointmentRow = ({ appt, locationName, onAccept, onDecline, onComplete, b
             Decline
           </Button>
         </Box>
+      )}
+
+      {call.joinable && onJoinCall && (
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<VideocamIcon />}
+          onClick={() => onJoinCall(appt)}
+          sx={{
+            textTransform: 'none', borderRadius: 2, fontWeight: 700, flexShrink: 0,
+            bgcolor: TEAL, '&:hover': { bgcolor: '#068A8A' },
+          }}
+        >
+          Join
+        </Button>
       )}
 
       {appt.status === 'CONFIRMED' && onComplete && (
@@ -367,6 +385,7 @@ const DoctorDashboard = () => {
                 onAccept={handleAccept}
                 onDecline={handleDecline}
                 onComplete={handleComplete}
+                onJoinCall={a => navigate(`/appointments/${a.id}/call`)}
                 busy={actionLoadingId === appt.id}
               />
             ))}

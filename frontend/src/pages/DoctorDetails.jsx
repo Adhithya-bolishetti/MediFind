@@ -89,8 +89,8 @@ const DoctorDetails = () => {
     return local.toISOString().split('T')[0];
   })();
 
-  // Consultation type — part of the booking steps (kept client-side; the
-  // backend stores date/time/reason, not the consultation mode).
+  // Consultation type — sent with the booking. "Online" is what unlocks the
+  // video consultation room once the doctor accepts.
   const [consultationType, setConsultationType] = useState('In-person');
 
   useEffect(() => {
@@ -187,6 +187,7 @@ const DoctorDetails = () => {
         appointmentDate: date,
         appointmentTime: selectedSlot,
         reason: reason.trim(),
+        consultationType,
       });
       showToast('Appointment booked successfully!');
       navigate('/appointments');
