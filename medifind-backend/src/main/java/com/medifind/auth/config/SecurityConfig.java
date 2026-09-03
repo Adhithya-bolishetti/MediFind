@@ -45,7 +45,11 @@ public class SecurityConfig {
                     "/api/auth/reset-password",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html"
+                    "/swagger-ui.html",
+                    // The signaling handshake carries its own JWT as a query
+                    // parameter and authorises the room itself — browsers cannot
+                    // set an Authorization header on a WebSocket upgrade.
+                    "/ws/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

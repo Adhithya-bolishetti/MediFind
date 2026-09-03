@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "backend: run (dev)",
+      "type": "shell",
+      "command": "mvn spring-boot:run -DskipTests -Dspring-boot.run.profiles=dev",
+      "options": { "cwd": "${workspaceFolder}/medifind-backend", "env": { "DB_PASSWORD": "123456" } },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "backend: run with debug port 5005",
+      "type": "shell",
+      "command": "mvn spring-boot:run -DskipTests -Dspring-boot.run.profiles=dev -Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'",
+      "options": { "cwd": "${workspaceFolder}/medifind-backend", "env": { "DB_PASSWORD": "123456" } },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "frontend: dev server (Node 22)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend",
+        "env": { "PATH": "${env:HOME}/.nvm/versions/node/v22.9.0/bin:${env:PATH}" }
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "db: reseed dev accounts",
+      "type": "shell",
+      "command": "mysql -u root -p123456 medifind_db < database/seed-dev-users.sql",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

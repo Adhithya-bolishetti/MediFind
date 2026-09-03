@@ -11,3 +11,21 @@ logging:
     org.springframework: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # Application packages — full request/decision tracing while developing.
+    com.medifind: DEBUG
+    # Why a login or a /api call was rejected, instead of a bare 401/403.
+    org.springframework.security: DEBUG
+    # Signaling handshake, room join/leave and offer/answer relay.
+    com.medifind.video: TRACE
+    org.springframework.web.socket: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+# Full stack traces and the failing field in error responses, so a 400 from the
+# video endpoints says what actually failed.
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+    include-exception: true

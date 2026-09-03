@@ -2,8 +2,9 @@ import { useState, useEffect, useContext } from 'react';
 import {
   Box, Typography, Paper, Chip, CircularProgress, Button,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  Alert,
+  Alert, Tooltip,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import EventIcon from '@mui/icons-material/Event';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -11,6 +12,9 @@ import PersonIcon from '@mui/icons-material/Person';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import VideocamOffIcon from '@mui/icons-material/VideocamOff';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import ReviewModal from '../components/ReviewModal';
@@ -18,6 +22,7 @@ import api from '../services/api';
 import doctorService from '../services/doctorService';
 import appointmentService from '../services/appointmentService';
 import userService from '../services/userService';
+import { getCallAvailability, isOnlineConsultation } from '../services/videoService';
 
 const TEAL = '#079A9A';
 const NAVY = 'var(--mf-text)';
@@ -31,6 +36,57 @@ const statusStyleMap = {
   REJECTED: { bg: '#FEE2E2', color: '#DC2626' },
 };
 
+/** Shows whether the visit is online or in-person at a glance. */
+const ModeChip = ({ appointment }) => {
+  const online = isOnlineConsultation(appointment);
+  return (
+    <Chip
+      size="small"
+      icon={online ? <VideocamIcon sx={{ fontSize: 15 }} /> : <LocalHospitalIcon sx={{ fontSize: 15 }} />}
+      label={online ? 'Online' : 'In-person'}
+      sx={{
+        bgcolor: online ? 'rgba(7,154,154,0.12)' : 'var(--mf-border)',
+        color: online ? TEAL : '#6B7280',
+        fontWeight: 700, fontSize: '0.7rem', height: 22,
+        '& .MuiChip-icon': { color: 'inherit' },
+      }}
+    />
+  );
+};
+
+/**
+ * Renders the video-call entry point for online appointments. Disabled outside
+ * the join window, with the reason surfaced on hover — the backend applies the
+ * same rule when the room is actually requested.
+ */
+const JoinCallButton = ({ appointment, onJoin }) => {
+  const { show, joinable, hint } = getCallAvailability(appointment);
+  if (!show) return null;
+
+  return (
+    <Tooltip title={hint}>
+      <span>
+        <Button
+          fullWidth
+          variant={joinable ? 'contained' : 'outlined'}
+          size="small"
+          disabled={!joinable}
+          startIcon={joinable ? <VideocamIcon /> : <VideocamOffIcon />}
+          onClick={() => onJoin(appointment)}
+          sx={{
+            textTransform: 'none', borderRadius: 2, fontWeight: 700,
+            ...(joinable
+              ? { bgcolor: TEAL, '&:hover': { bgcolor: '#068A8A' } }
+              : { color: '#6B7280', borderColor: 'var(--mf-border)' }),
+          }}
+        >
+          {joinable ? 'Join Video Call' : 'Video Call'}
+        </Button>
+      </span>
+    </Tooltip>
+  );
+};
+
 const StatusChip = ({ status }) => {
   const s = statusStyleMap[status] || { bg: 'var(--mf-border)', color: '#6B7280' };
   return (
@@ -41,6 +97,10 @@ const StatusChip = ({ status }) => {
 const AppointmentHistory = () => {
   const { user } = useContext(AuthContext);
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  // Re-renders on a slow tick so a call becomes joinable the moment its window
+  // opens, without the user reloading the page.
+  const [, setClockTick] = useState(0);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,6 +163,17 @@ const AppointmentHistory = () => {
     };
     if (user) fetchAppointments();
   }, [user]);
+
+  // Only online appointments have a time-sensitive join button, so the tick is
+  // pointless (and a needless re-render) when there are none on screen.
+  const hasOnlineAppointments = appointments.some(isOnlineConsultation);
+  useEffect(() => {
+    if (!hasOnlineAppointments) return undefined;
+    const timer = setInterval(() => setClockTick(tick => tick + 1), 30_000);
+    return () => clearInterval(timer);
+  }, [hasOnlineAppointments]);
+
+  const joinCall = (appt) => navigate(`/appointments/${appt.id}/call`);
 
   const updateAppointmentStatus = (id, status) => {
     setAppointments(prev => prev.map(app => (app.id === id ? { ...app, status } : app)));
@@ -283,6 +354,7 @@ const AppointmentHistory = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }} gap={1.5} mb={1}>
                       <StatusChip status={appt.status} />
+                      <ModeChip appointment={appt} />
                       <Typography variant="body1" fontWeight={700} color={NAVY}>
                         {dateStr}
                       </Typography>
@@ -311,6 +383,9 @@ const AppointmentHistory = () => {
                   </Box>
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: { xs: 'stretch', md: 'flex-end' } }}>
+                    {/* Online consultations — available to both sides of the call */}
+                    <JoinCallButton appointment={appt} onJoin={joinCall} />
+
                     {/* Doctor actions */}
                     {user.role === 'DOCTOR' && (
                       <Button

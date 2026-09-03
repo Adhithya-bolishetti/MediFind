@@ -37,6 +37,16 @@ application:
   sms:
     enabled: ${SMS_ENABLED:false}
     provider: ${SMS_PROVIDER:mock}
+  video:
+    # How long either side may join around the scheduled appointment time.
+    join-window-before-minutes: ${VIDEO_JOIN_WINDOW_BEFORE:15}
+    join-window-after-minutes: ${VIDEO_JOIN_WINDOW_AFTER:60}
+    # STUN is enough for most home networks; add a TURN server for peers behind
+    # symmetric NAT or restrictive corporate firewalls.
+    stun-urls: ${VIDEO_STUN_URLS:stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302}
+    turn-url: ${VIDEO_TURN_URL:}
+    turn-username: ${VIDEO_TURN_USERNAME:}
+    turn-credential: ${VIDEO_TURN_CREDENTIAL:}
 
 app:
   mail:
